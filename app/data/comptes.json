@@ -1,0 +1,17 @@
+[
+    {
+        "email": "philippe.billerot@gmail.com",
+        "pseudo": "pbillerot",
+        "profil": "admin"
+    },
+    {
+        "email": "philippe.billerot@free.fr",
+        "pseudo": "bibille",
+        "profil": "invite"
+    },
+    {
+        "email": "bill.tero@free.fr",
+        "pseudo": "billtero",
+        "profil": "invite"
+    }
+]
