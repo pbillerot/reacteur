@@ -83,12 +83,6 @@ class NavView extends React.Component {
         )
     }
 }
-// Object.keys(Dico.tables[this.props.table].views).map(view =>
-//     <Nav onClick={this.handleClickView} ctx={this.props.ctx} key={this.props.table + '_' + view}
-//         table={this.props.table} view={view}>
-//         {Dico.tables[this.props.table].views[view].title}
-//     </Nav>
-// )
 
 ContainerSidebar.contextTypes = {
   w3_sidebar_open: React.PropTypes.bool

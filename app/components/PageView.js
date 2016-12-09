@@ -29,9 +29,7 @@ export default class PageView extends React.Component {
         this.setState(obj)
     }
 
-    setRows(rows) {
-        let table = this.state.table
-        let view = this.state.view
+    setRows(table, view, rows) {
         let form_update = Dico.tables[table].views[view].form_update
         let rubs = Dico.tables[table].rubs
         let cols = Dico.tables[table].views[view].rubs
@@ -57,6 +55,7 @@ export default class PageView extends React.Component {
         })
         //console.log(JSON.stringify(tableur))
         this.setState({
+            table: table, view: view,
             rows_selected: [], rows: tableur
         })
     }
@@ -93,26 +92,51 @@ export default class PageView extends React.Component {
         this.props.ctx.state.key_value = key_value
         //this.props.ctx.handleOpenForm('UPDATE')
     }
+    getData(table, view) {
+        fetch('/api/view/' + table + '/' + view)
+            .then(response => {
+                response.json().then(json => {
+                    // traitement du JSON
+                    //console.log('response: ', json)
+                    //this.state.rows = JSON.parse(json.rows)
+                    let rubs = Dico.tables[table].rubs
+                    let cols = Dico.tables[table].views[view].rubs
+                    let row_key = Dico.tables[table].key
+
+                    //console.log(JSON.stringify(rows))
+                    var tableur = []
+                    JSON.parse(json).forEach((row) => {
+                        // insertion des colonnes des rubriques temporaires
+                        let ligne = {}
+                        let key_value = ''
+                        Object.keys(cols).forEach(key => {
+                            if (key == this.state.key_id) {
+                                key_value = row[key]
+                            }
+                            if (Dico.isRubTemporary(key)) {
+                                ligne[key] = key_value
+                            } else {
+                                ligne[key] = row[key]
+                            }
+                        })
+                        tableur.push(ligne)
+                    })
+                    //console.log(JSON.stringify(tableur))
+                    this.setState({
+                        table: table, view: view,
+                        rows_selected: [], rows: tableur
+                    })
+
+                })
+            })
+    }
+    componentWillReceiveProps(nextProps) {
+        //console.log('componentWillReceiveProps', nextProps.params)
+        this.getData(nextProps.params.table, nextProps.params.view)
+    }
     componentDidMount() {
         //console.log('componentDidMount...')
-        fetch('/api/view/' + this.state.table + '/' + this.state.view)
-            .then(response => {
-                var contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    response.json().then(json => {
-                        // traitement du JSON
-                        //console.log('response: ', json)
-                        //this.state.rows = JSON.parse(json.rows)
-                        this.setRows(JSON.parse(json))
-                    })
-                } else {
-                    response.text().then(text => {
-                        // traitement du JSON
-                        //console.log('response: ', text)
-                        this.setState({ markdown: text })
-                    })
-                }
-            })
+        this.getData(this.state.table, this.state.view)
     }
 
     render() {
@@ -209,7 +233,6 @@ class Cell extends React.Component {
     constructor(props) {
         super(props);
     }
-
     render() {
         let table = this.props.table
         let view = this.props.view
@@ -228,9 +251,11 @@ class Cell extends React.Component {
             case 'btn':
                 return (
                     <td>
-                        <button className="w3-btn w3-small w3-teal w3-padding-tiny" value="edit" onClick={(e) => this.props.onEditRow(table, view, form_update, key_val)}
-                            ><i className="material-icons w3-small">edit</i>
-                        </button>
+                        <Link to={'/form/' + table + '/' + view + '/' + form_update + '/' + key_val}>
+                            <button className="w3-btn w3-small w3-teal w3-padding-tiny"
+                                ><i className="material-icons w3-small">edit</i>
+                            </button>
+                        </Link>
                     </td>
                 )
             case 'text':

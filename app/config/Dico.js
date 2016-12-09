@@ -10,15 +10,117 @@ module.exports = {
         copyright: 'REACTEUR 2016 - version 1.0.0',
     },
     tables: {
-        comptes: {
-            basename: 'comptes.js',
-            key: 'email',
+        USERS: {
+            basename: '/home/billerot/conf/acteur/tex.sqlite',
+            key: 'IDUSER',
             rubs: {
-                email: {
-                    label_long: 'EMAIL',
-                    label_short: 'EMAIL',
+                IDUSER: {
+                    label_long: 'COMPTE',
+                    label_short: 'COMPTE',
+                    type: 'text',
+                    length: 9,
+                    formatter: null,
+                    required: true,
+                    default: '',
+                    pattern: "[A-Z,a-z]*",
+                    error: "Obligatoire",
+                    tooltip: null,
+                    list: null, //val1,val2
+                    options: ''
+                },
+                NOMUSER: {
+                    label_long: 'NOM ou PSEUDO',
+                    label_short: 'NOM',
                     type: 'text',
                     length: 70,
+                    form: 'FORM_1',
+                    formatter: null,
+                    default: '',
+                    pattern: null,
+                    tooltip: 'Nom ou le pseudo du compte',
+                    list: null, //val1,val2
+                    options: ''
+                },
+                EMAIL: {
+                    label_long: 'EMAIL',
+                    label_short: 'EMAIL',
+                    type: 'email',
+                    length: 70,
+                    formatter: null,
+                    default: '',
+                    pattern: null,
+                    error: null,
+                    tooltip: 'Email du compte',
+                    list: null, //val1,val2
+                    options: ''
+                },
+                _BTN: {
+                    label_long: '',
+                    label_short: 'BTN',
+                    type: 'btn',
+                    length: 20,
+                    formatter: null,
+                    form: 'FORM_2',
+                    default: '',
+                    pattern: null,
+                    error: null,
+                    tooltip: null,
+                    list: null,
+                    options: ''
+                }
+            },
+            views: {
+                VUE_1: {
+                    title: 'LISTE DES COMPTES',
+                    form_add: 'FORM_1',
+                    form_update: 'FORM_1',
+                    form_delete: null,
+                    rubs: {
+                        _BTN: {},
+                        IDUSER: {},
+                        NOMUSER: {},
+                        EMAIL: {}
+                    }
+                },
+                VUE_2: {
+                    title: 'LISTE DES UTILISATEURS',
+                    form_add: 'FORM_2',
+                    form_update: 'FORM_2',
+                    form_delete: null,
+                    rubs: {
+                        IDUSER: {},
+                        NOMUSER: {}
+                    }
+                }
+            },
+            forms: {
+                FORM_1: {
+                    title: 'COMPTE',
+                    rubs: {
+                        IDUSER: {},
+                        NOMUSER: {},
+                        EMAIL: {},
+                    }
+                },
+                FORM_2: {
+                    title: 'EMAIL',
+                    rubs: {
+                        IDUSER: {},
+                        EMAIL: {},
+                    }
+                }
+
+            }
+        },
+        TEX: {
+            basename: '/home/billerot/conf/acteur/tex.sqlite',
+            key: 'cleunique',
+            rubs: {
+                cleunique: {
+                    label_long: 'ID',
+                    label_short: 'ID',
+                    type: 'text',
+                    length: 23,
                     formatter: null,
                     required: true,
                     default: '',
@@ -28,11 +130,11 @@ module.exports = {
                     list: null, //val1,val2
                     options: ''
                 },
-                pseudo: {
+                nom: {
                     label_long: 'NOM ou PSEUDO',
-                    label_short: 'PSEUDO',
+                    label_short: 'NOM',
                     type: 'text',
-                    length: 50,
+                    length: 70,
                     formatter: null,
                     default: '',
                     pattern: null,
@@ -40,18 +142,18 @@ module.exports = {
                     list: null, //val1,val2
                     options: ''
                 },
-                profil: {
-                    label_long: 'PROFIL',
-                    label_short: 'PROFIL',
-                    type: 'select',
-                    length: 50,
+                email: {
+                    label_long: 'EMAIL',
+                    label_short: 'EMAIL',
+                    type: 'email',
+                    length: 70,
                     editable: true,
                     formatter: null,
                     default: '',
                     pattern: null,
                     error: null,
                     tooltip: 'Email du compte',
-                    list: ['ADMIN', 'INVITE'],
+                    list: null, //val1,val2
                     options: ''
                 },
                 _btn: {
@@ -71,30 +173,48 @@ module.exports = {
             },
             views: {
                 V_1: {
-                    title: 'COMPTES',
+                    title: 'TEX COMPTES',
                     form_add: 'F_1',
                     form_update: 'F_1',
                     form_delete: null,
                     rubs: {
+                        cleunique: {},
+                        nom: {},
                         email: {},
-                        pseudo: {},
-                        profil: {},
                         _btn: {}
+                    }
+                },
+                V_2: {
+                    title: 'TEX EMAIL',
+                    form_add: 'F_2',
+                    form_update: 'F_2',
+                    form_delete: null,
+                    rubs: {
+                        cleunique: {},
+                        email: {}
                     }
                 }
             },
             forms: {
                 F_1: {
-                    title: 'COMPTE',
+                    title: 'TEX COMPTE',
                     rubs: {
+                        cleunique: {},
+                        nom: {},
                         email: {},
-                        pseudo: {},
-                        profil: {},
+                    }
+                },
+                F_2: {
+                    title: 'TEX EMAIL',
+                    rubs: {
+                        cleunique: {},
+                        email: {},
                     }
                 }
+
             }
         }
-    },
+     },
     isRubTemporary(key) {
         return /^_/g.test(key)
     }
