@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import { Link } from 'react-router';
+import { Link, browserHistory} from 'react-router';
 // W3
 const {Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
@@ -31,9 +31,9 @@ export default class PageForm extends React.Component {
             <div className="w3-main w3-padding-64">
                 <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
                     <Link to={'/view/' + this.state.table + '/' + this.state.view}>
-                        <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-left w3-margin-right"    
-                        title="retour"                        
-                        ></i>
+                        <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-left w3-margin-right"
+                            title="retour"
+                            ></i>
                     </Link>
                     <span id="myIntro">{Dico.tables[this.state.table].forms[this.state.form].title}</span>
                 </div>
@@ -72,7 +72,34 @@ class Form extends React.Component {
         this.setState({})
     }
     handleSubmit() {
-        console.log('handleSubmit: ', this.state.fields)
+        //console.log('handleSubmit: ', this.state.fields)
+        this.updateData()
+    }
+    updateData() {
+        let data = ''
+        Object.keys(this.state.fields).forEach(key => {
+            if (!Dico.isRubTemporary(key)) {
+                let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
+                data += data.length > 0 ? '&' + param : param
+            }
+        })
+        fetch('/api/form/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+            },
+            body: data
+        }).then(res => {
+            if (res.ok == true) {
+                //console.log('OK: ', res);
+                browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
+            } else {
+                console.log('ERR: ', res)
+                // {type: "basic", url: "http://localhost:3333/api/form/USERS/VUE_1/FORM_1/DIXSOIXANTE", status: 500, ok: false, statusText: "Internal Server Error"
+            }
+        })
+
     }
     getData(table, view, form, id) {
         //console.log('Form.getData: ', table, view, form, id)

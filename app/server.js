@@ -3,6 +3,8 @@
 import path from 'path';
 import { Server } from 'http';
 import Express from 'express';
+import bodyParser from 'body-parser';
+//import multer from 'multer';
 import React from 'react';
 
 const fs = require('fs')
@@ -36,6 +38,9 @@ const server = new Server(app);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+//app.use(multer());
 // define the folder that will be used for static assets
 app.use(Express.static(path.join(__dirname, 'static')));
 
@@ -45,6 +50,46 @@ app.get('/api/help', function (req, res) {
   let path = __dirname + '/views/help.md';
   let file = fs.readFileSync(path, 'utf8');
   res.send((file.toString()));
+})
+
+app.post('/api/form/:table/:view/:form/:id', function (req, res) {
+  console.log(req.url)
+  let rubs = Dico.tables[req.params.table].rubs
+  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
+  let key_name = Dico.tables[req.params.table].key
+
+  let data = req.body
+  let sql = ''
+  Object.keys(fields).forEach((key) => {
+    if (!Dico.isRubTemporary(key)) {
+      sql += sql.length > 0 ? ", " : ""
+      sql += key + " = '" + data[key] + "'"
+    }
+  })
+  sql = 'UPDATE ' + req.params.table + ' SET ' + sql
+  sql += " WHERE " + key_name + " = '" + req.params.id + "'"
+  let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
+  var result = (callback) => {
+    db.serialize(function () {
+      db.run(sql, [], function (err) {
+        if (err) {
+          console.log("ERR: " + sql)
+          res.status('500').json({message: err})
+          return
+          //throw err
+        }
+        console.log("UPDATE: " + JSON.stringify(this, null, 4))
+        callback(this)
+      });
+      db.close()
+    });
+  }
+  result((result) => {
+    res.status('200').json({message: 'OK'}) // OK
+  })
+  //res.status('400').json({message: 'KO'}) // bad request
+  //res.status('500').json({message: 'KO'}) // Internal Server Error
+  //res.status('200').json({message: 'OK'}) // OK 
 })
 
 app.get('/api/form/:table/:view/:form/:id', function (req, res) {
