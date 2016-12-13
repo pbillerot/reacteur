@@ -36,3 +36,6 @@ babel_cache
 
 # Optional REPL history
 .node_repl_history
+
+# bd
+.sqlite

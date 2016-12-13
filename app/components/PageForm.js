@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import { Link, browserHistory} from 'react-router';
+import { Link, browserHistory } from 'react-router';
 // W3
 const {Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
@@ -60,7 +60,9 @@ class Form extends React.Component {
             rubs: Dico.tables[this.props.table].rubs,
             cols: Dico.tables[this.props.table].views[this.props.view].rubs,
             fields: Dico.tables[this.props.table].forms[this.props.form].rubs,
-            row: []
+            row: [],
+            is_error: false,
+            errors: []
         }
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -91,13 +93,22 @@ class Form extends React.Component {
             },
             body: data
         }).then(res => {
+            console.log('res: ', res);
             if (res.ok == true) {
+                this.state.errors.push(res.statusText)
+                this.setState({ is_error: true })
                 //console.log('OK: ', res);
-                browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
+                //browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
             } else {
-                console.log('ERR: ', res)
+                //console.log('ERR: ', res)
+                this.state.errors.push(res.statusText)
+                this.setState({ is_error: true })
+
                 // {type: "basic", url: "http://localhost:3333/api/form/USERS/VUE_1/FORM_1/DIXSOIXANTE", status: 500, ok: false, statusText: "Internal Server Error"
             }
+        }).catch(err => {
+            // ne fonctionne pas
+            console.log('ERR: ', err)
         })
 
     }
@@ -128,6 +139,13 @@ class Form extends React.Component {
     render() {
         return (
             <form>
+                {this.state.is_error &&
+                    this.state.errors.map(error => {
+                        <div className="w3-panel w3-pale-red w3-leftbar w3-border-red">
+                            {this.state.error}
+                        </div>
+                    })
+                }
                 {
                     Object.keys(this.state.fields).map(key =>
                         <Field {...this.state} key={key} id={key}

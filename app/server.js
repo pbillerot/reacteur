@@ -20,15 +20,6 @@ import Dico from './config/Dico.js';
 
 // Composants SERVER
 
-//const winston = require('winston')
-
-// var logger = new (winston.Logger)({
-//     transports: [
-//       new (winston.transports.Console)(),
-//       new (winston.transports.File)({ filename: 'server.log' })
-//     ]
-// });
-// logger.info('Start...')
 console.log("Go...", __dirname)
 
 // initialize the server and configure support for ejs templates
@@ -85,7 +76,8 @@ app.post('/api/form/:table/:view/:form/:id', function (req, res) {
     });
   }
   result((result) => {
-    res.status('200').json({message: 'OK'}) // OK
+    res.status('200').json({error: 'Ya une coquille!!!', message: 'ce bon'}) // OK
+    //res.status('400').json({message: 'Ya une coquille!!!'}) // OK
   })
   //res.status('400').json({message: 'KO'}) // bad request
   //res.status('500').json({message: 'KO'}) // Internal Server Error
