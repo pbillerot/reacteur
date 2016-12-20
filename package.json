@@ -1,7 +1,7 @@
 {
   "name": "reacteur",
   "version": "1.0.0",
-  "description": "Experimental Web application with React",
+  "description": "Experimental Web application with NodeJS, Express, HTTPS, React, Sqlite",
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production node_modules/.bin/babel-node --presets 'react,es2015' app/server.js",
