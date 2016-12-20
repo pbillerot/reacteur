@@ -1,180 +1,62 @@
 'use strict';
 
 import path from 'path';
-import { Server } from 'http';
+import http from 'http';
+import https from 'https';
 import Express from 'express';
+import logger from 'winston';
 import bodyParser from 'body-parser';
-//import multer from 'multer';
+import helmet from 'helmet';
+import session from 'express-session';
 import React from 'react';
-
-const fs = require('fs')
-const sqlite3 = require('sqlite3').verbose()
-//const Store = require('jfs')
 
 import { renderToString } from 'react-dom/server';
 import { match, RouterContext } from 'react-router';
 import routes from '../app/routes';
 import PageNotFound from '../app/components/PageNotFound';
 
-import Dico from './config/Dico.js';
+const RedisStore = require('connect-redis')(session);
 
-// Composants SERVER
-
-console.log("Go...", __dirname)
+const fs = require('fs')
+const options = {
+  key: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/privkey.pem'),
+  cert: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/cert.pem'),
+  ca: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/chain.pem'),
+};
 
 // initialize the server and configure support for ejs templates
-const app = new Express();
-const server = new Server(app);
+var app = new Express();
+var server = https.createServer(options, app); // HTTPS
+//var server = http.createServer(app); // HTTP
+//var server = new Server(app);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+app.set('trust proxy', 1) // trust first proxy
+app.use(session({
+  //store: new RedisStore(),
+  secret: 'En marche',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { 
+    maxAge: 60000,
+    httpOnly: false,
+    //secure: true,
+    //domain: 'pbillerot.freeboxos.fr',
+  }
+}))
+app.use(helmet())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 //app.use(multer());
 // define the folder that will be used for static assets
 app.use(Express.static(path.join(__dirname, 'static')));
+app.use('/favicon.ico', Express.static('favicon.ico'));
 
-// traitement des REST API
-app.get('/api/help', function (req, res) {
-  console.log(req.url)
-  let path = __dirname + '/views/help.md';
-  let file = fs.readFileSync(path, 'utf8');
-  res.send((file.toString()));
-})
-
-app.post('/api/form/:table/:view/:form/:id', function (req, res) {
-  console.log(req.url)
-  let rubs = Dico.tables[req.params.table].rubs
-  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
-  let key_name = Dico.tables[req.params.table].key
-
-  let data = req.body
-  let sql = ''
-  Object.keys(fields).forEach((key) => {
-    if (!Dico.isRubTemporary(key)) {
-      sql += sql.length > 0 ? ", " : ""
-      sql += key + " = '" + data[key] + "'"
-    }
-  })
-  sql = 'UPDATE ' + req.params.table + ' SET ' + sql
-  sql += " WHERE " + key_name + " = '" + req.params.id + "'"
-  let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
-  var result = (callback) => {
-    db.serialize(function () {
-      db.run(sql, [], function (err) {
-        if (err) {
-          console.log("ERR: " + sql)
-          res.status('500').json({message: err})
-          return
-          //throw err
-        }
-        console.log("UPDATE: " + JSON.stringify(this, null, 4))
-        callback(this)
-      });
-      db.close()
-    });
-  }
-  result((result) => {
-    res.status('200').json({error: 'Ya une coquille!!!', message: 'ce bon'}) // OK
-    //res.status('400').json({message: 'Ya une coquille!!!'}) // OK
-  })
-  //res.status('400').json({message: 'KO'}) // bad request
-  //res.status('500').json({message: 'KO'}) // Internal Server Error
-  //res.status('200').json({message: 'OK'}) // OK 
-})
-
-app.get('/api/form/:table/:view/:form/:id', function (req, res) {
-  console.log(req.url)
-  let select = ''
-  let rubs = Dico.tables[req.params.table].rubs
-  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
-  let key_name = Dico.tables[req.params.table].key
-
-  Object.keys(fields).forEach((key) => {
-    if (!Dico.isRubTemporary(key)) {
-      select += select.length > 0 ? ', ' + key : key
-      fields[key].value = ''
-    }
-    //console.log(key + ': ' + JSON.stringify(rubs[key], null, 4))
-  })
-  //console.log(select)
-  select = 'SELECT ' + select + ' FROM ' + req.params.table
-  select += " WHERE " + key_name + " = '" + req.params.id + "'"
-  let db = new sqlite3.Database(Dico.tables[req.params.table].basename, sqlite3.OPEN_READONLY);
-  var result = (callback) => {
-    db.serialize(function () {
-      db.all(select, function (err, rows) {
-        if (err) throw err
-        console.log("FORM: " + JSON.stringify(this, null, 4))
-        callback(rows)
-      });
-      db.close()
-    });
-  }
-  result((rows) => {
-    Object.keys(fields).map(key => {
-      if (!Dico.isRubTemporary(key)) {
-        fields[key].value = rows[0][key]
-      } else {
-        fields[key].value = ''
-      }
-    })
-    console.log(fields)
-    res.json(JSON.stringify(fields))
-  })
-
-})
-
-app.get('/api/view/:table/:view', function (req, res) {
-  console.log(req.url)
-  let db = new sqlite3.Database(Dico.tables[req.params.table].basename, sqlite3.OPEN_READONLY);
-  let select = ''
-  let rubs = Dico.tables[req.params.table].rubs
-  let cols = Dico.tables[req.params.table].views[req.params.view].rubs
-  let key_name = Dico.tables[req.params.table].key
-  Object.keys(cols).forEach((key) => {
-    if (!Dico.isRubTemporary(key))
-      select += select.length > 0 ? ', ' + key : key
-  })
-  select = 'SELECT ' + select + ' FROM ' + req.params.table
-  var result = (callback) => {
-    db.serialize(function () {
-      db.all(select, function (err, rows) {
-        if (err) {
-          console.log("VIEW: " + select)
-          throw err
-        }
-        //console.log("VIEW: " + JSON.stringify(this, null, 4))
-        callback(rows)
-      });
-      db.close()
-    });
-  }
-  result((rows) => {
-    //console.log(JSON.stringify(rows))
-    var tableur = []
-    rows.forEach((row) => {
-      // insertion des colonnes des rubriques temporaires
-      let ligne = {}
-      let key_value = ''
-      Object.keys(cols).forEach(key => {
-        if (key == key_name) {
-          key_value = row[key]
-        }
-        if (Dico.isRubTemporary(key)) {
-          ligne[key] = key_value
-        } else {
-          ligne[key] = row[key]
-        }
-      })
-      tableur.push(ligne)
-    })
-    console.log(JSON.stringify(tableur))
-    res.json(JSON.stringify(tableur))
-  })
-
-})
+// Traitement des appels API
+const api  = require('./server/api');
+app.use('/api', api);
 
 // universal routing and rendering
 app.get('*', (req, res) => {
@@ -210,12 +92,13 @@ app.get('*', (req, res) => {
 });
 
 // start the server
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8443; // HTTPS
+//const port = process.env.PORT || 3000; // HTTP
 const env = process.env.NODE_ENV || 'production';
 server.listen(port, err => {
   if (err) {
     return logger.error(err);
   }
-  //logger.info(`Server running on http://localhost:${port} [${env}]`)
-  console.info(`Server running on http://localhost:${port} [${env}]`);
+  //logger.info(`Server running on http://localhost:${port} [${env}]`) // HTTP
+  logger.info(`Server running on https://localhost:${port} [${env}]`) // HTTPS
 });

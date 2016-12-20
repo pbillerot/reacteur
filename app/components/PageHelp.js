@@ -50,7 +50,9 @@ class RestAPI extends React.Component {
     }
     componentDidMount() {
         //console.log('componentDidMount...')
-        fetch('/api/help')
+        fetch('/api/help', {
+            credentials: 'include'
+        })
             .then(response => {
                 var contentType = response.headers.get("content-type");
                 if (contentType && contentType.indexOf("application/json") !== -1) {
