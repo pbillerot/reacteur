@@ -87,6 +87,7 @@ class Form extends React.Component {
         })
         fetch('/api/form/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
             method: "POST",
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
@@ -114,7 +115,7 @@ class Form extends React.Component {
     }
     getData(table, view, form, id) {
         //console.log('Form.getData: ', table, view, form, id)
-        fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id)
+        fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, {credentials: 'include'})
             .then(response => {
                 response.json().then(json => {
                     let row = JSON.parse(json)

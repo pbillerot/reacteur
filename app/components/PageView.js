@@ -93,7 +93,7 @@ export default class PageView extends React.Component {
         //this.props.ctx.handleOpenForm('UPDATE')
     }
     getData(table, view) {
-        fetch('/api/view/' + table + '/' + view)
+        fetch('/api/view/' + table + '/' + view, {credentials: 'include'})
             .then(response => {
                 response.json().then(json => {
                     // traitement du JSON

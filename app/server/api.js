@@ -10,22 +10,17 @@ const Dico = require('../config/Dico')
 
 // traitement des REST API
 router.get('/help', function (req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
-  logger.info('session: ', req.session)
-  var sess = req.session
-  if (sess.views) {
-    sess.views++
-  } else {
-    sess.views = 1
-  }
-  logger.info('Help: ', sess.views)
+  //logger.info('Headers:', req.headers['user-agent'])
+  //res.setHeader('Access-Control-Allow-Credentials', 'true')
+  var session = req.session
+  session.user_agent = req.headers['user-agent']
   let path = __dirname + '/../views/help.md';
   let file = fs.readFileSync(path, 'utf8');
   res.send((file.toString()));
 })
 
 router.post('/form/:table/:view/:form/:id', function (req, res) {
-  console.log(req.url)
+  //console.log(req.url)
   let rubs = Dico.tables[req.params.table].rubs
   let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
   let key_name = Dico.tables[req.params.table].key
@@ -66,7 +61,7 @@ router.post('/form/:table/:view/:form/:id', function (req, res) {
 })
 
 router.get('/form/:table/:view/:form/:id', function (req, res) {
-  console.log(req.url)
+  //console.log(req.url)
   let select = ''
   let rubs = Dico.tables[req.params.table].rubs
   let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
@@ -108,7 +103,7 @@ router.get('/form/:table/:view/:form/:id', function (req, res) {
 })
 
 router.get('/view/:table/:view', function (req, res) {
-  console.log(req.url)
+  //console.log(req.url)
   let db = new sqlite3.Database(Dico.tables[req.params.table].basename, sqlite3.OPEN_READONLY);
   let select = ''
   let rubs = Dico.tables[req.params.table].rubs

@@ -7,15 +7,12 @@ import Express from 'express';
 import logger from 'winston';
 import bodyParser from 'body-parser';
 import helmet from 'helmet';
-import session from 'express-session';
 import React from 'react';
 
 import { renderToString } from 'react-dom/server';
 import { match, RouterContext } from 'react-router';
 import routes from '../app/routes';
 import PageNotFound from '../app/components/PageNotFound';
-
-const RedisStore = require('connect-redis')(session);
 
 const fs = require('fs')
 const options = {
@@ -34,28 +31,62 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.set('trust proxy', 1) // trust first proxy
-app.use(session({
-  //store: new RedisStore(),
-  secret: 'En marche',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { 
-    maxAge: 60000,
-    httpOnly: false,
-    //secure: true,
-    //domain: 'pbillerot.freeboxos.fr',
-  }
-}))
 app.use(helmet())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(require('cookie-parser')());
+
+// SESSION
+// Un server REDIS a été installé sur la machine
+// sudo apt install redis-server
+var session = require('express-session');
+//var session = require('client-sessions');
+var RedisStore = require('connect-redis')(session);
+app.use(session({
+  // cookieName: 'session',
+  // requestKey: 'forcedSessionKey',
+  // secret: 'sse2-Excr',
+  // duration: 2 * 60 * 60 * 1000, // 2 heures
+  // cookie: {
+  //   path: '/api', // cookie will only be sent to requests under '/api'
+  //   maxAge: 60000, // duration of the cookie in milliseconds, defaults to duration above
+  //   ephemeral: false, // when true, cookie expires when the browser closes
+  //   httpOnly: true, // when true, cookie is not accessible from javascript
+  //   secure: true // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
+  // }
+  store: new RedisStore({ host: '127.0.0.1', port: 6379, prefix:'sess' }),
+  secret: 'sse2-Excr',
+  resave: true,
+  saveUninitialized: true,
+  cookie: {
+    maxAge: 60000,
+    httpOnly: false,
+    secure: true,
+    domain: 'pbillerot.freeboxos.fr',
+  }
+}))
+app.use(function (req, res, next) {
+  logger.info(req.url)
+  //res.setHeader('Access-Control-Allow-Credentials', 'true')
+  var sess = req.session
+  if ( sess.count ) {
+    sess.count += 1
+    logger.info('***** ', sess.id, sess.count)
+  } else {
+    sess.count = 1
+    logger.info('SESSION Connection de', sess.count)
+    //logger.info('Connection de', session.user_agent)
+  }
+  next()
+})
+
 //app.use(multer());
 // define the folder that will be used for static assets
 app.use(Express.static(path.join(__dirname, 'static')));
 app.use('/favicon.ico', Express.static('favicon.ico'));
 
 // Traitement des appels API
-const api  = require('./server/api');
+const api = require('./server/api');
 app.use('/api', api);
 
 // universal routing and rendering
