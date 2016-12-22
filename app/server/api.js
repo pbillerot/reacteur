@@ -1,3 +1,25 @@
+/*
+Google JSON guide
+
+Success response return data
+{
+  "data": {
+    "id": 1001,
+    "name": "Wing"
+  }
+}
+
+Error response return error
+{
+  "error": {
+    "code": 404,
+    "message": "ID not found"
+  }
+}
+
+*/
+
+
 const express = require('express');
 const router = express.Router();
 import logger from 'winston';
@@ -149,6 +171,40 @@ router.get('/view/:table/:view', function (req, res) {
     console.log(JSON.stringify(tableur))
     res.json(JSON.stringify(tableur))
   })
+
+})
+
+router.delete('/:table/:view/:form/:id', function (req, res) {
+  //console.log(req.url)
+  let sql = ''
+  let rubs = Dico.tables[req.params.table].rubs
+  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
+  let key_name = Dico.tables[req.params.table].key
+
+  Object.keys(fields).forEach((key) => {
+    if (!Dico.isRubTemporary(key)) {
+      sql += sql.length > 0 ? ', ' + key : key
+      fields[key].value = ''
+    }
+    //console.log(key + ': ' + JSON.stringify(rubs[key], null, 4))
+  })
+  //console.log(sql)
+  sql = 'DELETE FROM ' + req.params.table
+  sql += " WHERE " + key_name + " = '" + req.params.id + "'"
+  let db = new sqlite3.Database(Dico.tables[req.params.table].basename, sqlite3.OPEN_READONLY);
+  var result = () => {
+    db.serialize(function () {
+      db.run(sql, function (err) {
+        console.log("DELETE: " + err)
+        if (err) {
+          res.json({"error": {"code": 1, "message": err}})
+          throw err
+        }
+        res.json({"data": "ok"})
+      });
+      db.close()
+    });
+  }
 
 })
 

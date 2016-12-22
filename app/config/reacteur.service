@@ -1,0 +1,15 @@
+[Unit]
+Description=Service Reacteur
+After=network.target
+
+[Service]
+Type=simple
+User=billerot
+Group=billerot
+UMask=007
+WorkingDirectory=/home/billerot/git/reacteur
+ExecStart=/usr/bin/npm start
+
+[Install]
+WantedBy=multi-user.target
+
