@@ -98,10 +98,10 @@ class Form extends React.Component {
             if (res.ok == true) {
                 this.state.errors.push(res.statusText)
                 this.setState({ is_error: true })
-                //console.log('OK: ', res);
-                //browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
+                console.log('OK: ', res);
+                browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
             } else {
-                //console.log('ERR: ', res)
+                console.log('ERR: ', res)
                 this.state.errors.push(res.statusText)
                 this.setState({ is_error: true })
 

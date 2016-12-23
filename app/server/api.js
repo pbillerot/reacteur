@@ -22,7 +22,6 @@ Error response return error
 
 const express = require('express');
 const router = express.Router();
-import logger from 'winston';
 const sqlite3 = require('sqlite3').verbose()
 const fs = require('fs')
 
@@ -31,9 +30,14 @@ const fs = require('fs')
 const Dico = require('../config/Dico')
 
 // traitement des REST API
+router.get('/portail', function (req, res) {
+  var session = req.session
+  session.user_agent = req.headers['user-agent']
+  let path = __dirname + '/../views/portail.md';
+  let file = fs.readFileSync(path, 'utf8');
+  res.send((file.toString()));
+})
 router.get('/help', function (req, res) {
-  //logger.info('Headers:', req.headers['user-agent'])
-  //res.setHeader('Access-Control-Allow-Credentials', 'true')
   var session = req.session
   session.user_agent = req.headers['user-agent']
   let path = __dirname + '/../views/help.md';

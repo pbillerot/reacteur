@@ -1,11 +1,11 @@
 /**
  * Déclaration du dictionnaire des rubriques, formulaires et vues de l'application
- * id: toujours en majuscule
+ * 
  */
 module.exports = {
     application: {
         title: 'REACTEUR',
-        desc: 'CRUD with Dictionary',
+        desc: 'REACTEUR, un simple CRUD',
         url: 'https://github.com/pbillerot/atomium',
         copyright: 'REACTEUR 2016 - version 1.0.0',
     },

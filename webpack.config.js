@@ -10,6 +10,7 @@ module.exports = {
   entry: path.join(__dirname, 'app', 'client.js'),
   devServer: {
     inline: true,
+    https: true,
     port: 3333,
     contentBase: "app/static/",
     historyApiFallback: {
@@ -17,7 +18,7 @@ module.exports = {
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'https://localhost:8443',
         secure: false
       }
     }

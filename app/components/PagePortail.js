@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Link } from 'react-router';
+const Markdown = require('react-remarkable')
 // W3
 const {Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
@@ -15,11 +16,35 @@ export default class PagePortail extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            w3_sidebar_open: false
+            w3_sidebar_open: false,
+            markdown: ''
         }
+
     }
     handlerCtx(obj) {
         this.setState(obj)
+    }
+    componentDidMount() {
+        //console.log('componentDidMount...')
+        fetch('/api/portail', {
+            credentials: 'include'
+        })
+            .then(response => {
+                var contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    response.json().then(json => {
+                        // traitement du JSON
+                        //console.log('response: ', json)
+                        this.setState(json)
+                    })
+                } else {
+                    response.text().then(text => {
+                        // traitement du JSON
+                        //console.log('response: ', text)
+                        this.setState({ markdown: text })
+                    })
+                }
+            })
     }
 
     render() {
@@ -29,12 +54,10 @@ export default class PagePortail extends React.Component {
                 <ContainerContent ctx={this}>
                     <Header title={Dico.application.desc} ctx={this} />
 
-                    <Card>
-                        <div className="w3-container w3-section w3-padding-32 w3-card-4 w3-light-grey w3-large">
-                            Le framework pour développer des applications en décrivant
-                    les rubriques, les formulaires, les vues dans un dictionnaire
-                    </div>
+                    <Card style={{ width: '100%', margin: 'auto' }}>
+                        {<Markdown source={this.state.markdown} />}
                     </Card>
+
                     <Footer ctx={this}>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
