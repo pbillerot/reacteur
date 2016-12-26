@@ -247,14 +247,23 @@ class Cell extends React.Component {
         let col = cols[key]
         //console.log('Cell:', table, view, key+'='+ val)
         switch (rub.type) {
-            case 'btn':
+            case 'btn_edit':
                 return (
                     <td>
                         <Link to={'/form/edit/' + table + '/' + view + '/' + form_edit + '/' + key_val}>
-                            <button className="w3-btn w3-small w3-teal w3-padding-tiny"
+                            <span className="w3-btn w3-small w3-teal w3-padding-tiny"
                              title={'Edition de ' + Dico.tables[table].forms[form_edit].title + '...'}
                                 ><i className="material-icons w3-small">edit</i>
-                            </button>
+                            </span>
+                        </Link>
+                    </td>
+                )
+            case 'btn_delete':
+                return (
+                    <td>
+                        <Link to={'/form/delete/' + table + '/' + view + '/' + form_edit + '/' + key_val}
+                             title={'Suppression de ' + Dico.tables[table].forms[form_edit].title + '...'}
+                                ><i className="material-icons">delete</i>
                         </Link>
                     </td>
                 )

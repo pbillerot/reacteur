@@ -63,9 +63,11 @@ class Form extends React.Component {
             rubs: Dico.tables[this.props.table].rubs,
             cols: Dico.tables[this.props.table].views[this.props.view].rubs,
             fields: Dico.tables[this.props.table].forms[this.props.form].rubs,
-            row: [],
             is_error: false,
-            errors: []
+            error: {
+                code: '',
+                message: ''
+            }
         }
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -84,6 +86,9 @@ class Form extends React.Component {
         if (this.state.action == 'add') {
             this.insertData()
         }
+        if (this.state.action == 'delete') {
+            this.deleteData()
+        }
     }
     updateData() {
         let data = ''
@@ -93,7 +98,7 @@ class Form extends React.Component {
                 data += data.length > 0 ? '&' + param : param
             }
         })
-        fetch('/api/update/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+        fetch('/api/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
             method: "POST",
             credentials: 'same-origin',
             headers: {
@@ -119,6 +124,48 @@ class Form extends React.Component {
         })
 
     }
+
+    deleteData() {
+        let data = ''
+        Object.keys(this.state.fields).forEach(key => {
+            if (!Dico.isRubTemporary(key)) {
+                let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
+                data += data.length > 0 ? '&' + param : param
+            }
+        })
+        fetch('/api/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+            method: "DELETE",
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+            },
+            body: data
+        }).then(response => {
+            console.log('RESULT: ', response)
+            response.json().then(json => {
+                if (response.ok == true) {
+                    if (json.code < 4000) {
+                        browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
+                    } else {
+                        this.state.error = {
+                            code: json.code,
+                            message: json.message
+                        }
+                        this.setState({ is_error: true })
+                    }
+                } else {
+                    this.state.error = {
+                        code: json.code,
+                        message: json.message
+                    }
+                    this.setState({ is_error: true })
+                }
+            })
+        })
+
+    }
+
     insertData() {
         let data = ''
         Object.keys(this.state.fields).forEach(key => {
@@ -127,35 +174,45 @@ class Form extends React.Component {
                 data += data.length > 0 ? '&' + param : param
             }
         })
-        fetch('/api/add/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
-            method: "POST",
+        fetch('/api/' + this.state.table + '/' + this.state.view + '/' + this.state.form, {
+            method: "PUT",
             credentials: 'same-origin',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
             },
             body: data
-        }).then(res => {
-            console.log('res: ', res);
-            if (res.ok == true) {
-                this.state.errors.push(res.statusText)
-                this.setState({ is_error: true })
-                console.log('OK: ', res);
-                browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
-            } else {
-                console.log('ERR: ', res)
-                this.state.errors.push(res.statusText)
-                this.setState({ is_error: true })
-            }
-        }).catch(err => {
-            // ne fonctionne pas
-            console.log('ERR: ', err)
+        }).then(response => {
+            console.log('RESULT: ', response)
+            response.json().then(json => {
+                if (response.ok == true) {
+                    if (json.code < 4000) {
+                        browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
+                    } else {
+                        this.state.error = {
+                            code: json.code,
+                            message: json.message
+                        }
+                        this.setState({ is_error: true })
+                    }
+                } else {
+                    this.state.error = {
+                        code: json.code,
+                        message: json.message
+                    }
+                    this.setState({ is_error: true })
+                }
+            })
         })
 
     }
-    getData(table, view, form, id) {
-        //console.log('Form.getData: ', table, view, form, id)
-        if (this.state.action == 'edit') {
+
+    getData(action, table, view, form, id) {
+        console.log('Form.getData: ', action, table, view, form, id)
+        Object.keys(this.state.fields).forEach(key => {
+            this.state.fields[key].value = ''
+        })
+        if (action == 'edit' || action == 'delete') {
             fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, { credentials: 'same-origin' })
                 .then(response => {
                     response.json().then(json => {
@@ -169,28 +226,26 @@ class Form extends React.Component {
                 })
         }
         if (this.state.action == 'add') {
-            this.setState({row: []})
+            this.setState({ row: [] })
         }
     }
     componentWillReceiveProps(nextProps) {
         //console.log('Form.componentWillReceiveProps', nextProps.params)
         if (nextProps.params)
-            this.getData(nextProps.params.table, nextProps.params.view, nextProps.params.form, nextProps.params.id)
+            this.getData(nextProps.params.action, nextProps.params.table, nextProps.params.view, nextProps.params.form, nextProps.params.id)
     }
     componentDidMount() {
         //console.log('Form.componentDidMount...')
-        this.getData(this.state.table, this.state.view, this.state.form, this.state.id)
+        this.getData(this.state.action, this.state.table, this.state.view, this.state.form, this.state.id)
     }
 
     render() {
         return (
             <form>
                 {this.state.is_error &&
-                    this.state.errors.map(error => {
-                        <div className="w3-panel w3-pale-red w3-leftbar w3-border-red">
-                            {this.state.error}
-                        </div>
-                    })
+                    <div className="w3-panel w3-pale-red w3-leftbar w3-border-red">
+                        <p>{this.state.error.code} {this.state.error.message}</p>
+                    </div>
                 }
                 {
                     Object.keys(this.state.fields).map(key =>
@@ -205,7 +260,16 @@ class Form extends React.Component {
                     style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
                     <button type="button" className="w3-btn w3-teal"
                         onClick={this.handleSubmit} >
-                        <i className="fa fa-check"></i> Enregistrer
+                        <i className="fa fa-check"></i>
+                        {this.state.action == 'edit' && 
+                            ' Enregistrer'
+                        }
+                        {this.state.action == 'add' && 
+                            ' Ajouter'
+                        }
+                        {this.state.action == 'delete' && 
+                            ' Supprimer'
+                        }
                     </button>
                 </div>
             </form>

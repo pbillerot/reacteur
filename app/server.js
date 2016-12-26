@@ -4,7 +4,6 @@ import path from 'path';
 import http from 'http';
 import https from 'https';
 import Express from 'express';
-import logger from 'winston';
 import morgan from 'morgan';
 
 import bodyParser from 'body-parser';
@@ -58,7 +57,7 @@ app.use(session({
   }
 }))
 app.use(function (req, res, next) {
-  console.log(req.url)
+  //console.log(req.url)
   //res.setHeader('Access-Control-Allow-Credentials', 'true')
   var sess = req.session
   if ( sess.count ) {
@@ -85,7 +84,6 @@ app.get('*', (req, res) => {
   match(
     { routes, location: req.url },
     (err, redirectLocation, renderProps) => {
-
       // in case of error display the error message
       if (err) {
         return res.status(500).send(err.message);

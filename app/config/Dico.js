@@ -56,8 +56,22 @@ module.exports = {
                 },
                 _BTN: {
                     label_long: '',
-                    label_short: 'BTN',
-                    type: 'btn',
+                    label_short: '',
+                    type: 'btn_edit',
+                    length: 20,
+                    formatter: null,
+                    form: 'FORM_2',
+                    default: '',
+                    pattern: null,
+                    error: null,
+                    tooltip: null,
+                    list: null,
+                    options: ''
+                },
+                _DEL: {
+                    label_long: '',
+                    label_short: '',
+                    type: 'btn_delete',
                     length: 20,
                     formatter: null,
                     form: 'FORM_2',
@@ -74,12 +88,13 @@ module.exports = {
                     title: 'LISTE DES COMPTES',
                     form_add: 'FORM_1',
                     form_edit: 'FORM_1',
-                    form_delete: null,
+                    form_delete: 'FORM_1',
                     rubs: {
                         _BTN: {},
                         IDUSER: {},
                         NOMUSER: {},
-                        EMAIL: {}
+                        EMAIL: {},
+                        _DEL: {}
                     }
                 },
                 VUE_2: {
