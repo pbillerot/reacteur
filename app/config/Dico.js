@@ -7,7 +7,7 @@ module.exports = {
         title: 'REACTEUR',
         desc: 'REACTEUR, un simple CRUD',
         url: 'https://github.com/pbillerot/atomium',
-        copyright: 'REACTEUR 2016 - version 1.0.0',
+        copyright: 'REACTEUR 2016 - version 1.0.1',
     },
     tables: {
         USERS: {
