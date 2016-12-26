@@ -73,7 +73,7 @@ module.exports = {
                 VUE_1: {
                     title: 'LISTE DES COMPTES',
                     form_add: 'FORM_1',
-                    form_update: 'FORM_1',
+                    form_edit: 'FORM_1',
                     form_delete: null,
                     rubs: {
                         _BTN: {},
@@ -85,7 +85,7 @@ module.exports = {
                 VUE_2: {
                     title: 'LISTE DES UTILISATEURS',
                     form_add: 'FORM_2',
-                    form_update: 'FORM_2',
+                    form_edit: 'FORM_2',
                     form_delete: null,
                     rubs: {
                         IDUSER: {},
@@ -175,7 +175,7 @@ module.exports = {
                 V_1: {
                     title: 'TEX COMPTES',
                     form_add: 'F_1',
-                    form_update: 'F_1',
+                    form_edit: 'F_1',
                     form_delete: null,
                     rubs: {
                         cleunique: {},
@@ -187,7 +187,7 @@ module.exports = {
                 V_2: {
                     title: 'TEX EMAIL',
                     form_add: 'F_2',
-                    form_update: 'F_2',
+                    form_edit: 'F_2',
                     form_delete: null,
                     rubs: {
                         cleunique: {},

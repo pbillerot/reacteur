@@ -2,6 +2,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
+import 'whatwg-fetch'
 import { Link } from 'react-router'
 // W3
 const {Button, Card, Content, Footer, Header, IconButton
@@ -22,7 +23,7 @@ export default class PageView extends React.Component {
             rows: [],
             rows_selected: []
         }
-        this.handleEditRow = this.handleEditRow.bind(this);
+
     }
     handlerCtx(obj) {
         //console.log('handlerCtx: ', obj)
@@ -30,7 +31,7 @@ export default class PageView extends React.Component {
     }
 
     setRows(table, view, rows) {
-        let form_update = Dico.tables[table].views[view].form_update
+        let form_edit = Dico.tables[table].views[view].form_edit
         let rubs = Dico.tables[table].rubs
         let cols = Dico.tables[table].views[view].rubs
         let row_key = Dico.tables[table].key
@@ -84,16 +85,8 @@ export default class PageView extends React.Component {
         Object.assign(rows[e.rowIdx], e.updated);
         this.setState({ rows: rows });
     }
-    handleEditRow(table, view, form, key_value) {
-        console.log(table, view, form, key_value)
-        this.props.ctx.state.table = table
-        this.props.ctx.state.view = view
-        this.props.ctx.state.form = form
-        this.props.ctx.state.key_value = key_value
-        //this.props.ctx.handleOpenForm('UPDATE')
-    }
     getData(table, view) {
-        fetch('/api/view/' + table + '/' + view, {credentials: 'include'})
+        fetch('/api/view/' + table + '/' + view, { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
                     // traitement du JSON
@@ -142,7 +135,8 @@ export default class PageView extends React.Component {
     render() {
         let table = this.state.table
         let view = this.state.view
-        let form_update = Dico.tables[table].views[view].form_update
+        let form_edit = Dico.tables[table].views[view].form_edit
+        let form_add = Dico.tables[table].views[view].form_add
         let rubs = Dico.tables[table].rubs
         let cols = Dico.tables[table].views[view].rubs
         let row_key = Dico.tables[table].key
@@ -151,12 +145,18 @@ export default class PageView extends React.Component {
                 <ContainerSidebar ctx={this} />
                 <ContainerContent ctx={this}>
                     <Header title={Dico.tables[table].views[view].title} ctx={this} />
-
+                    {form_add &&
+                    <Link to={'/form/add/' + table + '/' + view + '/' + form_add + '/0'}>
+                        <span className="w3-btn-floating-large w3-theme-action" 
+                        title={'Ajout ' + Dico.tables[table].forms[form_add].title + '...'}
+                            style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
+                    </Link>
+                    }
                     <Card>
                         <Table ctx={this}
-                            table={table} view={view} form_update={form_update}
+                            table={table} view={view} form_edit={form_edit}
                             row_key={row_key} rubs={rubs} cols={cols} rows={this.state.rows}
-                            onEditRow={this.handleEditRow} />
+                            />
                     </Card>
 
                     <Footer ctx={this}>
@@ -171,7 +171,7 @@ class Table extends React.Component {
     render() {
         let table = this.props.table
         let view = this.props.view
-        let form_update = this.props.form_update
+        let form_edit = this.props.form_edit
         let cols = this.props.cols
         let rubs = this.props.rubs
         let row_key = this.props.row_key
@@ -192,8 +192,8 @@ class Table extends React.Component {
                     {
                         this.props.rows.map(row =>
                             <Row key={irow++} row_key={row_key}
-                                table={table} view={view} form_update={form_update}
-                                row={row} cols={cols} rubs={rubs} onEditRow={this.props.onEditRow} />
+                                table={table} view={view} form_edit={form_edit}
+                                row={row} cols={cols} rubs={rubs} />
                         )
                     }
                 </tbody>
@@ -206,7 +206,7 @@ class Row extends React.Component {
     render() {
         let table = this.props.table
         let view = this.props.view
-        let form_update = this.props.form_update
+        let form_edit = this.props.form_edit
         let cols = this.props.cols
         let rubs = this.props.rubs
         let row = this.props.row
@@ -218,9 +218,8 @@ class Row extends React.Component {
                 {
                     Object.keys(row).map(key =>
                         <Cell key={icol++} row_key={row_key} col_id={key}
-                            table={table} view={view} form_update={form_update}
+                            table={table} view={view} form_edit={form_edit}
                             row={row} cols={cols} rubs={rubs}
-                            onEditRow={this.props.onEditRow}
                             />
                     )
                 }
@@ -236,7 +235,7 @@ class Cell extends React.Component {
     render() {
         let table = this.props.table
         let view = this.props.view
-        let form_update = this.props.form_update
+        let form_edit = this.props.form_edit
         let cols = this.props.cols
         let rubs = this.props.rubs
         let row = this.props.row
@@ -251,8 +250,9 @@ class Cell extends React.Component {
             case 'btn':
                 return (
                     <td>
-                        <Link to={'/form/' + table + '/' + view + '/' + form_update + '/' + key_val}>
+                        <Link to={'/form/edit/' + table + '/' + view + '/' + form_edit + '/' + key_val}>
                             <button className="w3-btn w3-small w3-teal w3-padding-tiny"
+                             title={'Edition de ' + Dico.tables[table].forms[form_edit].title + '...'}
                                 ><i className="material-icons w3-small">edit</i>
                             </button>
                         </Link>

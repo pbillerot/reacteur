@@ -1,6 +1,7 @@
 'use strict';
 
 import React from 'react';
+import 'whatwg-fetch'
 import { Link, browserHistory } from 'react-router';
 // W3
 const {Card, Content, Footer, Header, IconButton
@@ -16,6 +17,7 @@ export default class PageForm extends React.Component {
         super(props);
         this.state = {
             w3_sidebar_open: false,
+            action: this.props.params.action,
             table: this.props.params.table,
             view: this.props.params.view,
             form: this.props.params.form,
@@ -52,6 +54,7 @@ class Form extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            action: this.props.action,
             table: this.props.table,
             view: this.props.view,
             form: this.props.form,
@@ -74,8 +77,13 @@ class Form extends React.Component {
         this.setState({})
     }
     handleSubmit() {
-        //console.log('handleSubmit: ', this.state.fields)
-        this.updateData()
+        console.log('handleSubmit: ', this.state.action, this.state.fields)
+        if (this.state.action == 'edit') {
+            this.updateData()
+        }
+        if (this.state.action == 'add') {
+            this.insertData()
+        }
     }
     updateData() {
         let data = ''
@@ -85,9 +93,9 @@ class Form extends React.Component {
                 data += data.length > 0 ? '&' + param : param
             }
         })
-        fetch('/api/form/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+        fetch('/api/update/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
             method: "POST",
-            credentials: 'include',
+            credentials: 'same-origin',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
@@ -104,8 +112,40 @@ class Form extends React.Component {
                 console.log('ERR: ', res)
                 this.state.errors.push(res.statusText)
                 this.setState({ is_error: true })
+            }
+        }).catch(err => {
+            // ne fonctionne pas
+            console.log('ERR: ', err)
+        })
 
-                // {type: "basic", url: "http://localhost:3333/api/form/USERS/VUE_1/FORM_1/DIXSOIXANTE", status: 500, ok: false, statusText: "Internal Server Error"
+    }
+    insertData() {
+        let data = ''
+        Object.keys(this.state.fields).forEach(key => {
+            if (!Dico.isRubTemporary(key)) {
+                let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
+                data += data.length > 0 ? '&' + param : param
+            }
+        })
+        fetch('/api/add/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+            method: "POST",
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+            },
+            body: data
+        }).then(res => {
+            console.log('res: ', res);
+            if (res.ok == true) {
+                this.state.errors.push(res.statusText)
+                this.setState({ is_error: true })
+                console.log('OK: ', res);
+                browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
+            } else {
+                console.log('ERR: ', res)
+                this.state.errors.push(res.statusText)
+                this.setState({ is_error: true })
             }
         }).catch(err => {
             // ne fonctionne pas
@@ -115,17 +155,22 @@ class Form extends React.Component {
     }
     getData(table, view, form, id) {
         //console.log('Form.getData: ', table, view, form, id)
-        fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, {credentials: 'include'})
-            .then(response => {
-                response.json().then(json => {
-                    let row = JSON.parse(json)
-                    Object.keys(JSON.parse(json)).forEach(key => {
-                        //console.log('Form.response: ', key, row[key].value)
-                        this.state.fields[key].value = row[key].value ? row[key].value : ''
+        if (this.state.action == 'edit') {
+            fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, { credentials: 'same-origin' })
+                .then(response => {
+                    response.json().then(json => {
+                        let row = JSON.parse(json)
+                        Object.keys(JSON.parse(json)).forEach(key => {
+                            //console.log('Form.response: ', key, row[key].value)
+                            this.state.fields[key].value = row[key].value ? row[key].value : ''
+                        })
+                        this.setState({})
                     })
-                    this.setState({})
                 })
-            })
+        }
+        if (this.state.action == 'add') {
+            this.setState({row: []})
+        }
     }
     componentWillReceiveProps(nextProps) {
         //console.log('Form.componentWillReceiveProps', nextProps.params)

@@ -16,9 +16,8 @@ Error response return error
     "message": "ID not found"
   }
 }
-
+{status: "rejected", result: "Fetch is not yet implemented"}
 */
-
 
 const express = require('express');
 const router = express.Router();
@@ -45,7 +44,47 @@ router.get('/help', function (req, res) {
   res.send((file.toString()));
 })
 
-router.post('/form/:table/:view/:form/:id', function (req, res) {
+router.post('/update/:table/:view/:form/:id', function (req, res) {
+  //console.log(req.url)
+  let rubs = Dico.tables[req.params.table].rubs
+  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
+  let key_name = Dico.tables[req.params.table].key
+
+  let data = req.body
+  let sql = ''
+  Object.keys(fields).forEach((key) => {
+    if (!Dico.isRubTemporary(key)) {
+      sql += sql.length > 0 ? ", " : ""
+      sql += key + " = '" + data[key] + "'"
+    }
+  })
+  sql = 'UPDATE ' + req.params.table + ' SET ' + sql
+  sql += " WHERE " + key_name + " = '" + req.params.id + "'"
+  let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
+  var result = (callback) => {
+    db.serialize(function () {
+      db.run(sql, [], function (err) {
+        if (err) {
+          console.log("ERR: " + sql)
+          res.status('500').json({message: err})
+          return
+          //throw err
+        }
+        console.log("UPDATE: " + JSON.stringify(this, null, 4))
+        callback(this)
+      });
+      db.close()
+    });
+  }
+  result((result) => {
+    res.status('200').json({error: 'Ya une coquille!!!', message: 'ce bon'}) // OK
+    //res.status('400').json({message: 'Ya une coquille!!!'}) // OK
+  })
+  //res.status('400').json({message: 'KO'}) // bad request
+  //res.status('500').json({message: 'KO'}) // Internal Server Error
+  //res.status('200').json({message: 'OK'}) // OK 
+})
+router.post('/add/:table/:view/:form', function (req, res) {
   //console.log(req.url)
   let rubs = Dico.tables[req.params.table].rubs
   let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
@@ -172,7 +211,7 @@ router.get('/view/:table/:view', function (req, res) {
       })
       tableur.push(ligne)
     })
-    console.log(JSON.stringify(tableur))
+    //console.log(JSON.stringify(tableur))
     res.json(JSON.stringify(tableur))
   })
 

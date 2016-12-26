@@ -4,7 +4,9 @@ import path from 'path';
 import http from 'http';
 import https from 'https';
 import Express from 'express';
-//import logger from 'winston';
+import logger from 'winston';
+import morgan from 'morgan';
+
 import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import React from 'react';
@@ -31,6 +33,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.set('trust proxy', 1) // trust first proxy
+app.use(morgan('short'))
 app.use(helmet())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -56,11 +59,11 @@ app.use(session({
 }))
 app.use(function (req, res, next) {
   console.log(req.url)
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  //res.setHeader('Access-Control-Allow-Credentials', 'true')
   var sess = req.session
   if ( sess.count ) {
     sess.count += 1
-    console.log(sess.id, sess.count)
+    //console.log(sess.id, sess.count)
   } else {
     sess.count = 1
     console.log('SESSION Connection de', sess.id)

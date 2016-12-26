@@ -2,6 +2,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
+import 'whatwg-fetch'
 import { Link } from 'react-router'
 const Markdown = require('react-remarkable')
 // W3
@@ -51,7 +52,7 @@ class RestAPI extends React.Component {
     componentDidMount() {
         //console.log('componentDidMount...')
         fetch('/api/help', {
-            credentials: 'include'
+            credentials: 'same-origin'
         })
             .then(response => {
                 var contentType = response.headers.get("content-type");

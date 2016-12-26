@@ -17,7 +17,7 @@ const routes = (
     <IndexRoute component={PagePortail} />
     <Route path="/help" component={PageHelp} />
     <Route path="/view/:table/:view" component={PageView} />
-    <Route path="/form/:table/:view/:form/:id" component={PageForm}/>
+    <Route path="/form/:action/:table/:view/:form/:id" component={PageForm}/>
     {/*
           <Route path="/about" component={PageAbout}/>
     */}

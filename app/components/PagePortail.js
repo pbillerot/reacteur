@@ -1,6 +1,7 @@
 'use strict';
 
 import React from 'react';
+import 'whatwg-fetch'
 import { Link } from 'react-router';
 const Markdown = require('react-remarkable')
 // W3
@@ -27,7 +28,7 @@ export default class PagePortail extends React.Component {
     componentDidMount() {
         //console.log('componentDidMount...')
         fetch('/api/portail', {
-            credentials: 'include'
+            credentials: 'same-origin'
         })
             .then(response => {
                 var contentType = response.headers.get("content-type");
