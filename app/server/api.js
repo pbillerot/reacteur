@@ -65,25 +65,22 @@ router.post('/:table/:view/:form/:id', function (req, res) {
     db.serialize(function () {
       db.run(sql, [], function (err) {
         if (err) {
-          console.log("UPDATE", err, this)
-          res.status('500').json({ message: err })
+          console.error("ERROR", err, sql)
+          if (err.errno == 19) {
+            res.status(200).json({ code: 4001, message: 'La référence existe déjà' });
+          } else {
+            res.status(500).json({ code: 5001, message: 'Erreur DATABASE sur le serveur' });
+          }
           return
-          //throw err
         }
-        //console.log("UPDATE", this)
         callback(this)
       });
       db.close()
     });
   }
   result((result) => {
-    console.log("UPDATE", result)
-    res.status('200').json({ error: 'Ya une coquille!!!', message: 'ce bon' }) // OK
-    //res.status('400').json({message: 'Ya une coquille!!!'}) // OK
+    res.status(200).json({ code: 2001, message: result.changes }) // OK
   })
-  //res.status('400').json({message: 'KO'}) // bad request
-  //res.status('500').json({message: 'KO'}) // Internal Server Error
-  //res.status('200').json({message: 'OK'}) // OK 
 })
 
 router.put('/:table/:view/:form', function (req, res) {
@@ -147,7 +144,7 @@ router.delete('/:table/:view/:form/:id', function (req, res) {
 
   let data = req.body
   let sql = 'DELETE FROM ' + req.params.table
-  + " WHERE " + key_name + " = '" + req.params.id + "'"
+    + " WHERE " + key_name + " = '" + req.params.id + "'"
   let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
   var result = (callback) => {
     db.serialize(function () {

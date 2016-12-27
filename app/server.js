@@ -57,7 +57,7 @@ app.use(session({
   }
 }))
 app.use(function (req, res, next) {
-  //console.log(req.url)
+  //console.log(res)
   //res.setHeader('Access-Control-Allow-Credentials', 'true')
   var sess = req.session
   if ( sess.count ) {

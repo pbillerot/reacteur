@@ -106,21 +106,27 @@ class Form extends React.Component {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
             },
             body: data
-        }).then(res => {
-            console.log('res: ', res);
-            if (res.ok == true) {
-                this.state.errors.push(res.statusText)
-                this.setState({ is_error: true })
-                console.log('OK: ', res);
-                browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
-            } else {
-                console.log('ERR: ', res)
-                this.state.errors.push(res.statusText)
-                this.setState({ is_error: true })
-            }
-        }).catch(err => {
-            // ne fonctionne pas
-            console.log('ERR: ', err)
+        }).then(response => {
+            //console.log('RESULT: ', response)
+            response.json().then(json => {
+                if (response.ok == true) {
+                    if (json.code < 4000) {
+                        browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
+                    } else {
+                        this.state.error = {
+                            code: json.code,
+                            message: json.message
+                        }
+                        this.setState({ is_error: true })
+                    }
+                } else {
+                    this.state.error = {
+                        code: json.code,
+                        message: json.message
+                    }
+                    this.setState({ is_error: true })
+                }
+            })
         })
 
     }
@@ -142,7 +148,7 @@ class Form extends React.Component {
             },
             body: data
         }).then(response => {
-            console.log('RESULT: ', response)
+            //console.log('RESULT: ', response)
             response.json().then(json => {
                 if (response.ok == true) {
                     if (json.code < 4000) {
@@ -183,7 +189,7 @@ class Form extends React.Component {
             },
             body: data
         }).then(response => {
-            console.log('RESULT: ', response)
+            //console.log('RESULT: ', response)
             response.json().then(json => {
                 if (response.ok == true) {
                     if (json.code < 4000) {
@@ -258,19 +264,24 @@ class Form extends React.Component {
                 }
                 <div className="w3-navbar"
                     style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
-                    <button type="button" className="w3-btn w3-teal"
-                        onClick={this.handleSubmit} >
-                        <i className="fa fa-check"></i>
-                        {this.state.action == 'edit' && 
-                            ' Enregistrer'
+                        {this.state.action == 'edit' &&
+                            <button type="button" className="w3-btn w3-teal"
+                                onClick={this.handleSubmit} >
+                                <i className="fa fa-check"></i> Enregistrer
+                        </button>
                         }
-                        {this.state.action == 'add' && 
-                            ' Ajouter'
+                        {this.state.action == 'add' &&
+                            <button type="button" className="w3-btn w3-teal"
+                                onClick={this.handleSubmit} >
+                                <i className="fa fa-check"></i> Ajouter
+                        </button>
                         }
-                        {this.state.action == 'delete' && 
-                            ' Supprimer'
+                        {this.state.action == 'delete' &&
+                            <button type="button" className="w3-btn w3-deep-orange"
+                                onClick={this.handleSubmit} >
+                                <i className="fa fa-check"></i> Supprimer
+                        </button>
                         }
-                    </button>
                 </div>
             </form>
         )

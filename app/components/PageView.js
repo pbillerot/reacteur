@@ -263,7 +263,7 @@ class Cell extends React.Component {
                     <td>
                         <Link to={'/form/delete/' + table + '/' + view + '/' + form_edit + '/' + key_val}
                              title={'Suppression de ' + Dico.tables[table].forms[form_edit].title + '...'}
-                                ><i className="material-icons">delete</i>
+                                ><i className="material-icons w3-text-deep-orange">delete</i>
                         </Link>
                     </td>
                 )
