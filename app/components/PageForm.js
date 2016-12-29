@@ -30,21 +30,24 @@ export default class PageForm extends React.Component {
 
     render() {
         return (
-            <div className="w3-main w3-padding-64">
-                <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
-                    <Link to={'/view/' + this.state.table + '/' + this.state.view}>
-                        <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
-                            title="retour"
-                            ></i>
-                    </Link>
-                    <span id="myIntro">{Dico.tables[this.state.table].forms[this.state.form].title}</span>
-                </div>
-                <Card >
-                    <Form {...this.state} />
-                </Card>
-                <Footer ctx={this}>
-                    <p>{Dico.application.copyright}</p>
-                </Footer>
+            <div>
+                <ContainerSidebar ctx={this} />
+                <ContainerContent ctx={this}>
+                    <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
+                        <Link to={'/view/' + this.state.table + '/' + this.state.view}>
+                            <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
+                                title="retour"
+                                ></i>
+                        </Link>
+                        <span id="myIntro">{Dico.tables[this.state.table].forms[this.state.form].title}</span>
+                    </div>
+                    <Card >
+                        <Form {...this.state} />
+                    </Card>
+                    <Footer ctx={this}>
+                        <p>{Dico.application.copyright}</p>
+                    </Footer>
+                </ContainerContent>
             </div>
         )
     }
@@ -76,16 +79,16 @@ class Form extends React.Component {
     }
     checkFormulaire() {
         this.state.is_form_valide = true;
-        if ( this.state.action == 'view' || this.state.action == 'delete' )
+        if (this.state.action == 'view' || this.state.action == 'delete')
             this.state.is_read_only = true
 
         Object.keys(this.state.fields).forEach(key => {
             // read only
-            if ( this.state.is_read_only )
+            if (this.state.is_read_only)
                 this.state.fields[key].is_read_only = true
             // valeur par défaut
-            if ( this.state.fields[key].value == '' ) {
-                if ( this.state.rubs[key].default )
+            if (this.state.fields[key].value == '') {
+                if (this.state.rubs[key].default)
                     this.state.fields[key].value = this.state.rubs[key].default
             }
             // Formulaire valide ?
@@ -298,7 +301,7 @@ class Form extends React.Component {
 
     render() {
         return (
-            <form className="w3-padding-16">
+            <form>
                 {this.state.is_error &&
                     <div className="w3-panel w3-pale-red w3-leftbar w3-border-red">
                         <p>{this.state.error.code} {this.state.error.message}</p>
@@ -306,7 +309,7 @@ class Form extends React.Component {
                 }
                 {
                     Object.keys(this.state.fields).map(key =>
-                        <div className="w3-row-padding w3-margin-top" key={key}>
+                        <div className="w3-row-padding" key={key}>
                             <label className="w3-label w3-quarter w3-right-align w3-hide-small" >{this.state.rubs[key].label_long}</label>
                             <label className="w3-label w3-quarter w3-left-align w3-hide-medium w3-hide-large" >{this.state.rubs[key].label_long}</label>
                             <div className="w3-threequarter">

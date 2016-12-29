@@ -1,5 +1,6 @@
 # TODO
 
-- ajouter un enregistrement
-- supprimer un enregistrement
+
+x ajouter un enregistrement
+x supprimer un enregistrement
 

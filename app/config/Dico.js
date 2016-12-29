@@ -18,6 +18,7 @@ module.exports = {
                 "compte_id" varchar(15) NOT NULL,
                 "compte_email" varchar(70) null,
                 "compte_profil" varchar(20) null,
+                "compte_pwd" varchar(255) null,
                 primary key(compte_id)
             )
             */
