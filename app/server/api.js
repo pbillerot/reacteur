@@ -90,6 +90,8 @@ router.put('/:table/:view/:form', function (req, res) {
   let key_name = Dico.tables[req.params.table].key
 
   let data = req.body
+  console.log(data)
+
   let sql = '('
   let bstart = true;
   Object.keys(fields).forEach((key) => {
@@ -114,6 +116,7 @@ router.put('/:table/:view/:form', function (req, res) {
   })
   sql += ')'
   sql = 'INSERT INTO ' + req.params.table + ' ' + sql
+  console.log(sql)
   let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
   var result = (callback) => {
     db.serialize(function () {

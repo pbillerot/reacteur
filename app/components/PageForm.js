@@ -33,7 +33,7 @@ export default class PageForm extends React.Component {
             <div className="w3-main w3-padding-64">
                 <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
                     <Link to={'/view/' + this.state.table + '/' + this.state.view}>
-                        <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-left w3-margin-right"
+                        <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
                             title="retour"
                             ></i>
                     </Link>
@@ -63,23 +63,59 @@ class Form extends React.Component {
             rubs: Dico.tables[this.props.table].rubs,
             cols: Dico.tables[this.props.table].views[this.props.view].rubs,
             fields: Dico.tables[this.props.table].forms[this.props.form].rubs,
+            is_form_valide: false,
+            is_read_only: false,
             is_error: false,
             error: {
                 code: '',
                 message: ''
-            }
+            },
         }
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
+    checkFormulaire() {
+        this.state.is_form_valide = true;
+        if ( this.state.action == 'view' || this.state.action == 'delete' )
+            this.state.is_read_only = true
+
+        Object.keys(this.state.fields).forEach(key => {
+            // read only
+            if ( this.state.is_read_only )
+                this.state.fields[key].is_read_only = true
+            // valeur par défaut
+            if ( this.state.fields[key].value == '' ) {
+                if ( this.state.rubs[key].default )
+                    this.state.fields[key].value = this.state.rubs[key].default
+            }
+            // Formulaire valide ?
+            if (this.state.fields[key].is_valide != 'undefined' &&
+                this.state.fields[key].is_valide == false) {
+                this.state.is_form_valide = false
+            }
+            console.log('checkFormulaire', key, this.state.fields[key])
+        })
+    }
+
     onEditRow(key, value) {
         //console.log(key, value)
         //Dico.tables[this.props.table].forms[this.props.form].rubs[key].value = value
         this.state.fields[key].value = value
+        this.state.fields[key].is_valide = this.state.rubs[key].is_valide(value)
+
+        this.checkFormulaire()
+
         this.setState({})
     }
     handleSubmit() {
-        console.log('handleSubmit: ', this.state.action, this.state.fields)
+        // if (!this.state.is_valide) {
+        //     this.state.error = {
+        //         code: 4100,
+        //         message: 'Formulaire non conforme'
+        //     }
+        //     this.setState({ is_error: true })
+        //     return
+        // }
         if (this.state.action == 'edit') {
             this.updateData()
         }
@@ -90,6 +126,53 @@ class Form extends React.Component {
             this.deleteData()
         }
     }
+
+    getData(action, table, view, form, id) {
+        //console.log('Form.getData: ', action, table, view, form, id)
+        Object.keys(this.state.fields).forEach(key => {
+            this.state.fields[key].value = ''
+            this.state.fields[key].is_valide = false
+            this.state.fields[key].is_read_only = false
+        })
+        if (action == 'edit' || action == 'delete') {
+            fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, { credentials: 'same-origin' })
+                .then(response => {
+                    response.json().then(json => {
+                        let row = JSON.parse(json)
+                        Object.keys(JSON.parse(json)).forEach(key => {
+                            //console.log('Form.response: ', key, row[key].value)
+                            this.state.fields[key].value = row[key].value ? row[key].value : ''
+                            this.state.fields[key].is_valide = this.state.rubs[key].is_valide(this.state.fields[key].value)
+                        })
+                        this.checkFormulaire()
+                        this.setState({})
+                    })
+                })
+        }
+        if (this.state.action == 'add') {
+            this.checkFormulaire()
+            this.setState({})
+        }
+    }
+    componentWillReceiveProps(nextProps) {
+        //console.log('Form.componentWillReceiveProps', nextProps.params)
+        if (nextProps.params) {
+            this.getData(nextProps.params.action, nextProps.params.table, nextProps.params.view, nextProps.params.form, nextProps.params.id)
+            Object.keys(this.state.fields).forEach(key => {
+                this.state.fields[key].is_valide = this.state.rubs[key].is_valide(this.state.fields[key].value)
+            })
+            this.checkFormulaire()
+        }
+    }
+    componentDidMount() {
+        //console.log('Form.componentDidMount...')
+        this.getData(this.state.action, this.state.table, this.state.view, this.state.form, this.state.id)
+        Object.keys(this.state.fields).forEach(key => {
+            this.state.fields[key].is_valide = this.state.rubs[key].is_valide(this.state.fields[key].value)
+        })
+        this.checkFormulaire()
+    }
+
     updateData() {
         let data = ''
         Object.keys(this.state.fields).forEach(key => {
@@ -213,41 +296,9 @@ class Form extends React.Component {
 
     }
 
-    getData(action, table, view, form, id) {
-        console.log('Form.getData: ', action, table, view, form, id)
-        Object.keys(this.state.fields).forEach(key => {
-            this.state.fields[key].value = ''
-        })
-        if (action == 'edit' || action == 'delete') {
-            fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, { credentials: 'same-origin' })
-                .then(response => {
-                    response.json().then(json => {
-                        let row = JSON.parse(json)
-                        Object.keys(JSON.parse(json)).forEach(key => {
-                            //console.log('Form.response: ', key, row[key].value)
-                            this.state.fields[key].value = row[key].value ? row[key].value : ''
-                        })
-                        this.setState({})
-                    })
-                })
-        }
-        if (this.state.action == 'add') {
-            this.setState({ row: [] })
-        }
-    }
-    componentWillReceiveProps(nextProps) {
-        //console.log('Form.componentWillReceiveProps', nextProps.params)
-        if (nextProps.params)
-            this.getData(nextProps.params.action, nextProps.params.table, nextProps.params.view, nextProps.params.form, nextProps.params.id)
-    }
-    componentDidMount() {
-        //console.log('Form.componentDidMount...')
-        this.getData(this.state.action, this.state.table, this.state.view, this.state.form, this.state.id)
-    }
-
     render() {
         return (
-            <form>
+            <form className="w3-padding-16">
                 {this.state.is_error &&
                     <div className="w3-panel w3-pale-red w3-leftbar w3-border-red">
                         <p>{this.state.error.code} {this.state.error.message}</p>
@@ -255,33 +306,50 @@ class Form extends React.Component {
                 }
                 {
                     Object.keys(this.state.fields).map(key =>
-                        <Field {...this.state} key={key} id={key}
-                            value={this.state.fields[key].value}
-                            onEditRow={this.onEditRow}
-                            handleSubmit={this.handleSubmit}
-                            />
+                        <div className="w3-row-padding w3-margin-top" key={key}>
+                            <label className="w3-label w3-quarter w3-right-align w3-hide-small" >{this.state.rubs[key].label_long}</label>
+                            <label className="w3-label w3-quarter w3-left-align w3-hide-medium w3-hide-large" >{this.state.rubs[key].label_long}</label>
+                            <div className="w3-threequarter">
+                                <Field {...this.state} id={key}
+                                    value={this.state.fields[key].value}
+                                    onEditRow={this.onEditRow}
+                                    handleSubmit={this.handleSubmit}
+                                    />
+                                <div className="w3-label w3-text-red w3-small" >
+                                    {!this.state.fields[key].is_valide && this.state.rubs[key].error &&
+                                        <span>{this.state.rubs[key].error}.</span>}
+                                </div>
+                                <div className="w3-label w3-small" >
+                                    {this.state.rubs[key].help && this.state.rubs[key].help &&
+                                        <span>{this.state.rubs[key].help}.</span>}
+                                </div>
+                            </div>
+                        </div>
                     )
                 }
                 <div className="w3-navbar"
                     style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
-                        {this.state.action == 'edit' &&
-                            <button type="button" className="w3-btn w3-teal"
-                                onClick={this.handleSubmit} >
-                                <i className="fa fa-check"></i> Enregistrer
+                    {this.state.action == 'edit' &&
+                        <button type="button"
+                            className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                            onClick={this.handleSubmit} >
+                            <i className="fa fa-check"></i> Enregistrer
                         </button>
-                        }
-                        {this.state.action == 'add' &&
-                            <button type="button" className="w3-btn w3-teal"
-                                onClick={this.handleSubmit} >
-                                <i className="fa fa-check"></i> Ajouter
+                    }
+                    {this.state.action == 'add' &&
+                        <button type="button"
+                            className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                            onClick={this.handleSubmit} >
+                            <i className="fa fa-check"></i> Ajouter
                         </button>
-                        }
-                        {this.state.action == 'delete' &&
-                            <button type="button" className="w3-btn w3-deep-orange"
-                                onClick={this.handleSubmit} >
-                                <i className="fa fa-check"></i> Supprimer
+                    }
+                    {this.state.action == 'delete' &&
+                        <button type="button"
+                            className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                            onClick={this.handleSubmit} >
+                            <i className="fa fa-check"></i> Supprimer
                         </button>
-                        }
+                    }
                 </div>
             </form>
         )
@@ -298,48 +366,61 @@ class Field extends React.Component {
     }
     handleChange(e) {
         //console.log('Field.handleChange: ', this.props.id, e.target.value)
-        //this.props.fields[this.props.id].value = e.target.value
         this.setState({ value: e.target.value })
         this.props.onEditRow(this.props.id, e.target.value)
     }
     componentWillReceiveProps(nextProps) {
-        //console.log('Field.componentWillReceiveProps: ', this.props.id, nextProps.fields[nextProps.id].value)
-        //this.setState({ value: nextProps.fields[this.props.id].value })
         this.state.value = nextProps.fields[nextProps.id].value
     }
-    // componentDidMount() {
-    //     console.log('Field.componentDidMount...')
-    // }
 
     render() {
-        //console.log('fields:', this.props.fields, this.props.id, this.props.fields[this.props.id].value)
         switch (this.props.rubs[this.props.id].type) {
             case 'text':
                 return (
-                    <div className="w3-margin-top">
-                        <label className="w3-label">{this.props.rubs[this.props.id].label_long}</label>
-                        <input className="w3-input w3-border" required type="text"
-                            onChange={this.handleChange}
-                            value={this.state.value}
-                            />
-                    </div>
+                    <input className="w3-input w3-border" type="text"
+                        required={this.props.rubs[this.props.id].required}
+                        maxLength={this.props.rubs[this.props.id].maxlength}
+                        pattern={this.props.rubs[this.props.id].pattern}
+                        placeholder={this.props.rubs[this.props.id].placeholder}
+                        onChange={this.handleChange}
+                        disabled={this.props.fields[this.props.id].is_read_only}
+                        value={this.state.value}
+                        />
                 )
             case 'email':
                 return (
-                    <div className="w3-margin-top">
-                        <label className="w3-label">{this.props.rubs[this.props.id].label_long}</label>
-                        <input className="w3-input w3-border" type="email"
-                            onChange={this.handleChange}
-                            value={this.state.value}
-                            />
-                    </div>
+                    <input className="w3-input w3-border" type="email"
+                        required={this.props.rubs[this.props.id].required}
+                        maxLength={this.props.rubs[this.props.id].maxlength}
+                        pattern={this.props.rubs[this.props.id].pattern}
+                        placeholder={this.props.rubs[this.props.id].placeholder}
+                        onChange={this.handleChange}
+                        disabled={this.props.fields[this.props.id].is_read_only}
+                        value={this.state.value}
+                        />
+                )
+            case 'select':
+                return (
+                    <select className="w3-select w3-border"
+                        required={this.props.rubs[this.props.id].required}
+                        placeholder={this.props.rubs[this.props.id].placeholder}
+                        onChange={this.handleChange}
+                        disabled={this.props.fields[this.props.id].is_read_only}
+                        value={this.state.value}
+                        >
+                        {Object.keys(this.props.rubs[this.props.id].list).map(key =>
+                            <option key={key} value={key}>
+                                {this.props.rubs[this.props.id].list[key]}
+                            </option>
+                        )}
+                    </select>
                 )
             case 'button':
                 return (
                     <button className="w3-btn">{this.props.rubs[this.props.id].label_long}</button>
                 )
             default:
-                return <div>{this.props.id}.type {this.props.rubs[this.props.id].type}not found</div>
+                return <div>{this.props.id}.type {this.props.rubs[this.props.id].type} not found</div>
         }
     }
 

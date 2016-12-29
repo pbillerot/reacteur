@@ -2,234 +2,119 @@
  * Déclaration du dictionnaire des rubriques, formulaires et vues de l'application
  * 
  */
+// https://www.npmjs.com/package/validator
+import validator from 'validator'
 module.exports = {
     application: {
         title: 'REACTEUR',
         desc: 'REACTEUR, un simple CRUD',
         url: 'https://github.com/pbillerot/atomium',
-        copyright: 'REACTEUR 2016 - version 1.0.1',
+        copyright: 'REACTEUR 2016 - version 1.0.29',
     },
     tables: {
-        USERS: {
-            basename: '/home/billerot/conf/acteur/tex.sqlite',
-            key: 'IDUSER',
+        comptes: {
+            /* 
+            CREATE TABLE "comptes" (
+                "compte_id" varchar(15) NOT NULL,
+                "compte_email" varchar(70) null,
+                "compte_profil" varchar(20) null,
+                primary key(compte_id)
+            )
+            */
+            basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
+            key: 'compte_id',
             rubs: {
-                IDUSER: {
-                    label_long: 'COMPTE',
-                    label_short: 'COMPTE',
-                    type: 'text',
-                    length: 9,
-                    formatter: null,
+                compte_id: {
+                    label_long: "Pseudo",
+                    label_short: "Pseudo",
+                    type: "text",
                     required: true,
-                    default: '',
-                    pattern: "[A-Z,a-z]*",
-                    error: "Obligatoire",
-                    tooltip: null,
+                    maxlength: 15,
+                    pattern: "[A-Z,a-z,0-9]*",
+                    placeholder: "",
                     list: null, //val1,val2
-                    options: ''
+                    default: "",
+                    help: "Le pseudo sera unique",
+                    is_valide(value) {
+                        return validator.isAlphanumeric(value) && !validator.isEmpty(value)
+                    },
+                    error: "Obligatoire et n'accepte que les caractères alphanumériques"
                 },
-                NOMUSER: {
-                    label_long: 'NOM ou PSEUDO',
-                    label_short: 'NOM',
-                    type: 'text',
-                    length: 70,
-                    form: 'FORM_1',
-                    formatter: null,
-                    default: '',
-                    pattern: null,
-                    tooltip: 'Nom ou le pseudo du compte',
+                compte_email: {
+                    label_long: "Email",
+                    label_short: "Email",
+                    type: "email",
+                    required: true,
+                    maxlength: 15,
+                    pattern: "[A-Z,a-z,0-9]*",
+                    placeholder: "",
                     list: null, //val1,val2
-                    options: ''
+                    default: "",
+                    help: "L'adresse email sera de la forme nom@fournisseur.extension",
+                    is_valide(value) {
+                        return validator.isEmpty(value) ? true : validator.isEmail(value)
+                    },
+                    error: "Adresse email non valide"
                 },
-                EMAIL: {
-                    label_long: 'EMAIL',
-                    label_short: 'EMAIL',
-                    type: 'email',
-                    length: 70,
-                    formatter: null,
-                    default: '',
-                    pattern: null,
-                    error: null,
-                    tooltip: 'Email du compte',
-                    list: null, //val1,val2
-                    options: ''
+                compte_profil: {
+                    label_long: "Profil",
+                    label_short: "Profil",
+                    title: "",
+                    type: "select",
+                    required: true,
+                    maxlength: 15,
+                    pattern: "[A-Z,a-z,0-9]*",
+                    placeholder: "",
+                    list: {
+                        admin: "Admin",
+                        invite: "Invité"
+                    },
+                    default: "invite",
+                    is_valide(value) {
+                        return true
+                    },
+                    error: ""
                 },
-                _BTN: {
-                    label_long: '',
-                    label_short: '',
-                    type: 'btn_edit',
-                    length: 20,
-                    formatter: null,
-                    form: 'FORM_2',
-                    default: '',
-                    pattern: null,
-                    error: null,
-                    tooltip: null,
-                    list: null,
-                    options: ''
+                _btn_edit: {
+                    label_long: "",
+                    label_short: "",
+                    title: "",
+                    type: "btn_edit",
                 },
-                _DEL: {
-                    label_long: '',
-                    label_short: '',
-                    type: 'btn_delete',
-                    length: 20,
-                    formatter: null,
-                    form: 'FORM_2',
-                    default: '',
-                    pattern: null,
-                    error: null,
-                    tooltip: null,
-                    list: null,
-                    options: ''
+                _btn_delete: {
+                    label_long: "",
+                    label_short: "",
+                    title: "",
+                    type: "btn_delete",
                 }
             },
             views: {
-                VUE_1: {
+                vall: {
                     title: 'LISTE DES COMPTES',
-                    form_add: 'FORM_1',
-                    form_edit: 'FORM_1',
-                    form_delete: 'FORM_1',
+                    form_add: 'fall',
+                    form_edit: 'fall',
+                    form_delete: 'fall',
                     rubs: {
-                        _BTN: {},
-                        IDUSER: {},
-                        NOMUSER: {},
-                        EMAIL: {},
-                        _DEL: {}
-                    }
-                },
-                VUE_2: {
-                    title: 'LISTE DES UTILISATEURS',
-                    form_add: 'FORM_2',
-                    form_edit: 'FORM_2',
-                    form_delete: null,
-                    rubs: {
-                        IDUSER: {},
-                        NOMUSER: {}
+                        _btn_edit: {},
+                        compte_id: {},
+                        compte_email: {},
+                        compte_profil: {},
+                        _btn_delete: {}
                     }
                 }
             },
             forms: {
-                FORM_1: {
+                fall: {
                     title: 'COMPTE',
                     rubs: {
-                        IDUSER: {},
-                        NOMUSER: {},
-                        EMAIL: {},
-                    }
-                },
-                FORM_2: {
-                    title: 'EMAIL',
-                    rubs: {
-                        IDUSER: {},
-                        EMAIL: {},
+                        compte_id: {},
+                        compte_email: {},
+                        compte_profil: {}
                     }
                 }
-
-            }
-        },
-        TEX: {
-            basename: '/home/billerot/conf/acteur/tex.sqlite',
-            key: 'cleunique',
-            rubs: {
-                cleunique: {
-                    label_long: 'ID',
-                    label_short: 'ID',
-                    type: 'text',
-                    length: 23,
-                    formatter: null,
-                    required: true,
-                    default: '',
-                    pattern: "[A-Z,a-z,0-9_]*",
-                    error: "Obligatoire",
-                    tooltip: null,
-                    list: null, //val1,val2
-                    options: ''
-                },
-                nom: {
-                    label_long: 'NOM ou PSEUDO',
-                    label_short: 'NOM',
-                    type: 'text',
-                    length: 70,
-                    formatter: null,
-                    default: '',
-                    pattern: null,
-                    tooltip: 'Nom ou le pseudo du compte',
-                    list: null, //val1,val2
-                    options: ''
-                },
-                email: {
-                    label_long: 'EMAIL',
-                    label_short: 'EMAIL',
-                    type: 'email',
-                    length: 70,
-                    editable: true,
-                    formatter: null,
-                    default: '',
-                    pattern: null,
-                    error: null,
-                    tooltip: 'Email du compte',
-                    list: null, //val1,val2
-                    options: ''
-                },
-                _btn: {
-                    label_long: '',
-                    label_short: 'BTN',
-                    type: 'btn',
-                    length: 20,
-                    formatter: null,
-                    form: 'F_2',
-                    default: '',
-                    pattern: null,
-                    error: null,
-                    tooltip: null,
-                    list: null,
-                    options: ''
-                }
-            },
-            views: {
-                V_1: {
-                    title: 'TEX COMPTES',
-                    form_add: 'F_1',
-                    form_edit: 'F_1',
-                    form_delete: null,
-                    rubs: {
-                        cleunique: {},
-                        nom: {},
-                        email: {},
-                        _btn: {}
-                    }
-                },
-                V_2: {
-                    title: 'TEX EMAIL',
-                    form_add: 'F_2',
-                    form_edit: 'F_2',
-                    form_delete: null,
-                    rubs: {
-                        cleunique: {},
-                        email: {}
-                    }
-                }
-            },
-            forms: {
-                F_1: {
-                    title: 'TEX COMPTE',
-                    rubs: {
-                        cleunique: {},
-                        nom: {},
-                        email: {},
-                    }
-                },
-                F_2: {
-                    title: 'TEX EMAIL',
-                    rubs: {
-                        cleunique: {},
-                        email: {},
-                    }
-                }
-
             }
         }
-     },
+    },
     isRubTemporary(key) {
         return /^_/g.test(key)
     }
