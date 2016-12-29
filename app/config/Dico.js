@@ -75,32 +75,19 @@ module.exports = {
                         return true
                     },
                     error: ""
-                },
-                _btn_edit: {
-                    label_long: "",
-                    label_short: "",
-                    title: "",
-                    type: "btn_edit",
-                },
-                _btn_delete: {
-                    label_long: "",
-                    label_short: "",
-                    title: "",
-                    type: "btn_delete",
                 }
             },
             views: {
                 vall: {
                     title: 'LISTE DES COMPTES',
                     form_add: 'fall',
+                    form_view: 'fall',
                     form_edit: 'fall',
                     form_delete: 'fall',
                     rubs: {
-                        _btn_edit: {},
                         compte_id: {},
                         compte_email: {},
                         compte_profil: {},
-                        _btn_delete: {}
                     }
                 }
             },

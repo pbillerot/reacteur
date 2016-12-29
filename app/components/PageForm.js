@@ -96,7 +96,7 @@ class Form extends React.Component {
                 this.state.fields[key].is_valide == false) {
                 this.state.is_form_valide = false
             }
-            console.log('checkFormulaire', key, this.state.fields[key])
+            //console.log('checkFormulaire', key, this.state.fields[key])
         })
     }
 
@@ -137,7 +137,7 @@ class Form extends React.Component {
             this.state.fields[key].is_valide = false
             this.state.fields[key].is_read_only = false
         })
-        if (action == 'edit' || action == 'delete') {
+        if (action == 'view' || action == 'edit' || action == 'delete') {
             fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, { credentials: 'same-origin' })
                 .then(response => {
                     response.json().then(json => {
@@ -309,7 +309,7 @@ class Form extends React.Component {
                 }
                 {
                     Object.keys(this.state.fields).map(key =>
-                        <div className="w3-row-padding" key={key}>
+                        <div className="w3-row-padding w3-margin-top" key={key}>
                             <label className="w3-label w3-quarter w3-right-align w3-hide-small" >{this.state.rubs[key].label_long}</label>
                             <label className="w3-label w3-quarter w3-left-align w3-hide-medium w3-hide-large" >{this.state.rubs[key].label_long}</label>
                             <div className="w3-threequarter">

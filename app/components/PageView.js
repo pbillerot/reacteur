@@ -135,8 +135,10 @@ export default class PageView extends React.Component {
     render() {
         let table = this.state.table
         let view = this.state.view
-        let form_edit = Dico.tables[table].views[view].form_edit
         let form_add = Dico.tables[table].views[view].form_add
+        let form_view = Dico.tables[table].views[view].form_view
+        let form_edit = Dico.tables[table].views[view].form_edit
+        let form_delete = Dico.tables[table].views[view].form_delete
         let rubs = Dico.tables[table].rubs
         let cols = Dico.tables[table].views[view].rubs
         let row_key = Dico.tables[table].key
@@ -146,15 +148,16 @@ export default class PageView extends React.Component {
                 <ContainerContent ctx={this}>
                     <Header title={Dico.tables[table].views[view].title} ctx={this} />
                     {form_add &&
-                    <Link to={'/form/add/' + table + '/' + view + '/' + form_add + '/0'}>
-                        <span className="w3-btn-floating-large w3-theme-action" 
-                        title={'Ajout ' + Dico.tables[table].forms[form_add].title + '...'}
-                            style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
-                    </Link>
+                        <Link to={'/form/add/' + table + '/' + view + '/' + form_add + '/0'}>
+                            <span className="w3-btn-floating-large w3-theme-action"
+                                title={'Ajout ' + Dico.tables[table].forms[form_add].title + '...'}
+                                style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
+                        </Link>
                     }
                     <Card>
                         <Table ctx={this}
-                            table={table} view={view} form_edit={form_edit}
+                            table={table} view={view}
+                            form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                             row_key={row_key} rubs={rubs} cols={cols} rows={this.state.rows}
                             />
                     </Card>
@@ -171,7 +174,9 @@ class Table extends React.Component {
     render() {
         let table = this.props.table
         let view = this.props.view
+        let form_view = this.props.form_view
         let form_edit = this.props.form_edit
+        let form_delete = this.props.form_delete
         let cols = this.props.cols
         let rubs = this.props.rubs
         let row_key = this.props.row_key
@@ -181,10 +186,19 @@ class Table extends React.Component {
             <table className="w3-table-all w3-hoverable w3-medium w3-card-3">
                 <thead>
                     <tr className="w3-theme">
+                        {form_view &&
+                            <th>&nbsp;</th>
+                        }
+                        {form_edit &&
+                            <th>&nbsp;</th>
+                        }
                         {
                             Object.keys(cols).map(key =>
                                 <th key={key}>{rubs[key].label_short}</th>
                             )
+                        }
+                        {form_delete &&
+                            <th>&nbsp;</th>
                         }
                     </tr>
                 </thead>
@@ -192,7 +206,8 @@ class Table extends React.Component {
                     {
                         this.props.rows.map(row =>
                             <Row key={irow++} row_key={row_key}
-                                table={table} view={view} form_edit={form_edit}
+                                table={table} view={view}
+                                form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                                 row={row} cols={cols} rubs={rubs} />
                         )
                     }
@@ -206,22 +221,51 @@ class Row extends React.Component {
     render() {
         let table = this.props.table
         let view = this.props.view
+        let form_view = this.props.form_view
         let form_edit = this.props.form_edit
+        let form_delete = this.props.form_delete
         let cols = this.props.cols
         let rubs = this.props.rubs
         let row = this.props.row
         let row_key = this.props.row_key
+        let key_val = row[row_key]
         //console.log('Row: ',table + '->' + view, row_key + '=' + row[row_key], row)
         let icol = 0
         return (
             <tr>
+                {form_view &&
+                    <td style={{ width: '30px' }}>
+                        <Link to={'/form/view/' + table + '/' + view + '/' + form_view + '/' + key_val}
+                            title={'Voir ' + Dico.tables[table].forms[form_view].title + '...'}>
+                            <i className="material-icons w3-text-blue-grey w3-large">visibility</i>
+                        </Link>
+                    </td>
+                }
+                {form_edit &&
+                    <td style={{ width: '30px' }}>
+                        <Link to={'/form/edit/' + table + '/' + view + '/' + form_edit + '/' + key_val}
+                            title={'Edition de ' + Dico.tables[table].forms[form_edit].title + '...'}
+                            ><i className="material-icons w3-text-teal w3-large">edit</i>
+                        </Link>
+                    </td>
+                }
                 {
                     Object.keys(row).map(key =>
-                        <Cell key={icol++} row_key={row_key} col_id={key}
-                            table={table} view={view} form_edit={form_edit}
-                            row={row} cols={cols} rubs={rubs}
-                            />
+                        <td key={icol++} >
+                            <Cell row_key={row_key} col_id={key}
+                                table={table} view={view}
+                                row={row} cols={cols} rubs={rubs}
+                                />
+                        </td>
                     )
+                }
+                {form_delete &&
+                    <td style={{ width: '30px' }}>
+                        <Link to={'/form/delete/' + table + '/' + view + '/' + form_delete + '/' + key_val}
+                            title={'Suppression de ' + Dico.tables[table].forms[form_delete].title + '...'}
+                            ><i className="material-icons w3-text-deep-orange w3-large">delete</i>
+                        </Link>
+                    </td>
                 }
             </tr>
         )
@@ -233,9 +277,6 @@ class Cell extends React.Component {
         super(props);
     }
     render() {
-        let table = this.props.table
-        let view = this.props.view
-        let form_edit = this.props.form_edit
         let cols = this.props.cols
         let rubs = this.props.rubs
         let row = this.props.row
@@ -245,32 +286,15 @@ class Cell extends React.Component {
         let val = row[key]
         let rub = rubs[key]
         let col = cols[key]
+        let table = rub.table ? rub.table : this.props.table
+        let view = rub.view ? rub.view : this.props.view
+        let form = rub.form ? rub.form : this.props.form_edit
         //console.log('Cell:', table, view, key+'='+ val)
         switch (rub.type) {
-            case 'btn_edit':
-                return (
-                    <td>
-                        <Link to={'/form/edit/' + table + '/' + view + '/' + form_edit + '/' + key_val}>
-                            <span className="w3-btn w3-small w3-teal w3-padding-tiny"
-                             title={'Edition de ' + Dico.tables[table].forms[form_edit].title + '...'}
-                                ><i className="material-icons w3-small">edit</i>
-                            </span>
-                        </Link>
-                    </td>
-                )
-            case 'btn_delete':
-                return (
-                    <td>
-                        <Link to={'/form/delete/' + table + '/' + view + '/' + form_edit + '/' + key_val}
-                             title={'Suppression de ' + Dico.tables[table].forms[form_edit].title + '...'}
-                                ><i className="material-icons w3-text-deep-orange">delete</i>
-                        </Link>
-                    </td>
-                )
             case 'text':
             default:
                 return (
-                    <td>{val}</td>
+                    <span>{val}</span>
                 )
         }
     }
