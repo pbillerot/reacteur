@@ -29,6 +29,12 @@ export default class PageForm extends React.Component {
     }
 
     render() {
+        let title
+            = this.state.action == 'add'
+                ? 'Ajout de ' + Dico.tables[this.state.table].forms[this.state.form].title
+                : this.state.action == 'delete'
+                    ? 'Suppression de ' + Dico.tables[this.state.table].forms[this.state.form].title
+                    : Dico.tables[this.state.table].forms[this.state.form].title
         return (
             <div>
                 <ContainerSidebar ctx={this} />
@@ -39,7 +45,7 @@ export default class PageForm extends React.Component {
                                 title="retour"
                                 ></i>
                         </Link>
-                        <span id="myIntro">{Dico.tables[this.state.table].forms[this.state.form].title}</span>
+                        <span id="myIntro">{title}</span>
                     </div>
                     <Card >
                         <Form {...this.state} />
@@ -310,13 +316,14 @@ class Form extends React.Component {
                 {
                     Object.keys(this.state.fields).map(key =>
                         <div className="w3-row-padding w3-margin-top" key={key}>
-                            <label className="w3-label w3-quarter w3-right-align w3-hide-small" >{this.state.rubs[key].label_long}</label>
-                            <label className="w3-label w3-quarter w3-left-align w3-hide-medium w3-hide-large" >{this.state.rubs[key].label_long}</label>
+                            <label htmlFor={key} className="w3-label w3-quarter w3-right-align w3-hide-small" >
+                                {this.state.rubs[key].type == 'check' ? String.fromCharCode(8239) : this.state.rubs[key].label_long}</label>
+                            <label htmlFor={key} className="w3-label w3-quarter w3-left-align w3-hide-medium w3-hide-large" >
+                                {this.state.rubs[key].type == 'check' ? String.fromCharCode(8239) : this.state.rubs[key].label_long}</label>
                             <div className="w3-threequarter">
                                 <Field {...this.state} id={key}
                                     value={this.state.fields[key].value}
                                     onEditRow={this.onEditRow}
-                                    handleSubmit={this.handleSubmit}
                                     />
                                 <div className="w3-label w3-text-red w3-small" >
                                     {!this.state.fields[key].is_valide && this.state.rubs[key].error &&
@@ -369,26 +376,37 @@ class Field extends React.Component {
     }
     handleChange(e) {
         //console.log('Field.handleChange: ', this.props.id, e.target.value)
-        this.setState({ value: e.target.value })
-        this.props.onEditRow(this.props.id, e.target.value)
+        this.state.value = this.props.rubs[this.props.id].type == 'check'
+            ? this.state.value == '1' ? '0' : '1'
+            : e.target.value
+        this.setState({})
+        this.props.onEditRow(this.props.id, this.state.value)
+        //console.log('handleChange', this.state)
     }
     componentWillReceiveProps(nextProps) {
         this.state.value = nextProps.fields[nextProps.id].value
+        //console.log('componentWillReceiveProps', this.state)
     }
 
     render() {
+        //console.log('render', this.state)
         switch (this.props.rubs[this.props.id].type) {
-            case 'text':
+            case 'button':
                 return (
-                    <input className="w3-input w3-border" type="text"
-                        required={this.props.rubs[this.props.id].required}
-                        maxLength={this.props.rubs[this.props.id].maxlength}
-                        pattern={this.props.rubs[this.props.id].pattern}
-                        placeholder={this.props.rubs[this.props.id].placeholder}
-                        onChange={this.handleChange}
-                        disabled={this.props.fields[this.props.id].is_read_only}
-                        value={this.state.value}
-                        />
+                    <button className="w3-btn">{this.props.rubs[this.props.id].label_long}</button>
+                )
+            case 'check':
+                return (
+                    <span className="">
+                        <input className="w3-check" type="checkbox"
+                            checked={this.state.value == '1' ? true : false}
+                            onChange={this.handleChange}
+                            name={this.props.id} id={this.props.id}
+                            />
+                        <label htmlFor={this.props.id} className="w3-validate">
+                            &nbsp;{this.props.rubs[this.props.id].label_long}
+                        </label>
+                    </span>
                 )
             case 'email':
                 return (
@@ -400,7 +418,24 @@ class Field extends React.Component {
                         onChange={this.handleChange}
                         disabled={this.props.fields[this.props.id].is_read_only}
                         value={this.state.value}
+                        id={this.props.id}
                         />
+                )
+            case 'radio':
+                return (
+                    <div onChange={this.handleChange} className="w3-padding w3-border" id={this.props.id}>
+                        {Object.keys(this.props.rubs[this.props.id].list).map(key =>
+                            <span key={key} className="w3-margin-right">
+                                <input className="w3-radio" type="radio"
+                                    checked={this.state.value == key}
+                                    name={this.props.id} value={key} id={key}
+                                    />
+                                <label htmlFor={key} className="w3-validate">
+                                    &nbsp;{this.props.rubs[this.props.id].list[key]}
+                                </label>
+                            </span>
+                        )}
+                    </div>
                 )
             case 'select':
                 return (
@@ -410,6 +445,7 @@ class Field extends React.Component {
                         onChange={this.handleChange}
                         disabled={this.props.fields[this.props.id].is_read_only}
                         value={this.state.value}
+                        id={this.props.id}
                         >
                         {Object.keys(this.props.rubs[this.props.id].list).map(key =>
                             <option key={key} value={key}>
@@ -418,9 +454,18 @@ class Field extends React.Component {
                         )}
                     </select>
                 )
-            case 'button':
+            case 'text':
                 return (
-                    <button className="w3-btn">{this.props.rubs[this.props.id].label_long}</button>
+                    <input className="w3-input w3-border" type="text"
+                        required={this.props.rubs[this.props.id].required}
+                        maxLength={this.props.rubs[this.props.id].maxlength}
+                        pattern={this.props.rubs[this.props.id].pattern}
+                        placeholder={this.props.rubs[this.props.id].placeholder}
+                        onChange={this.handleChange}
+                        disabled={this.props.fields[this.props.id].is_read_only}
+                        value={this.state.value}
+                        id={this.props.id}
+                        />
                 )
             default:
                 return <div>{this.props.id}.type {this.props.rubs[this.props.id].type} not found</div>

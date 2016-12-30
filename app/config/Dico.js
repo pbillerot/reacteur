@@ -9,7 +9,7 @@ module.exports = {
         title: 'REACTEUR',
         desc: 'REACTEUR, un simple CRUD',
         url: 'https://github.com/pbillerot/atomium',
-        copyright: 'REACTEUR 2016 - version 1.0.29',
+        copyright: 'REACTEUR 2016 - version 1.0.30',
     },
     tables: {
         comptes: {
@@ -46,7 +46,7 @@ module.exports = {
                     label_short: "Email",
                     type: "email",
                     required: true,
-                    maxlength: 15,
+                    maxlength: 70,
                     pattern: "[A-Z,a-z,0-9]*",
                     placeholder: "",
                     list: null, //val1,val2
@@ -61,16 +61,30 @@ module.exports = {
                     label_long: "Profil",
                     label_short: "Profil",
                     title: "",
-                    type: "select",
+                    type: "radio",
                     required: true,
                     maxlength: 15,
-                    pattern: "[A-Z,a-z,0-9]*",
-                    placeholder: "",
                     list: {
                         admin: "Admin",
+                        java: "Java",
+                        php: "Php",
+                        javascript: "Javascript",
+                        cobol: "Cobol",
+                        python: "Python",
+                        css: "Css",
                         invite: "Invité"
                     },
                     default: "invite",
+                    is_valide(value) {
+                        return true
+                    },
+                    error: ""
+                },
+                compte_actif: {
+                    label_long: "Actif",
+                    label_short: "Actif",
+                    title: "",
+                    type: "check",
                     is_valide(value) {
                         return true
                     },
@@ -86,8 +100,9 @@ module.exports = {
                     form_delete: 'fall',
                     rubs: {
                         compte_id: {},
+                        compte_actif: {},
                         compte_email: {},
-                        compte_profil: {},
+                        compte_profil: {}
                     }
                 }
             },
@@ -97,7 +112,8 @@ module.exports = {
                     rubs: {
                         compte_id: {},
                         compte_email: {},
-                        compte_profil: {}
+                        compte_profil: {},
+                        compte_actif: {}
                     }
                 }
             }

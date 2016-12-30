@@ -60,6 +60,7 @@ router.post('/:table/:view/:form/:id', function (req, res) {
   })
   sql = 'UPDATE ' + req.params.table + ' SET ' + sql
   sql += " WHERE " + key_name + " = '" + req.params.id + "'"
+  console.log(sql)
   let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
   var result = (callback) => {
     db.serialize(function () {

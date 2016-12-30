@@ -237,15 +237,15 @@ class Row extends React.Component {
                     <td style={{ width: '30px' }}>
                         <Link to={'/form/view/' + table + '/' + view + '/' + form_view + '/' + key_val}
                             title={'Voir ' + Dico.tables[table].forms[form_view].title + '...'}>
-                            <i className="material-icons w3-text-blue-grey w3-large">visibility</i>
+                            <i className="material-icons w3-text-blue-grey">visibility</i>
                         </Link>
                     </td>
                 }
                 {form_edit &&
                     <td style={{ width: '30px' }}>
                         <Link to={'/form/edit/' + table + '/' + view + '/' + form_edit + '/' + key_val}
-                            title={'Edition de ' + Dico.tables[table].forms[form_edit].title + '...'}
-                            ><i className="material-icons w3-text-teal w3-large">edit</i>
+                            title={'Modifier ' + Dico.tables[table].forms[form_edit].title + '...'}
+                            ><i className="material-icons w3-text-teal">edit</i>
                         </Link>
                     </td>
                 }
@@ -262,8 +262,8 @@ class Row extends React.Component {
                 {form_delete &&
                     <td style={{ width: '30px' }}>
                         <Link to={'/form/delete/' + table + '/' + view + '/' + form_delete + '/' + key_val}
-                            title={'Suppression de ' + Dico.tables[table].forms[form_delete].title + '...'}
-                            ><i className="material-icons w3-text-deep-orange w3-large">delete</i>
+                            title={'Supprimer ' + Dico.tables[table].forms[form_delete].title + '...'}
+                            ><i className="material-icons w3-text-orange">delete</i>
                         </Link>
                     </td>
                 }
@@ -291,6 +291,16 @@ class Cell extends React.Component {
         let form = rub.form ? rub.form : this.props.form_edit
         //console.log('Cell:', table, view, key+'='+ val)
         switch (rub.type) {
+            case 'check':
+                return (
+                    <input className="w3-check" type="checkbox" disabled
+                            checked={val == '1' ? true : false}
+                    />
+                )
+            case 'radio':
+                return (
+                    <span>{rub.list[val]}</span>
+                )
             case 'text':
             default:
                 return (
