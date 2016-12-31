@@ -4,6 +4,7 @@
  */
 // https://www.npmjs.com/package/validator
 import validator from 'validator'
+import md5 from 'js-md5'
 module.exports = {
     application: {
         title: 'REACTEUR',
@@ -12,20 +13,21 @@ module.exports = {
         copyright: 'REACTEUR 2016 - version 1.0.30',
     },
     tables: {
-        comptes: {
+        actusers: {
             /* 
-            CREATE TABLE "comptes" (
-                "compte_id" varchar(15) NOT NULL,
-                "compte_email" varchar(70) null,
-                "compte_profil" varchar(20) null,
-                "compte_pwd" varchar(255) null,
-                primary key(compte_id)
-            )
+                CREATE TABLE "ACTUSERS" (
+                    "user_id" varchar(20) NOT NULL,
+                    "user_email" varchar(70) null,
+                    "user_profil" varchar(20) null,
+                    "user_actif" varchar(1) null,
+                    "user_pwd" varchar(255) null,
+                    primary key(user_id)
+                )
             */
             basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
-            key: 'compte_id',
+            key: 'user_id',
             rubs: {
-                compte_id: {
+                user_id: {
                     label_long: "Pseudo",
                     label_short: "Pseudo",
                     type: "text",
@@ -41,7 +43,7 @@ module.exports = {
                     },
                     error: "Obligatoire et n'accepte que les caractères alphanumériques"
                 },
-                compte_email: {
+                user_email: {
                     label_long: "Email",
                     label_short: "Email",
                     type: "email",
@@ -57,7 +59,7 @@ module.exports = {
                     },
                     error: "Adresse email non valide"
                 },
-                compte_profil: {
+                user_profil: {
                     label_long: "Profil",
                     label_short: "Profil",
                     title: "",
@@ -66,12 +68,6 @@ module.exports = {
                     maxlength: 15,
                     list: {
                         admin: "Admin",
-                        java: "Java",
-                        php: "Php",
-                        javascript: "Javascript",
-                        cobol: "Cobol",
-                        python: "Python",
-                        css: "Css",
                         invite: "Invité"
                     },
                     default: "invite",
@@ -80,7 +76,7 @@ module.exports = {
                     },
                     error: ""
                 },
-                compte_actif: {
+                user_actif: {
                     label_long: "Actif",
                     label_short: "Actif",
                     title: "",
@@ -89,20 +85,40 @@ module.exports = {
                         return true
                     },
                     error: ""
+                },
+                _user_pwd: {
+                    label_long: "Mot de passe",
+                    label_short: "",
+                    type: "password",
+                    required: true,
+                    maxlength: 50,
+                    pattern: "[A-Z,a-z,0-9,_\-]*",
+                    is_valide(value) {
+                        return !validator.isEmpty(value)
+                    },
+                    error: "Obligatoire et n'accepte que les caractères suivants A-Z a-z 0-9 _-",
+                    write(value) {
+                        return md5(value)
+                    },
+                    check(value, valinit) {
+                        return md5(value) == valinit ? true : false
+                    }                    
+                    
                 }
             },
             views: {
                 vall: {
-                    title: 'LISTE DES COMPTES',
+                    title: 'LISTE DES USERS',
                     form_add: 'fall',
                     form_view: 'fall',
                     form_edit: 'fall',
                     form_delete: 'fall',
+                    groups: ['SYSTEM'],
                     rubs: {
-                        compte_id: {},
-                        compte_actif: {},
-                        compte_email: {},
-                        compte_profil: {}
+                        user_id: {},
+                        user_actif: {},
+                        user_email: {},
+                        user_profil: {}
                     }
                 }
             },
@@ -110,10 +126,11 @@ module.exports = {
                 fall: {
                     title: 'COMPTE',
                     rubs: {
-                        compte_id: {},
-                        compte_email: {},
-                        compte_profil: {},
-                        compte_actif: {}
+                        user_id: {},
+                        _user_pwd: {},
+                        user_email: {},
+                        user_profil: {},
+                        user_actif: {}
                     }
                 }
             }

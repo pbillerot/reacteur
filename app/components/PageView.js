@@ -23,11 +23,6 @@ export default class PageView extends React.Component {
             rows: [],
             rows_selected: []
         }
-
-    }
-    handlerCtx(obj) {
-        //console.log('handlerCtx: ', obj)
-        this.setState(obj)
     }
 
     setRows(table, view, rows) {
@@ -147,6 +142,7 @@ export default class PageView extends React.Component {
                 <ContainerSidebar ctx={this} />
                 <ContainerContent ctx={this}>
                     <Header title={Dico.tables[table].views[view].title} ctx={this} />
+
                     {form_add &&
                         <Link to={'/form/add/' + table + '/' + view + '/' + form_add + '/0'}>
                             <span className="w3-btn-floating-large w3-theme-action"
@@ -161,7 +157,6 @@ export default class PageView extends React.Component {
                             row_key={row_key} rubs={rubs} cols={cols} rows={this.state.rows}
                             />
                     </Card>
-
                     <Footer ctx={this}>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
@@ -294,8 +289,8 @@ class Cell extends React.Component {
             case 'check':
                 return (
                     <input className="w3-check" type="checkbox" disabled
-                            checked={val == '1' ? true : false}
-                    />
+                        checked={val == '1' ? true : false}
+                        />
                 )
             case 'radio':
                 return (

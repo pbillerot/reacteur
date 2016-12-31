@@ -401,6 +401,7 @@ class Field extends React.Component {
                         <input className="w3-check" type="checkbox"
                             checked={this.state.value == '1' ? true : false}
                             onChange={this.handleChange}
+                            disabled={this.props.fields[this.props.id].is_read_only}
                             name={this.props.id} id={this.props.id}
                             />
                         <label htmlFor={this.props.id} className="w3-validate">
@@ -421,6 +422,19 @@ class Field extends React.Component {
                         id={this.props.id}
                         />
                 )
+            case 'password':
+                return (
+                    <input className="w3-input w3-border" type="password"
+                        required={this.props.rubs[this.props.id].required}
+                        maxLength={this.props.rubs[this.props.id].maxlength}
+                        pattern={this.props.rubs[this.props.id].pattern}
+                        placeholder={this.props.rubs[this.props.id].placeholder}
+                        onChange={this.handleChange}
+                        disabled={this.props.fields[this.props.id].is_read_only}
+                        value={this.state.value}
+                        id={this.props.id}
+                        />
+                )
             case 'radio':
                 return (
                     <div onChange={this.handleChange} className="w3-padding w3-border" id={this.props.id}>
@@ -428,6 +442,7 @@ class Field extends React.Component {
                             <span key={key} className="w3-margin-right">
                                 <input className="w3-radio" type="radio"
                                     checked={this.state.value == key}
+                                    disabled={this.props.fields[this.props.id].is_read_only}
                                     name={this.props.id} value={key} id={key}
                                     />
                                 <label htmlFor={key} className="w3-validate">
