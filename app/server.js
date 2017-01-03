@@ -32,7 +32,13 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.set('trust proxy', 1) // trust first proxy
-app.use(morgan('short'))
+morgan.token('id', function(req, res) {
+  return req.session ? req.session.user_id 
+  ? req.session.id.substring(26) + '/' + req.session.user_id 
+  : req.session.id.substring(26) + '/anonymous' 
+  : 'no-session';
+});
+app.use(morgan(morgan.short + ' [:id]'))
 app.use(helmet())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -43,14 +49,15 @@ app.use(require('cookie-parser')());
 // sudo apt install redis-server
 var session = require('express-session');
 var RedisStore = require('connect-redis')(session);
+var redisStore = new RedisStore({ host: '127.0.0.1', port: 6379, logErrors: true })
 app.use(session({
-  store: new RedisStore({ host: '127.0.0.1', port: 6379 }),
+  store: redisStore,
   //path: '/',
   secret: 'sse2-Excr',
   resave: false,
   saveUninitialized: true,
   cookie: {
-    maxAge: 60000,
+    maxAge: 30 * 60 * 1000, // 30 minutes
     httpOnly: true,
     secure: true,
     //domain: 'pbillerot.freeboxos.fr',
@@ -65,7 +72,7 @@ app.use(function (req, res, next) {
     //console.log(sess.id, sess.count)
   } else {
     sess.count = 1
-    console.log('SESSION Connection de', sess.id)
+    //console.log('SESSION Connection de', sess.id)
   }
   next()
 })

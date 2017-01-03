@@ -20,7 +20,6 @@ export default class PagePortail extends React.Component {
             w3_sidebar_open: false,
             markdown: ''
         }
-
     }
     handlerCtx(obj) {
         this.setState(obj)

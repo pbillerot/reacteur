@@ -12,6 +12,7 @@ import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
 import Dico from '../config/Dico.js';
+import System from '../config/System.js';
 
 export default class PageView extends React.Component {
     constructor(props) {

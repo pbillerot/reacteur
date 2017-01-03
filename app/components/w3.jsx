@@ -69,7 +69,7 @@ export class Header extends React.Component {
         return (
             <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
                 <i className="fa fa-bars w3-opennav w3-hide-large w3-xlarge w3-margin-right"
-                onClick={(e) => this.props.ctx.handlerCtx({ w3_sidebar_open: true })}
+                    onClick={(e) => this.props.ctx.handlerCtx({ w3_sidebar_open: true })}
                     ></i>
                 <span id="myIntro">{this.props.title}</span>
             </div>

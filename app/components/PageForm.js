@@ -17,7 +17,7 @@ export default class PageForm extends React.Component {
         super(props);
         this.state = {
             w3_sidebar_open: false,
-            action: this.props.params.action,
+            action: this.props.params.action, // add view edit delete ident
             table: this.props.params.table,
             view: this.props.params.view,
             form: this.props.params.form,
@@ -32,15 +32,20 @@ export default class PageForm extends React.Component {
         let title
             = this.state.action == 'add'
                 ? 'Ajout de ' + Dico.tables[this.state.table].forms[this.state.form].title
-                : this.state.action == 'delete'
-                    ? 'Suppression de ' + Dico.tables[this.state.table].forms[this.state.form].title
-                    : Dico.tables[this.state.table].forms[this.state.form].title
+                : this.state.action == 'ident'
+                    ? Dico.tables[this.state.table].forms[this.state.form].title
+                    : this.state.action == 'delete'
+                        ? 'Suppression de ' + Dico.tables[this.state.table].forms[this.state.form].title
+                        : Dico.tables[this.state.table].forms[this.state.form].title
         return (
             <div>
                 <ContainerSidebar ctx={this} />
                 <ContainerContent ctx={this}>
                     <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
-                        <Link to={'/view/' + this.state.table + '/' + this.state.view}>
+                        <Link to={this.state.action == 'ident' 
+                            ? '/'
+                            : '/view/' + this.state.table + '/' + this.state.view
+                        }>
                             <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
                                 title="retour"
                                 ></i>
@@ -134,6 +139,9 @@ class Form extends React.Component {
         if (this.state.action == 'delete') {
             this.deleteData()
         }
+        if (this.state.action == 'ident') {
+            this.identData()
+        }
     }
 
     getData(action, table, view, form, id) {
@@ -182,6 +190,46 @@ class Form extends React.Component {
         this.checkFormulaire()
     }
 
+    identData() {
+        let data = ''
+        Object.keys(this.state.fields).forEach(key => {
+            if (!Dico.isRubTemporary(key)) {
+                let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
+                data += data.length > 0 ? '&' + param : param
+            }
+        })
+        fetch('/api/cnx/ident', {
+            method: "PUT",
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+            },
+            body: data
+        }).then(response => {
+            //console.log('RESULT: ', response)
+            response.json().then(json => {
+                if (response.ok == true) {
+                    if (json.code < 4000) {
+                        browserHistory.push('/');
+                    } else {
+                        this.state.error = {
+                            code: json.code,
+                            message: json.message
+                        }
+                        this.setState({ is_error: true })
+                    }
+                } else {
+                    this.state.error = {
+                        code: json.code,
+                        message: json.message
+                    }
+                    this.setState({ is_error: true })
+                }
+            })
+        })
+    }
+
     updateData() {
         let data = ''
         Object.keys(this.state.fields).forEach(key => {
@@ -220,7 +268,6 @@ class Form extends React.Component {
                 }
             })
         })
-
     }
 
     deleteData() {
@@ -339,6 +386,13 @@ class Form extends React.Component {
                 }
                 <div className="w3-navbar"
                     style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
+                    {this.state.action == 'ident' &&
+                        <button type="button"
+                            className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                            onClick={this.handleSubmit} >
+                            <i className="fa fa-check"></i> Valider
+                        </button>
+                    }
                     {this.state.action == 'edit' &&
                         <button type="button"
                             className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}

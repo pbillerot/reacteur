@@ -4,23 +4,22 @@
  */
 // https://www.npmjs.com/package/validator
 import validator from 'validator'
-import md5 from 'js-md5'
 module.exports = {
     application: {
         title: 'REACTEUR',
         desc: 'REACTEUR, un simple CRUD',
         url: 'https://github.com/pbillerot/atomium',
-        copyright: 'REACTEUR 2016 - version 1.0.30',
+        copyright: 'REACTEUR 2016 - version 1.0.31',
     },
     tables: {
         actusers: {
             /* 
                 CREATE TABLE "ACTUSERS" (
                     "user_id" varchar(20) NOT NULL,
-                    "user_email" varchar(70) NOT NULL,
-                    "user_profil" varchar(20) NULL,
-                    "user_actif" varchar(1) NULL,
-                    "user_pwd" varchar(255) NULL,
+                    "user_email" varchar(70) null,
+                    "user_profil" varchar(20) null,
+                    "user_actif" varchar(1) null,
+                    "user_pwd" varchar(255) null,
                     primary key(user_id)
                 )
             */
@@ -37,7 +36,7 @@ module.exports = {
                     placeholder: "",
                     list: null, //val1,val2
                     default: "",
-                    help: "Le pseudo sera unique dans la base",
+                    help: "Le pseudo sera unique",
                     is_valide(value) {
                         return validator.isAlphanumeric(value) && !validator.isEmpty(value)
                     },
@@ -86,7 +85,7 @@ module.exports = {
                     },
                     error: ""
                 },
-                user_pwd: {
+                _user_pwd: {
                     label_long: "Mot de passe",
                     label_short: "",
                     type: "password",
@@ -94,20 +93,26 @@ module.exports = {
                     maxlength: 50,
                     pattern: "[A-Z,a-z,0-9,_\-]*",
                     is_valide(value) {
-                        return value.length > 7
+                        return !validator.isEmpty(value)
                     },
-                    error: "Obligatoire, d'une longueur minimum de 8 caractères, n'accepte que les caractères A-Z a-z 0-9 _-",                    
+                    error: "Obligatoire et n'accepte que les caractères A-Z a-z 0-9 _-",
+                    write(value) {
+                        return md5(value)
+                    },
+                    check(value, valinit) {
+                        return md5(value) == valinit ? true : false
+                    }                    
+                    
                 }
             },
             views: {
                 vall: {
-                    title: 'Gestion des comptes...',
+                    title: 'LISTE DES USERS',
                     form_add: 'fall',
                     form_view: 'fall',
                     form_edit: 'fall',
                     form_delete: 'fall',
-                    is_hidden: true,
-                    groups: ['ADMIN'],
+                    groups: ['SYSTEM'],
                     rubs: {
                         user_id: {},
                         user_actif: {},
@@ -116,15 +121,12 @@ module.exports = {
                     }
                 },
                 vident: {
-                    title: 'Connexion...',
-                    form_auto: 'fident',
-                    form_auto_action: 'ident',
+                    title: "S'identifier...",
                     form_add: null,
                     form_view: null,
-                    //form_edit: null,
+                    form_edit: 'fident',
                     form_delete: null,
-                    is_hidden: true,
-                    groups: [],
+                    groups: ['INVITE'],
                     rubs: {
                     }
                 }
@@ -132,22 +134,22 @@ module.exports = {
             forms: {
                 fall: {
                     title: 'USER',
-                    groups: ['ADMIN'],
+                    groups: ['SYSTEM'],
                     rubs: {
                         user_id: {},
-                        //user_pwd: {},
+                        _user_pwd: {},
                         user_email: {},
                         user_profil: {},
                         user_actif: {}
                     }
                 },
                 fident: {
-                    title: 'CONNEXION',
+                    title: 'Identification',
                     action_title: 'Valider',
-                    groups: [],
+                    groups: ['INVITE'],
                     rubs: {
                         user_id: {},
-                        user_pwd: {}
+                        _user_pwd: {}
                     }
                 }
             }
