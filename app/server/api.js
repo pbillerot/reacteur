@@ -24,8 +24,10 @@ const router = express.Router();
 const sqlite3 = require('sqlite3').verbose()
 const md5 = require('js-md5')
 const fs = require('fs')
+const nodemailer = require('nodemailer')
+const markdown = require('nodemailer-markdown').markdown;
 
-const Dico = require('../config/Dico')
+import { Dico } from '../config/Dico';
 
 /**
  * Appel du portail
@@ -52,21 +54,47 @@ router.get('/help', function (req, res) {
  */
 router.post('/:table/:view/:form/:id', function (req, res) {
   //console.log(req.url)
+  let formulaire = Dico.tables[req.params.table].forms[req.params.form]
   let rubs = Dico.tables[req.params.table].rubs
-  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
+  let fields = Dico.tables[req.params.table].forms[req.params.form].fields
   let key_name = Dico.tables[req.params.table].key
+
+  Dico.fields = fields
 
   let data = req.body
   let sql = ''
+
+    // Recup des valeurs transmises
+  Object.keys(fields).forEach((key) => {
+    fields[key].value = ''
+    if (data[key]) {
+      fields[key].value = data[key]
+    }
+  })
+  // calcul du formulaire
+  if ( formulaire.computeForm ) {
+    formulaire.computeForm()
+  }
+    
+  // Transformation des values en record
+  Object.keys(fields).forEach((key) => {
+    if (!Dico.isRubTemporary(key)) {
+      fields[key].record_value = fields[key].value // par défaut record_value = value
+      if (rubs[key].srv_record)
+        fields[key].record_value = rubs[key].srv_record(fields[key].value)
+    }
+  })
+
   Object.keys(fields).forEach((key) => {
     if (!Dico.isRubTemporary(key)) {
       sql += sql.length > 0 ? ", " : ""
-      sql += key + " = '" + data[key] + "'"
+      sql += key + " = '" + fields[key].record_value + "'"
     }
   })
+
   sql = 'UPDATE ' + req.params.table + ' SET ' + sql
   sql += " WHERE " + key_name + " = '" + req.params.id + "'"
-  console.log(sql)
+  //console.log(sql)
   let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
   var result = (callback) => {
     db.serialize(function () {
@@ -95,38 +123,62 @@ router.post('/:table/:view/:form/:id', function (req, res) {
  */
 router.put('/:table/:view/:form', function (req, res) {
   //console.log(req.url)
+  let formulaire = Dico.tables[req.params.table].forms[req.params.form]
   let rubs = Dico.tables[req.params.table].rubs
-  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
+  let fields = Dico.tables[req.params.table].forms[req.params.form].fields
   let key_name = Dico.tables[req.params.table].key
 
+  Dico.fields = fields
+
   let data = req.body
-  console.log(data)
+  //console.log('put', data)
+
+  // Recup des valeurs transmises
+  Object.keys(fields).forEach((key) => {
+    fields[key].value = ''
+    if (data[key]) {
+      fields[key].value = data[key]
+    }
+  })
+  // calcul du formulaire
+  if ( formulaire.computeForm ) {
+    formulaire.computeForm()
+  }
+    
+  // Transformation des values en record
+  Object.keys(fields).forEach((key) => {
+    if (!Dico.isRubTemporary(key)) {
+      fields[key].record_value = fields[key].value // par défaut record_value = value
+      if (rubs[key].srv_record)
+        fields[key].record_value = rubs[key].srv_record(fields[key].value)
+    }
+  })
+  //console.log(fields)
 
   let sql = '('
   let bstart = true;
   Object.keys(fields).forEach((key) => {
-    //if (key != key_name) {
     if (!Dico.isRubTemporary(key)) {
       sql += !bstart ? ", " : ""
       sql += "'" + key + "'"
       bstart = false;
     }
-    //}
   })
+
   sql += ') VALUES ('
   bstart = true;
   Object.keys(fields).forEach((key) => {
     //if (key != key_name) {
     if (!Dico.isRubTemporary(key)) {
       sql += !bstart ? ", " : ""
-      sql += "'" + data[key] + "'"
+      sql += "'" + fields[key].record_value + "'"
       bstart = false;
     }
     //}
   })
   sql += ')'
   sql = 'INSERT INTO ' + req.params.table + ' ' + sql
-  console.log(sql)
+  //console.log(sql)
   let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
   var result = (callback) => {
     db.serialize(function () {
@@ -151,8 +203,10 @@ router.put('/:table/:view/:form', function (req, res) {
  */
 router.delete('/:table/:view/:form/:id', function (req, res) {
   let rubs = Dico.tables[req.params.table].rubs
-  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
+  let fields = Dico.tables[req.params.table].forms[req.params.form].fields
   let key_name = Dico.tables[req.params.table].key
+
+  Dico.fields = fields
 
   let data = req.body
   let sql = 'DELETE FROM ' + req.params.table
@@ -182,8 +236,10 @@ router.delete('/:table/:view/:form/:id', function (req, res) {
 router.get('/form/:table/:view/:form/:id', function (req, res) {
   let select = ''
   let rubs = Dico.tables[req.params.table].rubs
-  let fields = Dico.tables[req.params.table].forms[req.params.form].rubs
+  let fields = Dico.tables[req.params.table].forms[req.params.form].fields
   let key_name = Dico.tables[req.params.table].key
+
+  Dico.fields = fields
 
   Object.keys(fields).forEach((key) => {
     if (!Dico.isRubTemporary(key)) {
@@ -228,7 +284,7 @@ router.get('/view/:table/:view', function (req, res) {
   let db = new sqlite3.Database(Dico.tables[req.params.table].basename, sqlite3.OPEN_READONLY);
   let select = ''
   let rubs = Dico.tables[req.params.table].rubs
-  let cols = Dico.tables[req.params.table].views[req.params.view].rubs
+  let cols = Dico.tables[req.params.table].views[req.params.view].cols
   let key_name = Dico.tables[req.params.table].key
   Object.keys(cols).forEach((key) => {
     if (!Dico.isRubTemporary(key))
@@ -239,7 +295,7 @@ router.get('/view/:table/:view', function (req, res) {
     db.serialize(function () {
       db.all(select, function (err, rows) {
         if (err) {
-          console.error("ERROR", err, this)
+          console.error("ERROR", err, select)
           res.status(500).json(message.m5001);
           return
         }

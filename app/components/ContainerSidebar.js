@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Link, browserHistory, Route } from 'react-router';
-import Dico from '../config/Dico.js';
+import { Dico } from '../config/Dico';
 // W3
 const {Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
@@ -29,7 +29,12 @@ export default class ContainerSidebar extends React.Component {
         this.closeDrawer()
         this.props.ctx.setState({ title: 'Aide', layout: PageLayout.HELP })
     }
-
+    componentDidMount() {
+        //console.log('ContainerSidebar.componentDidMount')
+    }
+    componentWillReceiveProps(nextProps) {
+        //console.log('ContainerSidebar.componentWillReceiveProps', nextProps)
+    }
     render() {
         let w3_sidebar_open = this.props.ctx.state.w3_sidebar_open
         return (
@@ -115,6 +120,7 @@ class IdentContainer extends React.Component {
         }
         this.handleClick = this.handleClick.bind(this);
         this.handleClickDisconnect = this.handleClickDisconnect.bind(this);
+        this.handleClickChangePwd = this.handleClickChangePwd.bind(this);
     }
     handleClick(event) {
         event.preventDefault()
@@ -137,16 +143,44 @@ class IdentContainer extends React.Component {
                 })
             })
     }
+    handleClickChangePwd(event) {
+        event.preventDefault()
+        this.setState({ is_dropdown_open: false })
+        fetch('/api/cnx/change_pwd', { method: "PUT", credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    console.log(json)
+                    browserHistory.push('/')
+                })
+            })
+    }
 
     componentDidMount() {
         //console.log('IdentContainer.componentDidMount')
+        fetch('/api/session/', { credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    //console.log('session', json)
+                    if (json.user_id) {
+                        sessionStorage.setItem('user_id', json.user_id)
+                        sessionStorage.setItem('user_email', json.user_email)
+                        sessionStorage.setItem('user_profil', json.user_profil)
+                        this.setState({ is_connected: true })
+                    } else {
+                        sessionStorage.removeItem('user_id')
+                        sessionStorage.removeItem('user_email')
+                        sessionStorage.removeItem('user_profil')
+                        this.setState({ is_connected: false })
+                    }
+                })
+            })
     }
     componentWillReceiveProps(nextProps) {
         //console.log('IdentContainer.componentWillReceiveProps')
         fetch('/api/session/', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    console.log('session', json)
+                    //console.log('session', json)
                     if (json.user_id) {
                         sessionStorage.setItem('user_id', json.user_id)
                         sessionStorage.setItem('user_email', json.user_email)
@@ -165,17 +199,11 @@ class IdentContainer extends React.Component {
         return (
             <div className="">
                 {this.state.is_connected &&
-                    <div className="w3-accordion">
-                        <a onClick={this.handleClick} className="w3-text-dark-grey">
-                            {sessionStorage.getItem('user_id')} connecté <i className={this.state.is_dropdown_open ? 'fa fa-caret-up' : 'fa fa-caret-down'}></i></a>
-                        <div className={this.state.is_dropdown_open ? "w3-accordion-content w3-container w3-show" : 'w3-accordion-content w3-container'}>
-                            <a onClick={this.handleClickDisconnect}>Se déconnecter</a>
-                            {sessionStorage.getItem('user_profil') == 'ADMIN' &&
-                                <Link to={'/view/actusers/vall'} activeClassName="w3-text-dark-grey">
-                                {Dico.tables['actusers'].views['vall'].title}
-                                </Link>
-                            }
-                        </div>
+                    <div>
+                        <Link to={'/form/edit/actusers/vident/fmenuident/' + sessionStorage.getItem('user_id')}>
+                            {sessionStorage.getItem('user_id')} <i className="fa fa-caret-right"></i>
+                        </Link>
+                        <a onClick={this.handleClickDisconnect}>Se déconnecter</a>
                     </div>
                 }
                 {!this.state.is_connected &&

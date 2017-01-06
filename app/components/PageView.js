@@ -11,7 +11,7 @@ const {Button, Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import Dico from '../config/Dico.js';
+import { Dico } from '../config/Dico';
 import System from '../config/System.js';
 
 export default class PageView extends React.Component {
@@ -29,7 +29,7 @@ export default class PageView extends React.Component {
     setRows(table, view, rows) {
         let form_edit = Dico.tables[table].views[view].form_edit
         let rubs = Dico.tables[table].rubs
-        let cols = Dico.tables[table].views[view].rubs
+        let cols = Dico.tables[table].views[view].cols
         let row_key = Dico.tables[table].key
 
         //console.log(JSON.stringify(rows))
@@ -89,7 +89,7 @@ export default class PageView extends React.Component {
                     //console.log('response: ', json)
                     //this.state.rows = JSON.parse(json.rows)
                     let rubs = Dico.tables[table].rubs
-                    let cols = Dico.tables[table].views[view].rubs
+                    let cols = Dico.tables[table].views[view].cols
                     let row_key = Dico.tables[table].key
 
                     //console.log(JSON.stringify(rows))
@@ -136,7 +136,7 @@ export default class PageView extends React.Component {
         let form_edit = Dico.tables[table].views[view].form_edit
         let form_delete = Dico.tables[table].views[view].form_delete
         let rubs = Dico.tables[table].rubs
-        let cols = Dico.tables[table].views[view].rubs
+        let cols = Dico.tables[table].views[view].cols
         let row_key = Dico.tables[table].key
         return (
             <div>

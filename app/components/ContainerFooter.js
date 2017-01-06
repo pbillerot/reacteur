@@ -6,7 +6,7 @@ import { Link } from 'react-router';
 const {Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
 
-import Dico from '../config/Dico.js';
+import { Dico } from '../config/Dico';
 
 export default class FooterContainer extends React.Component {
     github(event) {
