@@ -10,7 +10,7 @@ const {Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import { Dico } from '../config/Dico';
+import { Data, Dico, Tools } from '../config/Dico';
 
 export default class PageForm extends React.Component {
     constructor(props) {
@@ -23,7 +23,7 @@ export default class PageForm extends React.Component {
             form: this.props.params.form,
             id: this.props.params.id,
             formulaire: Dico.tables[this.props.params.table].forms[this.props.params.form],
-            MyForm: () => <Form {...this.state} />
+            MyForm: () => <Form {...this.state} />,
         }
     }
     handlerCtx(obj) {
@@ -95,9 +95,9 @@ class Form extends React.Component {
             error: {
                 code: '',
                 message: ''
-            },
+            }
         }
-        Dico.fields = this.state.fields
+        Data.fields = this.state.fields
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
@@ -115,6 +115,15 @@ class Form extends React.Component {
                 if (this.state.rubs[key].default)
                     this.state.fields[key].value = this.state.rubs[key].default
             }
+            // ctrl accès - ko le champ sera caché
+            if ( this.state.rubs[key].group ) {
+                if ( sessionStorage.getItem('user_pseudo') && sessionStorage.getItem('user_pseudo').length > 3 ) {
+                    if (sessionStorage.getItem('user_profil') != this.state.rubs[key].group)
+                        this.state.fields[key].is_hidden = true
+                } else {
+                    this.state.fields[key].is_hidden = true
+                }
+            }
             // Field valide ?
             if (!this.state.fields[key].is_read_only && !this.state.fields[key].is_hidden) {
                 //console.log(key, this.state.fields[key])
@@ -130,7 +139,11 @@ class Form extends React.Component {
         //Dico.tables[this.props.table].forms[this.props.form].rubs[key].value = value
         this.state.fields[key].value = value
         if (!this.state.fields[key].is_read_only && !this.state.fields[key].is_hidden) {
-            this.state.fields[key].is_valide = this.state.rubs[key].is_valide(value)
+            if (this.state.rubs[key].is_valide) {
+                this.state.fields[key].is_valide = this.state.rubs[key].is_valide(value)
+            } else {
+                this.state.fields[key].is_valide = true
+            }
         }
 
         this.checkFormulaire()
@@ -171,35 +184,6 @@ class Form extends React.Component {
         }
     }
 
-    getData(action, table, view, form, id) {
-        //console.log('Form.getData: ', action, table, view, form, id)
-        Object.keys(this.state.fields).forEach(key => {
-            this.state.fields[key].value = ''
-            this.state.fields[key].is_valide = false
-        })
-        if (action == 'view' || action == 'edit' || action == 'delete') {
-            fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, { credentials: 'same-origin' })
-                .then(response => {
-                    response.json().then(json => {
-                        let row = JSON.parse(json)
-                        Object.keys(JSON.parse(json)).forEach(key => {
-                            //console.log('Form.response: ', key, row[key].value)
-                            this.state.fields[key].value = row[key].value ? row[key].value : ''
-                            this.state.fields[key].is_valide =
-                                this.state.rubs[key].is_valide
-                                    ? this.state.rubs[key].is_valide(this.state.fields[key].value)
-                                    : true
-                        })
-                        this.checkFormulaire()
-                        this.setState({})
-                    })
-                })
-        }
-        if (action == 'add') {
-            this.checkFormulaire()
-            this.setState({})
-        }
-    }
     componentWillReceiveProps(nextProps) {
         //console.log('Form.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
@@ -224,7 +208,7 @@ class Form extends React.Component {
                 fields: Dico.tables[nextProps.table].forms[nextProps.form].fields,
                 formulaire: Dico.tables[nextProps.table].forms[nextProps.form],
             })
-            Dico.fields = this.state.fields
+            Data.fields = this.state.fields
             this.getData(nextProps.action, nextProps.table, nextProps.view, nextProps.form, nextProps.id)
             this.checkFormulaire()
         }
@@ -241,10 +225,49 @@ class Form extends React.Component {
         this.checkFormulaire()
     }
 
+    getData(action, table, view, form, id) {
+        //console.log('Form.getData: ', action, table, view, form, id)
+        Object.keys(this.state.fields).forEach(key => {
+            this.state.fields[key].value = ''
+            this.state.fields[key].is_valide = false
+        })
+        if (action == 'view' || action == 'edit' || action == 'delete') {
+            fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, { credentials: 'same-origin' })
+                .then(response => {
+                    response.json().then(json => {
+                        //console.log('response', response, json)
+                        if (response.ok == true) {
+                            let row = JSON.parse(json)
+                            Object.keys(JSON.parse(json)).forEach(key => {
+                                //console.log('Form.response: ', key, row[key].value)
+                                this.state.fields[key].value = row[key].value ? row[key].value : ''
+                                this.state.fields[key].is_valide =
+                                    this.state.rubs[key].is_valide
+                                        ? this.state.rubs[key].is_valide(this.state.fields[key].value)
+                                        : true
+                            })
+                            this.checkFormulaire()
+                            this.setState({})
+                        } else {
+                            this.state.error = {
+                                code: json.code,
+                                message: json.message
+                            }
+                            this.setState({ is_error: true })
+                        }
+                    })
+                })
+        }
+        if (action == 'add') {
+            this.checkFormulaire()
+            this.setState({})
+        }
+    }
+
     identData() {
         let data = ''
         Object.keys(this.state.fields).forEach(key => {
-            if (!Dico.isRubTemporary(key)) {
+            if (!Tools.isRubTemporary(key)) {
                 let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
                 data += data.length > 0 ? '&' + param : param
             }
@@ -298,6 +321,7 @@ class Form extends React.Component {
         }).then(response => {
             //console.log('RESULT: ', response)
             response.json().then(json => {
+                console.log('json', json)
                 if (response.ok == true) {
                     if (json.code < 4000) {
                         if (this.state.formulaire.return_url) {
@@ -326,7 +350,7 @@ class Form extends React.Component {
     deleteData() {
         let data = ''
         Object.keys(this.state.fields).forEach(key => {
-            if (!Dico.isRubTemporary(key)) {
+            if (!Tools.isRubTemporary(key)) {
                 let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
                 data += data.length > 0 ? '&' + param : param
             }
@@ -382,6 +406,7 @@ class Form extends React.Component {
             //console.log('RESULT: ', response)
             response.json().then(json => {
                 if (response.ok == true) {
+                    //console.log('json', json)
                     if (json.code < 4000) {
                         if (this.state.formulaire.return_url) {
                             browserHistory.push(this.state.formulaire.return_url)
@@ -416,6 +441,7 @@ class Form extends React.Component {
             if (is_ok)
                 list_fields.push(key)
         })
+        let display_form = ! this.state.is_error || (this.state.is_error && this.state.error.code < 9000)
         return (
             <form>
                 {this.state.is_error &&
@@ -423,7 +449,7 @@ class Form extends React.Component {
                         <p>{this.state.error.code} {this.state.error.message}</p>
                     </div>
                 }
-                {
+                { display_form &&
                     list_fields.map(key =>
                         <div className="w3-row-padding w3-margin-top" key={key}>
                             <Label {...this.state} id={key} />
@@ -438,6 +464,7 @@ class Form extends React.Component {
                         </div>
                     )
                 }
+                { display_form &&
                 <div className="w3-navbar"
                     style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
                     {this.state.action == 'ident' &&
@@ -452,7 +479,7 @@ class Form extends React.Component {
                         <button type="button"
                             className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
                             onClick={this.handleSubmit} >
-                            <i className="fa fa-check"></i> {this.state.formulaire.action_title 
+                            <i className="fa fa-check"></i> {this.state.formulaire.action_title
                                 ? this.state.formulaire.action_title : 'Enregistrer'}
                         </button>
                     }
@@ -473,6 +500,7 @@ class Form extends React.Component {
                         </button>
                     }
                 </div>
+                }
             </form>
         )
     }
@@ -625,7 +653,7 @@ class Field extends React.Component {
                             />
                     )
                 case 'link':
-                let uri = Dico.replaceParams(this.props.rubs[this.props.id].action_url,
+                    let uri = Tools.replaceParams(this.props.rubs[this.props.id].action_url,
                         this.props.fields)
                     return (
                         <Link to={uri} className="w3-text-teal"
@@ -678,6 +706,18 @@ class Field extends React.Component {
                                 </option>
                             )}
                         </select>
+                    )
+                case 'mail':
+                    return (
+                        <input className="w3-input w3-border" type="text"
+                            maxLength={this.props.rubs[this.props.id].maxlength}
+                            pattern={this.props.rubs[this.props.id].pattern}
+                            placeholder={this.props.rubs[this.props.id].placeholder}
+                            onChange={this.handleChange}
+                            disabled={this.props.fields[this.props.id].is_read_only}
+                            value={this.state.value}
+                            id={this.props.id}
+                            />
                     )
                 case 'note':
                     return (

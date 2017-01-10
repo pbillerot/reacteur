@@ -5,33 +5,83 @@
 // https://www.npmjs.com/package/validator
 import validator from 'validator'
 import md5 from 'js-md5'
+import randomstring from 'randomstring'
+import moment from 'moment'
+
+const Tools = {
+    isRubTemporary(key) {
+        return /^_/g.test(key)
+    },
+    replaceParams(uri) {
+        let params = uri.split('/')
+        let str = ''
+        params.forEach(param => {
+            if (param.length > 0) {
+                if (param.startsWith(':')) {
+                    let field = param.substring(1)
+                    str = str + '/' + Data.fields[field].value
+                } else {
+                    str = str + '/' + param
+                }
+            }
+        })
+        return str
+    },
+}
+const Data = {
+    fields: {},
+    user: {}, // id email profil
+    server: {} // host (https://server:port)
+}
 const Dico = {
     application: {
         title: 'REACTEUR',
         desc: 'REACTEUR, un simple CRUD',
         url: 'https://github.com/pbillerot/atomium',
-        copyright: 'REACTEUR 2016 - version 1.1.6',
+        copyright: 'REACTEUR 2016 - version 1.1.10',
+    },
+    config: {
+        smtpConfig: {
+            host: 'smtp.free.fr'
+        },
+        from: '"Reacteur" <philippe.billerot@gmail.com>'
     },
     tables: {
+        acttokens: {
+            basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
+            key: 'tok_id',
+            rubs: {},
+            views: {},
+            forms: {}
+        },
         actusers: {
             /* 
                 CREATE TABLE "ACTUSERS" (
-                    "user_id" varchar(20) NOT NULL,
-                    "user_email" varchar(70) NOT NULL,
+                    "user_email" varchar(100) NOT NULL,
+                    "user_pseudo" varchar(20) NOT NULL,
                     "user_profil" varchar(20) NULL,
                     "user_actif" varchar(1) NULL,
                     "user_pwd" varchar(255) NULL,
-                    primary key(user_id)
+                    primary key(user_email)
                 );
+                CREATE UNIQUE INDEX index_user_pseudo ON ACTUSERS(user_pseudo);
                 INSERT INTO ACTUSERS
-                (user_id, user_email, user_profil, user_actif, user_pwd)
+                (user_pseudo, user_email, user_profil, user_actif, user_pwd)
                 values
                 ('admin', 'philippe.billerot@gmail.com', 'ADMIN', '1', '');
+
+                CREATE TABLE "ACTTOKENS" (
+                    "tok_id" varchar(23) NOT NULL,
+                    "tok_url" varchar(255) NOT NULL,
+                    "tok_email" varchar(100) NOT NULL,
+                    primary key(tok_id)
+                );
+
             */
             basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
-            key: 'user_id',
+            key: 'user_pseudo',
             rubs: {
-                user_id: {
+                user_pseudo: {
                     label_long: "Pseudo",
                     label_short: "Pseudo",
                     type: "text",
@@ -105,6 +155,13 @@ const Dico = {
                         return md5(value)
                     }
                 },
+                user_token: {
+                    label_long: "Token",
+                    label_short: "Token",
+                    type: "text",
+                    default: () => { return randomstring.generate(23) },
+                },
+
                 _user_pwd_1: {
                     label_long: "Créez un mot de passe",
                     label_short: "",
@@ -125,7 +182,7 @@ const Dico = {
                     maxlength: 50,
                     pattern: "[A-Z,a-z,0-9,_\-]*",
                     is_valide(value) {
-                        return value.length > 7 && value == Dico.fields._user_pwd_1.value ? true : false
+                        return value.length > 7 && value == Data.fields._user_pwd_1.value ? true : false
                     },
                     error: "Les mots de passe ne sont pas identiques",
                 },
@@ -147,29 +204,35 @@ const Dico = {
                 _link_chg_pwd: {
                     label_long: "Changer mon mot de passe...",
                     type: "link",
-                    action_url: '/form/edit/actusers/vident/fchgpwd/:user_id'
+                    action_url: '/form/edit/actusers/vident/fchgpwd/:user_pseudo'
                 },
                 _link_chg_email: {
                     label_long: "Changer mon adresse email...",
                     type: "link",
-                    action_url: '/form/edit/actusers/vident/fchgemail/:user_id'
+                    action_url: '/form/edit/actusers/vident/fchgemail/:user_pseudo'
                 },
                 _link_adm_compte: {
                     label_long: "Administrer les comptes...",
                     type: "link",
-                    groups: ['ADMIN'],
+                    group: 'ADMIN',
                     action_url: '/view/actusers/vall'
                 },
                 _mail: {
-                    label_long: "Envoyer le mail",
+                    label_long: "Mail à",
                     type: "mail",
-                    groups: ['ADMIN'],
-                    mail: {
-                        from: '"Philippe" <philippe.billerot@gmail.com>', // sender address
-                        to: 'philippe.billerot@free.com', // list of receivers
-                        subject: 'Hello ✔', // Subject line
-                        text: 'Hello world ?', // plaintext body
-                        html: '<b>Hello world ?</b>' // html body
+                    group: '',
+                    mail: () => { // voir https://github.com/nodemailer/nodemailer
+                        return {
+                            from: null, // sender address défini dans canfig
+                            to: Data.fields._mail.value, // list of receivers
+                            subject: 'Hello', // Subject line
+                            markdown: () => {
+                                return "#Bonjour ${Data.fields.user_pseudo}\n \
+                            Ci-après le lien qui va vous permettre d'associer un nouveau mot de passe à votre compte\n \
+                            [Lien](https://pbillerot.freeboxos.fr/token/actusers/vident/fchgemail)\n \
+                            Cordialement."
+                            }
+                        }
                     }
                 }
             },
@@ -181,9 +244,9 @@ const Dico = {
                     form_edit: 'fall',
                     form_delete: 'fall',
                     is_hidden: true,
-                    groups: ['ADMIN'],
+                    group: 'ADMIN',
                     cols: {
-                        user_id: {},
+                        user_pseudo: {},
                         user_actif: {},
                         user_email: {},
                         user_profil: {}
@@ -198,7 +261,7 @@ const Dico = {
                     form_edit: null,
                     form_delete: null,
                     is_hidden: true,
-                    groups: [],
+                    group: null,
                     cols: {
                     }
                 },
@@ -211,7 +274,7 @@ const Dico = {
                     form_edit: null,
                     form_delete: null,
                     is_hidden: true,
-                    groups: [],
+                    group: null,
                     cols: {
                     }
                 }
@@ -219,21 +282,25 @@ const Dico = {
             forms: {
                 fall: {
                     title: 'USER',
-                    groups: ['ADMIN'],
+                    group: 'ADMIN',
                     fields: {
-                        user_id: {},
+                        user_pseudo: {},
                         //user_pwd: {},
                         user_email: {},
                         user_profil: {},
                         user_actif: {}
-                    }
+                    },
+                    is_valide() {
+                        return false
+                    },
+                    error: "Formulaire non correct"
                 },
                 fnew: {
                     title: "Création d'un compte",
                     action_title: 'Créer',
-                    groups: [],
+                    group: null,
                     fields: {
-                        user_id: {},
+                        user_pseudo: {},
                         user_email: {},
                         _user_pwd_1: {},
                         _user_pwd_2: {},
@@ -241,22 +308,22 @@ const Dico = {
                         user_actif: { is_hidden: true },
                         user_profil: { is_hidden: true }
                     },
-                    checkForm() {
+                    is_valide() {
                         return true
                     },
                     computeForm() {
-                        Dico.fields.user_pwd.value = Dico.fields._user_pwd_1.value
-                        Dico.fields.user_actif.value = '1'
-                        Dico.fields.user_profil.value = 'INVITE'
+                        Data.fields.user_pwd.value = Data.fields._user_pwd_1.value
+                        Data.fields.user_actif.value = '1'
+                        Data.fields.user_profil.value = 'INVITE'
                     }
 
                 },
                 fident: {
                     title: 'CONNEXION',
                     action_title: 'Valider',
-                    groups: [],
+                    group: null,
                     fields: {
-                        user_id: {},
+                        user_pseudo: {},
                         user_pwd: {},
                         _link_new_compte: {},
                         _link_forget_pwd: {}
@@ -266,10 +333,10 @@ const Dico = {
                     title: "Changer mon adresse email",
                     action_title: 'Valider',
                     return_url: '/',
-                    groups: [],
-                    owner: 'user_id',
+                    group: '',
+                    owner: 'user_pseudo',
                     fields: {
-                        user_id: { is_read_only: true },
+                        user_pseudo: { is_read_only: true },
                         user_email: {},
                     }
                 },
@@ -277,38 +344,40 @@ const Dico = {
                     title: "Changer mon mot de passe",
                     action_title: 'Valider',
                     return_url: '/',
-                    groups: [],
-                    owner: 'user_id',
+                    group: null,
+                    owner: 'user_pseudo',
                     fields: {
-                        user_id: { is_read_only: true },
+                        user_pseudo: { is_read_only: true },
                         user_email: { is_read_only: true },
                         _user_pwd_1: {},
                         _user_pwd_2: {},
                         user_pwd: { is_hidden: true }
                     },
                     computeForm() {
-                        Dico.fields.user_pwd.value = Dico.fields._user_pwd_1.value
+                        Data.fields.user_pwd.value = Data.fields._user_pwd_1.value
                     }
                 },
                 forgetpwd: {
                     title: "J'ai perdu mon mot de passe",
                     action_title: 'Envoyer',
                     return_url: '/',
-                    groups: [],
-                    owner: 'user_id',
+                    group: null,
+                    owner: 'user_pseudo',
                     fields: {
                         _note_new_pwd: {},
-                        user_email: {}
+                        //user_pseudo: {},
+                        //user_email: {},
+                        _mail: {}
                     }
                 },
                 fmenuident: {
                     title: "Mon compte",
                     action_title: 'Envoyer',
                     return_url: '/',
-                    groups: [],
-                    owner: 'user_id',
+                    group: null,
+                    owner: 'user_pseudo',
                     fields: {
-                        user_id: { is_read_only: true },
+                        user_pseudo: { is_read_only: true },
                         user_email: { is_read_only: true },
                         _link_chg_pwd: {},
                         _link_chg_email: {},
@@ -317,25 +386,6 @@ const Dico = {
                 }
             }
         }
-    },
-    isRubTemporary(key) {
-        return /^_/g.test(key)
-    },
-    replaceParams(uri) {
-        let params = uri.split('/')
-        let str = ''
-        params.forEach(param => {
-            if (param.length > 0) {
-                if (param.startsWith(':')) {
-                    let field = param.substring(1)
-                    str = str + '/' + Dico.fields[field].value
-                } else {
-                    str = str + '/' + param
-                }
-            }
-        })
-        return str
-    },
-    fields: {}
+    }
 } // end exports
-export { Dico }
+export { Data, Dico, Tools }

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Link, browserHistory, Route } from 'react-router';
-import { Dico } from '../config/Dico';
+import { Data, Dico } from '../config/Dico';
 // W3
 const {Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
@@ -133,7 +133,7 @@ class IdentContainer extends React.Component {
 
     handleClickDisconnect(event) {
         event.preventDefault()
-        sessionStorage.removeItem('user_id')
+        sessionStorage.removeItem('user_pseudo')
         this.setState({ is_dropdown_open: false })
         fetch('/api/cnx/close', { method: "PUT", credentials: 'same-origin' })
             .then(response => {
@@ -161,13 +161,13 @@ class IdentContainer extends React.Component {
             .then(response => {
                 response.json().then(json => {
                     //console.log('session', json)
-                    if (json.user_id) {
-                        sessionStorage.setItem('user_id', json.user_id)
+                    if (json.user_pseudo) {
+                        sessionStorage.setItem('user_pseudo', json.user_pseudo)
                         sessionStorage.setItem('user_email', json.user_email)
                         sessionStorage.setItem('user_profil', json.user_profil)
                         this.setState({ is_connected: true })
                     } else {
-                        sessionStorage.removeItem('user_id')
+                        sessionStorage.removeItem('user_pseudo')
                         sessionStorage.removeItem('user_email')
                         sessionStorage.removeItem('user_profil')
                         this.setState({ is_connected: false })
@@ -181,13 +181,13 @@ class IdentContainer extends React.Component {
             .then(response => {
                 response.json().then(json => {
                     //console.log('session', json)
-                    if (json.user_id) {
-                        sessionStorage.setItem('user_id', json.user_id)
+                    if (json.user_pseudo) {
+                        sessionStorage.setItem('user_pseudo', json.user_pseudo)
                         sessionStorage.setItem('user_email', json.user_email)
                         sessionStorage.setItem('user_profil', json.user_profil)
                         this.setState({ is_connected: true })
                     } else {
-                        sessionStorage.removeItem('user_id')
+                        sessionStorage.removeItem('user_pseudo')
                         sessionStorage.removeItem('user_email')
                         sessionStorage.removeItem('user_profil')
                         this.setState({ is_connected: false })
@@ -200,8 +200,8 @@ class IdentContainer extends React.Component {
             <div className="">
                 {this.state.is_connected &&
                     <div>
-                        <Link to={'/form/edit/actusers/vident/fmenuident/' + sessionStorage.getItem('user_id')}>
-                            {sessionStorage.getItem('user_id')} <i className="fa fa-caret-right"></i>
+                        <Link to={'/form/edit/actusers/vident/fmenuident/' + sessionStorage.getItem('user_pseudo')}>
+                            {sessionStorage.getItem('user_pseudo')} <i className="fa fa-caret-right"></i>
                         </Link>
                         <a onClick={this.handleClickDisconnect}>Se déconnecter</a>
                     </div>

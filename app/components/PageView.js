@@ -11,7 +11,7 @@ const {Button, Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import { Dico } from '../config/Dico';
+import { Data, Dico, Tools } from '../config/Dico';
 import System from '../config/System.js';
 
 export default class PageView extends React.Component {
@@ -22,7 +22,12 @@ export default class PageView extends React.Component {
             table: this.props.params.table,
             view: this.props.params.view,
             rows: [],
-            rows_selected: []
+            rows_selected: [],
+            is_error: false,
+            error: {
+                code: '',
+                message: ''
+            }
         }
     }
 
@@ -42,7 +47,7 @@ export default class PageView extends React.Component {
                 if (key == this.state.key_id) {
                     key_value = row[key]
                 }
-                if (Dico.isRubTemporary(key)) {
+                if (Tools.isRubTemporary(key)) {
                     ligne[key] = key_value
                 } else {
                     ligne[key] = row[key]
@@ -84,38 +89,45 @@ export default class PageView extends React.Component {
     getData(table, view) {
         fetch('/api/view/' + table + '/' + view, { credentials: 'same-origin' })
             .then(response => {
+                //console.log('response', response)
                 response.json().then(json => {
-                    // traitement du JSON
-                    //console.log('response: ', json)
-                    //this.state.rows = JSON.parse(json.rows)
-                    let rubs = Dico.tables[table].rubs
-                    let cols = Dico.tables[table].views[view].cols
-                    let row_key = Dico.tables[table].key
+                    //console.log('json', json)
+                    if (response.ok == true) {
+                        let rubs = Dico.tables[table].rubs
+                        let cols = Dico.tables[table].views[view].cols
+                        let row_key = Dico.tables[table].key
 
-                    //console.log(JSON.stringify(rows))
-                    var tableur = []
-                    JSON.parse(json).forEach((row) => {
-                        // insertion des colonnes des rubriques temporaires
-                        let ligne = {}
-                        let key_value = ''
-                        Object.keys(cols).forEach(key => {
-                            if (key == this.state.key_id) {
-                                key_value = row[key]
-                            }
-                            if (Dico.isRubTemporary(key)) {
-                                ligne[key] = key_value
-                            } else {
-                                ligne[key] = row[key]
-                            }
+                        //console.log(JSON.stringify(rows))
+                        var tableur = []
+                        JSON.parse(json).forEach((row) => {
+                            // insertion des colonnes des rubriques temporaires
+                            let ligne = {}
+                            let key_value = ''
+                            Object.keys(cols).forEach(key => {
+                                if (key == this.state.key_id) {
+                                    key_value = row[key]
+                                }
+                                if (Tools.isRubTemporary(key)) {
+                                    ligne[key] = key_value
+                                } else {
+                                    ligne[key] = row[key]
+                                }
+                            })
+                            tableur.push(ligne)
                         })
-                        tableur.push(ligne)
-                    })
-                    //console.log(JSON.stringify(tableur))
-                    this.setState({
-                        table: table, view: view,
-                        rows_selected: [], rows: tableur
-                    })
-
+                        //console.log(JSON.stringify(tableur))
+                        this.setState({
+                            table: table, view: view,
+                            rows_selected: [], rows: tableur,
+                            is_error: false
+                        })
+                    } else {
+                        this.state.error = {
+                            code: json.code,
+                            message: json.message
+                        }
+                        this.setState({ is_error: true })
+                    }
                 })
             })
     }
@@ -143,21 +155,28 @@ export default class PageView extends React.Component {
                 <ContainerSidebar ctx={this} />
                 <ContainerContent ctx={this}>
                     <Header title={Dico.tables[table].views[view].title} ctx={this} />
+                    {this.state.is_error &&
+                        <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
+                            <p>{this.state.error.code} {this.state.error.message}</p>
+                        </div>
+                    }
 
-                    {form_add &&
+                    {(!this.state.is_error && form_add) &&
                         <Link to={'/form/add/' + table + '/' + view + '/' + form_add + '/0'}>
                             <span className="w3-btn-floating-large w3-theme-action"
                                 title={'Ajout ' + Dico.tables[table].forms[form_add].title + '...'}
                                 style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
                         </Link>
                     }
-                    <Card>
-                        <Table ctx={this}
-                            table={table} view={view}
-                            form_view={form_view} form_edit={form_edit} form_delete={form_delete}
-                            row_key={row_key} rubs={rubs} cols={cols} rows={this.state.rows}
-                            />
-                    </Card>
+                    {!this.state.is_error &&
+                        <Card>
+                            <Table ctx={this}
+                                table={table} view={view}
+                                form_view={form_view} form_edit={form_edit} form_delete={form_delete}
+                                row_key={row_key} rubs={rubs} cols={cols} rows={this.state.rows}
+                                />
+                        </Card>
+                    }
                     <Footer ctx={this}>
                         <p>{Dico.application.copyright}</p>
                     </Footer>

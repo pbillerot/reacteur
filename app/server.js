@@ -15,7 +15,10 @@ import { match, RouterContext } from 'react-router';
 import routes from '../app/routes';
 import PageNotFound from '../app/components/PageNotFound';
 
+import { Data, Dico, Tools } from './config/Dico';
+
 const fs = require('fs')
+
 const options = {
   key: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/privkey.pem'),
   cert: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/cert.pem'),
@@ -33,8 +36,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.set('trust proxy', 1) // trust first proxy
 morgan.token('id', function(req, res) {
-  return req.session ? req.session.user_id 
-  ? req.session.id.substring(26) + '/' + req.session.user_id 
+  return req.session ? req.session.user_pseudo 
+  ? req.session.id.substring(26) + '/' + req.session.user_pseudo 
   : req.session.id.substring(26) + '/anonymous' 
   : 'no-session';
 });
@@ -64,7 +67,7 @@ app.use(session({
   }
 }))
 app.use(function (req, res, next) {
-  //console.log(res)
+  //console.log('fullUrl', req.protocol + '://' + req.get('host') + req.originalUrl)
   //res.setHeader('Access-Control-Allow-Credentials', 'true')
   var sess = req.session
   if ( sess.count ) {
@@ -74,6 +77,7 @@ app.use(function (req, res, next) {
     sess.count = 1
     //console.log('SESSION Connection de', sess.id)
   }
+  Data.server.host = req.protocol + '://' + req.get('host')
   next()
 })
 

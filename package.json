@@ -1,6 +1,6 @@
 {
   "name": "reacteur",
-  "version": "1.1.6",
+  "version": "1.1.10",
   "description": "Experimental Web application with NodeJS, Express, HTTPS, React, Sqlite",
   "main": "index.js",
   "scripts": {
@@ -40,10 +40,12 @@
     "https": "^1.0.0",
     "jfs": "^0.2.6",
     "js-md5": "^0.4.1",
+    "moment": "^2.17.1",
     "morgan": "^1.7.0",
     "multer": "^1.2.0",
     "nodemailer": "^2.7.0",
     "nodemailer-markdown": "^1.0.1",
+    "randomstring": "^1.1.5",
     "react": "^15.3.1",
     "react-dom": "^15.3.1",
     "react-remarkable": "^1.1.1",

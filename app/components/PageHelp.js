@@ -9,7 +9,7 @@ const Markdown = require('react-remarkable')
 const {Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
 
-import { Dico } from '../config/Dico';
+import { Data, Dico } from '../config/Dico';
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 //const fs = require('fs')
