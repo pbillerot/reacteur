@@ -9,9 +9,7 @@ import PageView from './components/PageView';
 import PageForm from './components/PageForm';
 import PageHelp from './components/PageHelp';
 //import PageAbout from './components/PageAbout';
-var ctx = {
-  w3_sidebar_open: false
-}
+
 const routes = (
   <Route path="/" component={Layout}>
     <IndexRoute component={PagePortail} />

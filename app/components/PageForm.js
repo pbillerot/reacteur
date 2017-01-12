@@ -33,7 +33,6 @@ export default class PageForm extends React.Component {
         e.preventDefault()
         browserHistory.goBack()
     }
-
     componentWillReceiveProps(nextProps) {
         //console.log('PageForm.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
@@ -95,60 +94,19 @@ class Form extends React.Component {
             error: {
                 code: '',
                 message: ''
-            }
+            },
+            host: ''
         }
         Data.fields = this.state.fields
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-    }
-    checkFormulaire() {
-        this.state.is_form_valide = true;
-        if (this.state.action == 'view' || this.state.action == 'delete')
-            this.state.is_read_only = true
-
-        Object.keys(this.state.fields).forEach(key => {
-            // read only
-            if (this.state.is_read_only)
-                this.state.fields[key].is_read_only = true
-            // valeur par défaut
-            if (this.state.fields[key].value == '') {
-                if (this.state.rubs[key].default)
-                    this.state.fields[key].value = this.state.rubs[key].default
-            }
-            // ctrl accès - ko le champ sera caché
-            if ( this.state.rubs[key].group ) {
-                if ( sessionStorage.getItem('user_pseudo') && sessionStorage.getItem('user_pseudo').length > 3 ) {
-                    if (sessionStorage.getItem('user_profil') != this.state.rubs[key].group)
-                        this.state.fields[key].is_hidden = true
-                } else {
-                    this.state.fields[key].is_hidden = true
-                }
-            }
-            // Field valide ?
-            if (!this.state.fields[key].is_read_only && !this.state.fields[key].is_hidden) {
-                //console.log(key, this.state.fields[key])
-                if (this.state.fields[key].is_valide == false) {
-                    this.state.is_form_valide = false
-                }
-            }
-        })
+        this.checkFormulaire = this.checkFormulaire.bind(this);
     }
 
     onEditRow(key, value) {
-        //console.log(key, value)
-        //Dico.tables[this.props.table].forms[this.props.form].rubs[key].value = value
+        //console.log('onEditRow', key, value)
         this.state.fields[key].value = value
-        if (!this.state.fields[key].is_read_only && !this.state.fields[key].is_hidden) {
-            if (this.state.rubs[key].is_valide) {
-                this.state.fields[key].is_valide = this.state.rubs[key].is_valide(value)
-            } else {
-                this.state.fields[key].is_valide = true
-            }
-        }
-
         this.checkFormulaire()
-
-        this.setState({})
     }
 
     handleSubmit() {
@@ -187,46 +145,94 @@ class Form extends React.Component {
     componentWillReceiveProps(nextProps) {
         //console.log('Form.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
-            this.getData(nextProps.params.action, nextProps.params.table, nextProps.params.view, nextProps.params.form, nextProps.params.id)
-            Object.keys(this.state.fields).forEach(key => {
-                this.state.fields[key].is_valide =
-                    this.state.rubs[key].is_valide
-                        ? this.state.rubs[key].is_valide(this.state.fields[key].value)
-                        : true
-            })
-            this.checkFormulaire()
+            this.getData(nextProps.params.action, nextProps.params.table, nextProps.params.view
+                , nextProps.params.form, nextProps.params.id, (result) => {
+                    //
+                })
         } else {
-            this.setState({
-                action: nextProps.action,
-                table: nextProps.table,
-                view: nextProps.view,
-                form: nextProps.form,
-                id: nextProps.id,
-                row_key: Dico.tables[nextProps.table].key,
-                rubs: Dico.tables[nextProps.table].rubs,
-                cols: Dico.tables[nextProps.table].views[nextProps.view].cols,
-                fields: Dico.tables[nextProps.table].forms[nextProps.form].fields,
-                formulaire: Dico.tables[nextProps.table].forms[nextProps.form],
-            })
-            Data.fields = this.state.fields
-            this.getData(nextProps.action, nextProps.table, nextProps.view, nextProps.form, nextProps.id)
-            this.checkFormulaire()
+            this.getData(nextProps.action, nextProps.table, nextProps.view, nextProps.form, nextProps.id,
+                (result) => {
+                })
         }
     }
     componentDidMount() {
         //console.log('Form.componentDidMount...', this.state)
-        this.getData(this.state.action, this.state.table, this.state.view, this.state.form, this.state.id)
-        Object.keys(this.state.fields).forEach(key => {
-            this.state.fields[key].is_valide =
-                this.state.rubs[key].is_valide
-                    ? this.state.rubs[key].is_valide(this.state.fields[key].value)
-                    : true
-        })
-        this.checkFormulaire()
+        fetch('/api/server', { credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    //console.log('response', response, json)
+                    Data.server.host = json.host
+                    this.state.host = json.host
+                    this.getData(this.state.action, this.state.table, this.state.view, this.state.form, this.state.id,
+                        (result) => {
+                        })
+                })
+            })
     }
 
-    getData(action, table, view, form, id) {
+    checkFormulaire() {
+        this.state.is_form_valide = true;
+        if (this.state.action == 'view' || this.state.action == 'delete')
+            this.state.is_read_only = true
+
+        if (this.state.formulaire.computeForm) {
+            this.state.formulaire.computeForm()
+        }
+        Object.keys(this.state.fields).forEach(key => {
+            this.state.fields[key].is_valide = true
+            // read only
+            if (this.state.is_read_only)
+                this.state.fields[key].is_read_only = true
+            // valeur par défaut
+            if (this.state.fields[key].value == '') {
+                if (this.state.rubs[key].default) {
+                    if (typeof this.state.rubs[key].default === 'function')
+                        this.state.fields[key].value = this.state.rubs[key].default()
+                    else
+                        this.state.fields[key].value = this.state.rubs[key].default
+                }
+            }
+            if (!this.state.fields[key].value) {
+                this.state.fields[key].value = ''
+            }
+            // ctrl accès - ko le champ sera caché
+            if (this.state.rubs[key].group) {
+                if (sessionStorage.getItem('user_pseudo') && sessionStorage.getItem('user_pseudo').length > 3) {
+                    if (sessionStorage.getItem('user_profil') != this.state.rubs[key].group)
+                        this.state.fields[key].is_hidden = true
+                } else {
+                    this.state.fields[key].is_hidden = true
+                }
+            }
+            // Field valide ?
+            if (!this.state.fields[key].is_read_only && !this.state.fields[key].is_hidden) {
+                //console.log(key, this.state.rubs[key])
+                if (this.state.rubs[key].is_valide && !this.state.rubs[key].is_valide(this.state.fields[key].value)) {
+                    //console.log('checkFormulaire', key, false, this.state.fields[key].value)
+                    this.state.fields[key].is_valide = false
+                    this.state.is_form_valide = false
+                }
+            }
+            //console.log('checkFormulaire', key, this.state.fields[key])
+        })
+        //console.log('checkFormulaire', this.state.is_form_valide)
+        this.setState({ fields: this.state.fields })
+    }
+
+    getData(action, table, view, form, id, callback) {
         //console.log('Form.getData: ', action, table, view, form, id)
+        this.state.action = action
+        this.state.table = table
+        this.state.view = view
+        this.state.form = form
+        this.state.id = id
+        this.state.row_key = Dico.tables[table].key
+        this.state.rubs = Dico.tables[table].rubs
+        this.state.cols = Dico.tables[table].views[view].cols
+        this.state.fields = Dico.tables[table].forms[form].fields
+        this.state.formulaire = Dico.tables[table].forms[form]
+        Data.fields = this.state.fields
+
         Object.keys(this.state.fields).forEach(key => {
             this.state.fields[key].value = ''
             this.state.fields[key].is_valide = false
@@ -241,27 +247,24 @@ class Form extends React.Component {
                             Object.keys(JSON.parse(json)).forEach(key => {
                                 //console.log('Form.response: ', key, row[key].value)
                                 this.state.fields[key].value = row[key].value ? row[key].value : ''
-                                this.state.fields[key].is_valide =
-                                    this.state.rubs[key].is_valide
-                                        ? this.state.rubs[key].is_valide(this.state.fields[key].value)
-                                        : true
                             })
                             this.checkFormulaire()
-                            this.setState({})
+                            return callback({ ok: true })
                         } else {
                             this.state.error = {
                                 code: json.code,
                                 message: json.message
                             }
                             this.setState({ is_error: true })
+                            return callback({ ok: false })
                         }
                     })
                 })
         }
-        if (action == 'add') {
+        if (action == 'add' || action == 'ident') {
             this.checkFormulaire()
-            this.setState({})
         }
+        return callback({ ok: true })
     }
 
     identData() {
@@ -321,7 +324,7 @@ class Form extends React.Component {
         }).then(response => {
             //console.log('RESULT: ', response)
             response.json().then(json => {
-                console.log('json', json)
+                //console.log('json', json)
                 if (response.ok == true) {
                     if (json.code < 4000) {
                         if (this.state.formulaire.return_url) {
@@ -441,7 +444,9 @@ class Form extends React.Component {
             if (is_ok)
                 list_fields.push(key)
         })
-        let display_form = ! this.state.is_error || (this.state.is_error && this.state.error.code < 9000)
+        let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
+            && this.state.host.length > 3
+        //console.log('host', display_form, this.state.fields)
         return (
             <form>
                 {this.state.is_error &&
@@ -449,7 +454,7 @@ class Form extends React.Component {
                         <p>{this.state.error.code} {this.state.error.message}</p>
                     </div>
                 }
-                { display_form &&
+                {display_form &&
                     list_fields.map(key =>
                         <div className="w3-row-padding w3-margin-top" key={key}>
                             <Label {...this.state} id={key} />
@@ -464,42 +469,42 @@ class Form extends React.Component {
                         </div>
                     )
                 }
-                { display_form &&
-                <div className="w3-navbar"
-                    style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
-                    {this.state.action == 'ident' &&
-                        <button type="button"
-                            className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
-                            onClick={this.handleSubmit} >
-                            <i className="fa fa-check"></i> {this.state.formulaire.action_title
-                                ? this.state.formulaire.action_title : 'Valider'}
-                        </button>
-                    }
-                    {this.state.action == 'edit' &&
-                        <button type="button"
-                            className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
-                            onClick={this.handleSubmit} >
-                            <i className="fa fa-check"></i> {this.state.formulaire.action_title
-                                ? this.state.formulaire.action_title : 'Enregistrer'}
-                        </button>
-                    }
-                    {this.state.action == 'add' &&
-                        <button type="button"
-                            className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
-                            onClick={this.handleSubmit} >
-                            <i className="fa fa-check"></i> {this.state.formulaire.action_title
-                                ? this.state.formulaire.action_title : 'Ajouter'}
-                        </button>
-                    }
-                    {this.state.action == 'delete' &&
-                        <button type="button"
-                            className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
-                            onClick={this.handleSubmit} >
-                            <i className="fa fa-check"></i> {this.state.formulaire.action_title
-                                ? this.state.formulaire.action_title : 'Supprimer'}
-                        </button>
-                    }
-                </div>
+                {display_form &&
+                    <div className="w3-navbar"
+                        style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
+                        {this.state.action == 'ident' &&
+                            <button type="button"
+                                className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                                onClick={this.handleSubmit} >
+                                <i className="fa fa-check"></i> {this.state.formulaire.action_title
+                                    ? this.state.formulaire.action_title : 'Valider'}
+                            </button>
+                        }
+                        {this.state.action == 'edit' &&
+                            <button type="button"
+                                className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                                onClick={this.handleSubmit} >
+                                <i className="fa fa-check"></i> {this.state.formulaire.action_title
+                                    ? this.state.formulaire.action_title : 'Enregistrer'}
+                            </button>
+                        }
+                        {this.state.action == 'add' &&
+                            <button type="button"
+                                className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                                onClick={this.handleSubmit} >
+                                <i className="fa fa-check"></i> {this.state.formulaire.action_title
+                                    ? this.state.formulaire.action_title : 'Ajouter'}
+                            </button>
+                        }
+                        {this.state.action == 'delete' &&
+                            <button type="button"
+                                className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                                onClick={this.handleSubmit} >
+                                <i className="fa fa-check"></i> {this.state.formulaire.action_title
+                                    ? this.state.formulaire.action_title : 'Supprimer'}
+                            </button>
+                        }
+                    </div>
                 }
             </form>
         )
@@ -588,9 +593,11 @@ class Field extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            value: ''
+            value: props.value,
+            checked: props.value == '1' ? true : false
         }
         this.handleChange = this.handleChange.bind(this);
+        this.handleCheck = this.handleCheck.bind(this);
         this.handleButton = this.handleButton.bind(this);
     }
     handleButton(e) {
@@ -601,16 +608,21 @@ class Field extends React.Component {
     }
     handleChange(e) {
         //console.log('Field.handleChange: ', this.props.id, e.target.value)
-        this.state.value = this.props.rubs[this.props.id].type == 'check'
-            ? this.state.value == '1' ? '0' : '1'
-            : e.target.value
-        this.setState({})
-        this.props.onEditRow(this.props.id, this.state.value)
+        e.preventDefault();
+        this.setState({ value: e.target.value })
+        this.props.onEditRow(this.props.id, e.target.value)
+    }
+    handleCheck(e) {
+        //console.log('Field.handleChange: ', this.props.id, e.target.value)
+        this.setState({ checked: e.target.checked })
+        this.props.onEditRow(this.props.id, e.target.checked ? '1' : '0')
         //console.log('handleChange', this.state)
     }
     componentWillReceiveProps(nextProps) {
-        //console.log('Field.componentWillReceiveProps', nextProps)
-        this.state.value = nextProps.fields[nextProps.id].value
+        //console.log('Field.componentWillReceiveProps', nextProps.value)
+        this.state.value = nextProps.value
+        this.state.checked = nextProps.value == '1' ? true : false
+
     }
     componentDidMount() {
         //console.log('Field.componentDidMount...', this.state, this.props)
@@ -631,8 +643,8 @@ class Field extends React.Component {
                     return (
                         <span className="">
                             <input className="w3-check" type="checkbox"
-                                checked={this.state.value == '1' ? true : false}
-                                onChange={this.handleChange}
+                                onChange={this.handleCheck}
+                                checked={this.state.checked}
                                 name={this.props.id} id={this.props.id}
                                 />
                             <label htmlFor={this.props.id} className="w3-validate">

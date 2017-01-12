@@ -77,7 +77,6 @@ app.use(function (req, res, next) {
     sess.count = 1
     //console.log('SESSION Connection de', sess.id)
   }
-  Data.server.host = req.protocol + '://' + req.get('host')
   next()
 })
 

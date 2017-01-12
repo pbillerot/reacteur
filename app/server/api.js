@@ -52,34 +52,15 @@ router.get('/help', function (req, res) {
 })
 
 /**
- * CRUD
- */
-crud_update: (db, sql, callback) => {
-  console.log('crud_update:',sql)
-  db.serialize(function () {
-    db.run(sql, [], function (err) {
-      if (err) {
-        console.error("ERROR", err, sql)
-        if (err.errno == 19) {
-          return callback(message.m4001);
-        } else {
-          return callback(message.m5001);
-        }
-      }
-      return callback(message.m2005)
-    });
-    db.close()
-  });
-}
-
-/**
  * Mise à jour d'un enregistreemnt
  */
 router.post('/:table/:view/:form/:id', function (req, res) {
+  //console.log(req.url)
   // Ctrl session
   let session = req.session
   if (!session || !session.user_pseudo || session.user_pseudo.length < 3) {
     res.status(400).json(message.m9901)
+    console.log(message.m9901)
     return
   }
 
@@ -103,6 +84,7 @@ router.post('/:table/:view/:form/:id', function (req, res) {
   if (!bret) {
     let result = message.m9903
     res.status(400).json(result) // KO
+    console.log(result)
     return
   }
 
@@ -138,6 +120,7 @@ router.post('/:table/:view/:form/:id', function (req, res) {
     let result = message.m4005
     result.message = errors.join()
     res.status(400).json(result) // KO
+    console.log(result)
     return
   }
   // *** Les champs sont CORRECTS
@@ -150,6 +133,7 @@ router.post('/:table/:view/:form/:id', function (req, res) {
     let result = message.m4006
     result.message = formulaire.error
     res.status(400).json(result) // KO
+    console.log(result)
     return
   }
   // *** Le formulaire est CORRECT
@@ -163,12 +147,14 @@ router.post('/:table/:view/:form/:id', function (req, res) {
     }
   })
 
-  // construction de l'ordre sql
+  // construction de l'ordre sql et des paramètres
   let sql = ""
+  let params = {}
   Object.keys(fields).forEach((key) => {
     if (!Tools.isRubTemporary(key) && fields[key].is_read_only == false) {
       sql += sql.length > 0 ? ", " : ""
-      sql += key + " = '" + fields[key].record_value + "'"
+      sql += key + " = $" + key
+      params['$' + key] = fields[key].record_value
     }
   })
 
@@ -180,41 +166,34 @@ router.post('/:table/:view/:form/:id', function (req, res) {
         res.status(200).json(result) // OK
       } else {
         res.status(400).json(result) // KO
+        console.log(result)
       }
     })
     return
   }
 
   sql = 'UPDATE ' + req.params.table + ' SET ' + sql
-  sql += " WHERE " + key_name + " = '" + req.params.id + "'"
-  //console.log(sql)
-  let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
-  var result = (callback) => {
-    db.serialize(function () {
-      db.run(sql, [], function (err) {
-        if (err) {
-          console.error("ERROR", err, sql)
-          if (err.errno == 19) {
-            res.status(400).json(message.m4001);
-          } else {
-            res.status(500).json(message.m5001);
-          }
-          return
-        }
-        callback(this)
-      });
-      db.close()
-    });
-  }
-  result((result) => {
-    postUpdate(formulaire, rubs, fields, (result) => {
-      if (result.code < 4000) {
-        res.status(200).json(result) // OK
+  sql += " WHERE " + key_name + " = $" + key_name
+  params['$' + key_name] = req.params.id
+  sqlUpdate(Dico.tables[req.params.table].basename, sql, params, result => {
+    if (result.ok == false) {
+      if (result.message.errno == 19) {
+        res.status(400).json(message.m4001);
       } else {
-        res.status(400).json(result) // KO
+        res.status(500).json(message.m5001);
       }
-    })
+    } else {
+      postUpdate(formulaire, rubs, fields, (result) => {
+        if (result.code < 4000) {
+          res.status(200).json(result) // OK
+        } else {
+          res.status(400).json(result) // KO
+          console.log(result)
+        }
+      })
+    }
   })
+
 })
 
 /**
@@ -223,7 +202,7 @@ router.post('/:table/:view/:form/:id', function (req, res) {
 router.put('/:table/:view/:form', function (req, res) {
   // Ctrl session
   let session = req.session
-  if (req.params.view != 'vident' && req.params.form != 'fnew' 
+  if (req.params.view != 'vident' && req.params.form != 'fnew'
     && (!session || !session.user_pseudo || session.user_pseudo.length < 3)) {
     if (req.params.form != 'forgetpwd') {
       res.status(400).json(message.m9901)
@@ -312,13 +291,14 @@ router.put('/:table/:view/:form', function (req, res) {
     }
   })
   //console.log(fields)
-
+  let params = {}
   let sql = '('
   let bstart = true;
   Object.keys(fields).forEach((key) => {
     if (!Tools.isRubTemporary(key) && fields[key].is_read_only == false) {
       sql += !bstart ? ", " : ""
-      sql += "'" + key + "'"
+      //sql += "'" + req.params.table + "." + key + "'"
+      sql += key
       bstart = false;
     }
   })
@@ -341,36 +321,32 @@ router.put('/:table/:view/:form', function (req, res) {
     //if (key != key_name) {
     if (!Tools.isRubTemporary(key) && fields[key].is_read_only == false) {
       sql += !bstart ? ", " : ""
-      sql += "'" + fields[key].record_value + "'"
+      sql += "$" + key
       bstart = false;
+      params['$' + key] = fields[key].record_value
     }
     //}
   })
   sql += ')'
   sql = 'INSERT INTO ' + req.params.table + ' ' + sql
   //console.log(sql)
-  let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
-  var result = (callback) => {
-    db.serialize(function () {
-      db.run(sql, [], function (err) {
-        if (err) {
-          console.error("ERROR", err, sql)
-          res.status(500).json(message.m5001);
-          return
-        }
-        callback(this)
-      });
-      db.close()
-    });
-  }
-  result((result) => {
-    postUpdate(formulaire, rubs, fields, (result) => {
-      if (result.code < 4000) {
-        res.status(200).json(result) // OK
+  sqlUpdate(Dico.tables[req.params.table].basename, sql, params, result => {
+    if (result.ok == false) {
+      if (result.message.errno == 19) {
+        res.status(400).json(message.m4001);
       } else {
-        res.status(400).json(result) // KO
+        res.status(500).json(message.m5001);
       }
-    })
+    } else {
+      postUpdate(formulaire, rubs, fields, (result) => {
+        if (result.code < 4000) {
+          res.status(200).json(result) // OK
+        } else {
+          res.status(400).json(result) // KO
+          console.log(result)
+        }
+      })
+    }
   })
 })
 
@@ -408,28 +384,34 @@ router.delete('/:table/:view/:form/:id', function (req, res) {
     return
   }
 
-  let data = req.body
   let sql = 'DELETE FROM ' + req.params.table
-    + " WHERE " + key_name + " = '" + req.params.id + "'"
-  let db = new sqlite3.Database(Dico.tables[req.params.table].basename);
-  var result = (callback) => {
-    db.serialize(function () {
-      db.run(sql, [], function (err) {
-        if (err) {
-          console.error("ERROR", err, sql)
-          res.status(500).json(message.m5001);
-          return
+    + " WHERE " + key_name + " = $" + key_name
+  let params = {}
+  params['$' + key_name] = req.params.id
+
+  sqlUpdate(Dico.tables[req.params.table].basename, sql, params, result => {
+    if (result.ok == false) {
+      if (result.message.errno == 19) {
+        res.status(400).json(message.m4001);
+      } else {
+        res.status(500).json(message.m5001);
+      }
+    } else {
+      postUpdate(formulaire, rubs, fields, (result) => {
+        if (result.code < 4000) {
+          res.status(200).json(result) // OK
+        } else {
+          res.status(400).json(result) // KO
+          console.log(result)
         }
-        callback(this)
-      });
-      db.close()
-    });
-  }
-  result((result) => {
-    res.status(200).json(message.m2004) // OK
+      })
+    }
   })
 })
 
+/**
+ * Lecture d'un enregistrement
+ */
 router.get('/form/:table/:view/:form/:id', function (req, res) {
   let rubs = Dico.tables[req.params.table].rubs
   let fields = Dico.tables[req.params.table].forms[req.params.form].fields
@@ -463,56 +445,41 @@ router.get('/form/:table/:view/:form/:id', function (req, res) {
     return
   }
 
-  // construction de l'ordre sql
+  // construction de l'ordre sql et des paramètres
+  let params = {}
   let sql = ''
   Object.keys(fields).forEach((key) => {
     if (!Tools.isRubTemporary(key)) {
-      sql += sql.length > 0 ? ', ' + key : key
-      fields[key].value = ''
+      sql += sql.length > 0 ? ', ' + req.params.table + "." + key : req.params.table + "." + key
     }
+    fields[key].value = ''
   })
   if (sql.length > 0) {
     sql = 'SELECT ' + sql + ' FROM ' + req.params.table
-    sql += " WHERE " + key_name + " = '" + req.params.id + "'"
-    //console.log(sql)
-    let db = new sqlite3.Database(Dico.tables[req.params.table].basename, sqlite3.OPEN_READONLY);
-    var result = (callback) => {
-      db.serialize(function () {
-        db.all(sql, function (err, rows) {
-          if (err) {
-            console.error("ERROR", err, sql)
-            res.status(500).json(message.m5001);
-            return
-          }
-          callback(rows)
-        });
-        db.close()
-      });
-    }
-  } else {
-    // aucun champ en maj
-    res.json({})
-  }
-  result((rows) => {
-    Object.keys(fields).map(key => {
-      if (!Tools.isRubTemporary(key)) {
-        fields[key].value = rows[0][key]
+    sql += " WHERE " + key_name + " = $" + key_name
+    params['$' + key_name] = req.params.id
+    sqlSelect(Dico.tables[req.params.table].basename, sql, params, result => {
+      if (result.ok == false) {
+        res.status(500).json(message.m5001);
       } else {
-        fields[key].value = ''
+        Object.keys(fields).map(key => {
+          if (!Tools.isRubTemporary(key)) {
+            fields[key].value = result.rows[0][key]
+          }
+        })
+        res.status(200).json(JSON.stringify(fields))
       }
     })
-    //console.log(fields)
-    res.json(JSON.stringify(fields))
-  })
-
+  } else {
+    // aucun champ en maj
+    res.status(200).json({})
+  }
 })
 
 /**
  * Lecture d'une vue
  */
 router.get('/view/:table/:view', function (req, res) {
-  let db = new sqlite3.Database(Dico.tables[req.params.table].basename, sqlite3.OPEN_READONLY);
-  let select = ''
   let rubs = Dico.tables[req.params.table].rubs
   let cols = Dico.tables[req.params.table].views[req.params.view].cols
   let key_name = Dico.tables[req.params.table].key
@@ -545,116 +512,82 @@ router.get('/view/:table/:view', function (req, res) {
     return
   }
 
+  // Construction de l'ordre sql et des params
+  let sql = ''
+  let params = {}
   Object.keys(cols).forEach((key) => {
     if (!Tools.isRubTemporary(key))
-      select += select.length > 0 ? ', ' + key : key
+      sql += sql.length > 0 ? ', ' + req.params.table + "." + key : req.params.table + "." + key
   })
-  select = 'SELECT ' + select + ' FROM ' + req.params.table
-  var result = (callback) => {
-    db.serialize(function () {
-      db.all(select, function (err, rows) {
-        if (err) {
-          console.error("ERROR", err, select)
-          res.status(500).json(message.m5001);
-          return
-        }
-        callback(rows)
-      });
-      db.close()
-    });
-  }
-  result((rows) => {
-    var tableur = []
-    rows.forEach((row) => {
-      // insertion des colonnes des rubriques temporaires
-      let ligne = {}
-      let key_value = ''
-      Object.keys(cols).forEach(key => {
-        if (key == key_name) {
-          key_value = row[key]
-        }
-        if (Tools.isRubTemporary(key)) {
-          ligne[key] = key_value
-        } else {
-          ligne[key] = row[key]
-        }
+  sql = 'SELECT ' + sql + ' FROM ' + req.params.table
+  sqlSelect(Dico.tables[req.params.table].basename, sql, params, result => {
+    if (result.ok == false) {
+      res.status(500).json(message.m5001);
+    } else {
+      let tableur = []
+      result.rows.forEach((row) => {
+        // insertion des colonnes des rubriques temporaires
+        let ligne = {}
+        let key_value = ''
+        Object.keys(cols).forEach(key => {
+          if (key == key_name) {
+            key_value = row[key]
+          }
+          if (Tools.isRubTemporary(key)) {
+            ligne[key] = key_value
+          } else {
+            ligne[key] = row[key]
+          }
+        })
+        tableur.push(ligne)
       })
-      tableur.push(ligne)
-    })
-    //console.log(JSON.stringify(tableur))
-    res.json(JSON.stringify(tableur))
+      res.status(200).json(JSON.stringify(tableur))
+    }
   })
-
 })
 
 /**
- * Connexion Identification
+ * Connexion Authentification
  */
 router.put('/cnx/ident', function (req, res) {
   //console.log(req.url)
   let user_pseudo = req.body['user_pseudo']
   let user_pwd = req.body['user_pwd']
 
-  let sql = "select user_email, user_profil, user_pwd from ACTUSERS where user_pseudo = ? "
-  let db = new sqlite3.Database(Dico.tables['actusers'].basename)
-  var result = (callback) => {
-    db.serialize(function () {
-      db.all(sql, [user_pseudo], function (err, rows) {
-        if (err) {
-          console.error("ERROR", err, sql)
-          res.status(500).json(message.m5001);
-          return
-        }
-        callback(rows)
-      })
-      db.close()
-    });
-  }
-  result((rows) => {
-    //console.log('rows', rows)
-    let pwdmd5 = ''
-    let user_email = ''
-    let user_profil = ''
-    if (rows.length > 0) {
-      rows.forEach((row) => {
-        pwdmd5 = row.user_pwd
-        user_email = row.user_email
-        user_profil = row.user_profil
-      })
-      if (pwdmd5 == '') {
-        // initialisation du mot de passe
-        db = new sqlite3.Database(Dico.tables['actusers'].basename)
-        db.serialize(function () {
-          db.all("UPDATE ACTUSERS SET user_pwd = ? WHERE user_pseudo = ?", [md5(user_pwd), user_pseudo],
-            function (err) {
-              if (err) {
-                console.error("ERROR", err)
-                res.status(500).json(message.m5001);
-                return
-              }
-              res.status(200).json(message.m2002) // OK  
-              console.log('cnx new pwd : ' + user_pseudo)
-            })
-          db.close()
-        });
+  let sql = "select user_email, user_profil, user_pwd from ACTUSERS where user_pseudo = $user_pseudo"
+  let params = { $user_pseudo: user_pseudo }
+  let basename = Dico.tables['actusers'].basename
 
-      } else {
+  sqlSelect(basename, sql, params, result => {
+    if (result.ok == false) {
+      res.status(500).json(message.m5001);
+    } else {
+      // OK
+      let pwdmd5 = ''
+      let user_email = ''
+      let user_profil = ''
+      if (result.rows.length > 0) {
+        result.rows.forEach((row) => {
+          pwdmd5 = row.user_pwd
+          user_email = row.user_email
+          user_profil = row.user_profil
+        })
         if (md5(user_pwd) != pwdmd5) {
           res.status(400).json(message.m4002)
-          console.log('ERROR - cnx pwd ko : ' + user_pseudo)
+          console.log(user_pseudo, message.m4002)
         } else {
           // User OK
-          var session = req.session
+          let session = req.session
           session.user_pseudo = user_pseudo
           session.user_email = user_email
           session.user_profil = user_profil
           res.status(200).json(message.m2003) // OK
-          console.log('cnx ok : ' + user_pseudo)
+          console.log(user_pseudo, message.m2003)
         }
+      } else {
+          res.status(400).json(message.m4004)
+          console.log(user_pseudo, message.m4004)        
       }
-    } else {
-      res.status(400).json(message.m4004)
-      console.log('ERROR - cnx user not found : ' + user_pseudo)
     }
   })
 })
@@ -679,27 +612,41 @@ router.get('/session', function (req, res) {
 /**
  * Ouverture d'une session et la route à suivre
  */
-router.get('/token/:token', function (req, res) {
+router.get('/toctoc/:token', function (req, res) {
 })
 
 /**
  * Demande d'un token à associer au user et à une url
  */
-router.put('/token/:url/:user_email', function (req, res) {
+router.put('/toctoc/:url/:user_email', function (req, res) {
   console.log(req.url)
   let token = randomstring.generate(23)
   let sql = "INSERT INTO ACTTOKENS (tok_id, tok_url, tok_email) VALUES ("
-  + "'" + token + "'"
-  + ",'" + req.params.url + "'"
-  + ",'" + req.params.user_email + "'"
+    + "'" + token + "'"
+    + ",'" + req.params.url + "'"
+    + ",'" + req.params.user_email + "'"
   let db = new sqlite3.Database(Dico.tables['acttokens'].basename)
   crud_update(db, sql, (result) => {
-    if ( result.code < 4000 ) {
-      res.status(200).json({token: token})
+    if (result.code < 4000) {
+      res.status(200).json({ token: token })
     } else {
       res.status(500).json(result)
     }
   })
+})
+
+router.get('/server', function (req, res) {
+  // sqlSelect(Dico.tables.actusers.basename, 
+  //   "select * from actusers where user_pseudo = $user_pseudo", 
+  //   {$user_pseudo: 'pbillerot'}, result => {
+  //     console.log(result)
+  // })
+  // sqlUpdate(Dico.tables.actusers.basename,
+  //   "update actusers set user_actif = $usser_actif where user_pseudo = $user_pseudo",
+  //   { $user_pseudo: 'aaa', $user_actif: 0 }, result => {
+  //     console.log(result)
+  //   })
+  res.status(200).json({ host: req.protocol + '://' + req.get('host') })
 })
 
 /**
@@ -734,7 +681,7 @@ module.exports = router;
 
 function postUpdate(formulaire, rubs, fields, callback) {
   //console.log('postUpdate', formulaire)
-
+  let messages = []
   // Envoi des emails seulement en postUpdate
   Object.keys(fields).forEach(field => {
     //console.log(field)
@@ -743,19 +690,21 @@ function postUpdate(formulaire, rubs, fields, callback) {
         sendMail(rubs[field], fields[field], (result) => {
           //console.log('sendMail', result)
           if (result.ok == false) {
-            message.m4009.message = result.message
-            return callback(message.m4009)
-          } else {
-            message.m2009.message = result.message
-            return callback(message.m2009)
+            messages.push(result.message)
           }
         })
         break
       default:
         break
     }
-    return callback(message.m2009)
   })
+  if (messages.length == 0) {
+    return callback(message.m2009)
+  } else {
+    message.m4009.message = messages.join()
+    return callback(message.m4009)
+  }
+
 }
 
 /**
@@ -781,3 +730,35 @@ function sendMail(rub, field, callback) {
   });
 
 }
+
+/**
+ * CRUD
+ */
+function sqlUpdate(pathFileSqlite, sql, params, callback) {
+  let db = new sqlite3.Database(pathFileSqlite)
+  db.serialize(function () {
+    db.run(sql, params, function (err) {
+      if (err) {
+        console.error(err, 'SQL: ' + sql, 'PARAMS: ' + JSON.stringify(params))
+        return callback({ ok: false, message: err })
+      }
+      console.log('sqlUpdate:', this, JSON.stringify(params))
+      return callback({ ok: true, lastID: this.lastID, changes: this.changes })
+    }).close()
+  });
+}
+
+function sqlSelect(pathFileSqlite, sql, params, callback) {
+  let db = new sqlite3.Database(pathFileSqlite, sqlite3.OPEN_READONLY)
+  db.serialize(function () {
+    db.all(sql, params, function (err, rows) {
+      if (err) {
+        console.error(err, 'SQL: ' + sql, 'PARAMS: ' + JSON.stringify(params))
+        return callback({ ok: false, message: err })
+      }
+      console.log('sqlSelect:', this, JSON.stringify(params))
+      return callback({ ok: true, rows: rows })
+    }).close()
+  });
+}
+
