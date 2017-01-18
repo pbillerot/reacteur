@@ -252,6 +252,14 @@ const Dico = {
                     type: "link",
                     group: 'ADMIN',
                     action_url: '/view/actusers/vall'
+                },
+                _btn_disconnect: {
+                    label_long: "Se déconnecter...",
+                    type: "button",
+                    on_click: {
+                        action: '/api/cnx/close',
+                        method: 'PUT'
+                    }
                 }
             },
             views: {
@@ -388,7 +396,7 @@ const Dico = {
                 },
                 fmenuident: {
                     title: "Mon compte",
-                    action_title: 'Envoyer',
+                    action_title: null,
                     return_url: '/',
                     group: null,
                     owner: 'user_pseudo',
@@ -397,7 +405,8 @@ const Dico = {
                         user_email: { is_read_only: true },
                         _link_chg_pwd: {},
                         _link_chg_email: {},
-                        _link_adm_compte: {}
+                        _link_adm_compte: {},
+                        _btn_disconnect: {}
                     }
                 }
             }

@@ -594,10 +594,16 @@ class Field extends React.Component {
         this.handleButton = this.handleButton.bind(this);
     }
     handleButton(e) {
+        e.preventDefault();
         //console.log('handleButton', this.props.rubs[this.props.id].action_url)
-        browserHistory.push(this.props.rubs[this.props.id].action_url)
-        //this.props.handleRefresh()
-        //this.setState({})
+        fetch(this.props.rubs[this.props.id].on_click.action, 
+            { method: this.props.rubs[this.props.id].on_click.method, credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    //console.log(json)
+                    browserHistory.push('/')
+                })
+            })
     }
     handleChange(e) {
         //console.log('Field.handleChange: ', this.props.id, e.target.value)
@@ -626,11 +632,12 @@ class Field extends React.Component {
             switch (this.props.rubs[this.props.id].type) {
                 case 'button':
                     return (
-                        <Link to={this.props.rubs[this.props.id].action_url} className="w3-text-teal"
+                        <button to={this.props.rubs[this.props.id].action_url} className="w3-btn w3-teal"
                             title={this.props.rubs[this.props.id].title}
+                            onClick={this.handleButton}
                             >
                             {this.props.rubs[this.props.id].label_long}
-                        </Link>
+                        </button>
                     )
                 case 'check':
                     return (
@@ -677,7 +684,7 @@ class Field extends React.Component {
                             disabled={this.props.fields[this.props.id].is_read_only}
                             value={this.state.value}
                             id={this.props.id}
-                            onKeyPress={(e) => {(e.key == 'Enter' ? this.props.handleSubmit() : null)}}
+                            onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }
                             />
                     )
                 case 'radio':
@@ -741,7 +748,7 @@ class Field extends React.Component {
                             disabled={this.props.fields[this.props.id].is_read_only}
                             value={this.state.value}
                             id={this.props.id}
-                            onKeyPress={(e) => {(e.key == 'Enter' ? this.props.handleSubmit() : null)}}
+                            onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }
                             />
                     )
                 default:

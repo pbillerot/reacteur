@@ -450,7 +450,7 @@ const Reacteur = {
         let params = { $user_pseudo: user_pseudo }
         let basename = Dico.tables['actusers'].basename
 
-        Reacteur.sql_select(Dico.tables[ctx.table].basename, sql, params, (err, result) => {
+        Reacteur.sql_select(Dico.tables['actusers'].basename, sql, params, (err, result) => {
             if (err) {
                 callback(err, result)
             } else {

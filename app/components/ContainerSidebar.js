@@ -43,6 +43,8 @@ export default class ContainerSidebar extends React.Component {
                     onClick={(e) => w3_sidebar_open ? this.props.ctx.handlerCtx({ w3_sidebar_open: false }) : {}}
                     style={{ zIndex: 3, width: '250px', display: w3_sidebar_open ? 'block' : 'none' }} id="mySidenav">
                     <Link to="/" className="w3-border-bottom w3-large w3-theme-dark">{Dico.application.title}</Link>
+                    <IdentContainer />
+                    <hr />
                     {
                         Object.keys(Dico.tables).map(table =>
                             <NavView table={table} key={table} ctx={this.props.ctx} />
@@ -51,8 +53,6 @@ export default class ContainerSidebar extends React.Component {
                     <hr />
                     <Link to={'/help'} activeClassName="w3-theme-l1">Aide</Link>
                     <Link to={'/about'} activeClassName="w3-theme-l1">Info</Link>
-                    <hr />
-                    <IdentContainer />
                 </nav >
                 {/* Permet de fermer le sidebar en cliquant dans le Content si small screen*/}
                 <div className="w3-overlay w3-hide-large w3-animate-opacity"
@@ -118,43 +118,7 @@ class IdentContainer extends React.Component {
             is_dropdown_open: false,
             is_connected: false
         }
-        this.handleClick = this.handleClick.bind(this);
-        this.handleClickDisconnect = this.handleClickDisconnect.bind(this);
-        this.handleClickChangePwd = this.handleClickChangePwd.bind(this);
     }
-    handleClick(event) {
-        event.preventDefault()
-        if (this.state.is_dropdown_open) {
-            this.setState({ is_dropdown_open: false })
-        } else {
-            this.setState({ is_dropdown_open: true })
-        }
-    }
-
-    handleClickDisconnect(event) {
-        event.preventDefault()
-        sessionStorage.removeItem('user_pseudo')
-        this.setState({ is_dropdown_open: false })
-        fetch('/api/cnx/close', { method: "PUT", credentials: 'same-origin' })
-            .then(response => {
-                response.json().then(json => {
-                    console.log(json)
-                    browserHistory.push('/')
-                })
-            })
-    }
-    handleClickChangePwd(event) {
-        event.preventDefault()
-        this.setState({ is_dropdown_open: false })
-        fetch('/api/cnx/change_pwd', { method: "PUT", credentials: 'same-origin' })
-            .then(response => {
-                response.json().then(json => {
-                    console.log(json)
-                    browserHistory.push('/')
-                })
-            })
-    }
-
     componentDidMount() {
         //console.log('IdentContainer.componentDidMount')
         fetch('/api/session/', { credentials: 'same-origin' })
@@ -200,10 +164,10 @@ class IdentContainer extends React.Component {
             <div className="">
                 {this.state.is_connected &&
                     <div>
-                        <Link to={'/form/edit/actusers/vident/fmenuident/' + sessionStorage.getItem('user_pseudo')}>
+                        <Link to={'/form/view/actusers/vident/fmenuident/' + sessionStorage.getItem('user_pseudo')}>
                             {sessionStorage.getItem('user_pseudo')} <i className="fa fa-caret-right"></i>
+                            <br/><span className="w3-small">{sessionStorage.getItem('user_email')}</span>
                         </Link>
-                        <a onClick={this.handleClickDisconnect}>Se déconnecter</a>
                     </div>
                 }
                 {!this.state.is_connected &&
