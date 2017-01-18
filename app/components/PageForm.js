@@ -111,7 +111,7 @@ class Form extends React.Component {
 
     handleSubmit() {
         // Contrôle du formulaire
-        if (this.state.formulaire.check && this.state.formulaire.check(this.state.fields) == false) {
+        if (this.state.formulaire.is_valide && this.state.formulaire.is_valide() == false) {
             this.state.error = {
                 code: 4100,
                 message: 'Formulaire non conforme'
@@ -119,14 +119,6 @@ class Form extends React.Component {
             this.setState({})
             return
         }
-
-        // calcul des champs calculés
-        Object.keys(this.state.fields).forEach(key => {
-            if (this.state.fields[key].compute) {
-                this.state.fields[key].value =
-                    this.state.fields[key].compute(this.state.fields[key].value, this.state.fields)
-            }
-        })
 
         if (this.state.action == 'edit') {
             this.updateData()
@@ -175,8 +167,8 @@ class Form extends React.Component {
         if (this.state.action == 'view' || this.state.action == 'delete')
             this.state.is_read_only = true
 
-        if (this.state.formulaire.computeForm) {
-            this.state.formulaire.computeForm()
+        if (this.state.formulaire.compute) {
+            this.state.formulaire.compute()
         }
         Object.keys(this.state.fields).forEach(key => {
             this.state.fields[key].is_valide = true
@@ -462,6 +454,7 @@ class Form extends React.Component {
                                 <Field {...this.state} id={key}
                                     value={this.state.fields[key].value}
                                     onEditRow={this.onEditRow}
+                                    handleSubmit={this.handleSubmit}
                                     />
                                 <Error {...this.state} id={key} />
                                 <Help {...this.state} id={key} />
@@ -684,6 +677,7 @@ class Field extends React.Component {
                             disabled={this.props.fields[this.props.id].is_read_only}
                             value={this.state.value}
                             id={this.props.id}
+                            onKeyPress={(e) => {(e.key == 'Enter' ? this.props.handleSubmit() : null)}}
                             />
                     )
                 case 'radio':
@@ -747,6 +741,7 @@ class Field extends React.Component {
                             disabled={this.props.fields[this.props.id].is_read_only}
                             value={this.state.value}
                             id={this.props.id}
+                            onKeyPress={(e) => {(e.key == 'Enter' ? this.props.handleSubmit() : null)}}
                             />
                     )
                 default:

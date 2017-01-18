@@ -7,27 +7,21 @@ import validator from 'validator'
 import md5 from 'js-md5'
 import randomstring from 'randomstring'
 import moment from 'moment'
-
-const Tools = {
-    isRubTemporary(key) {
-        return /^_/g.test(key)
-    },
-    replaceParams(uri) {
-        let params = uri.split('/')
-        let str = ''
-        params.forEach(param => {
-            if (param.length > 0) {
-                if (param.startsWith(':')) {
-                    let field = param.substring(1)
-                    str = str + '/' + Data.fields[field].value
-                } else {
-                    str = str + '/' + param
-                }
-            }
-        })
-        return str
-    },
-}
+/**
+ * Le dictionnaire de l'application
+ * -> les tables sql (sqlite aujourd'hui)
+ * -> les vues (tableur des données)
+ * -> les formulaires pour consulter, mettre à jour, supprimer un enregitreement
+ * -> les rubriques (les colonnes des vues, les champs des formulaires) qui seront manipulées par l'application
+ *      Possibilité de définir des rubriques de travail qui ne seront pas dans le tables
+ *      Dans ce cas le nom des rubriques sera préfixé par un _ (undescore)
+ */
+/**
+ * Données contextuelles du client ou du serveur
+ * Ces données ne sont pas transmises lors des échanges entre le client et le serveur
+ * aussi bien du serveur vers le client
+ * que le client vers le serveur
+ */
 const Data = {
     fields: {},
     user: {}, // id email profil
@@ -39,12 +33,6 @@ const Dico = {
         desc: 'REACTEUR, un simple CRUD',
         url: 'https://github.com/pbillerot/atomium',
         copyright: 'REACTEUR 2016 - version 1.1.10',
-    },
-    config: {
-        smtpConfig: {
-            host: 'smtp.free.fr'
-        },
-        from: '"Reacteur" <philippe.billerot@gmail.com>'
     },
     tables: {
         acttokens: {
@@ -86,14 +74,9 @@ const Dico = {
                     mail: () => { // voir https://github.com/nodemailer/nodemailer
                         return {
                             from: null, // sender address défini dans canfig
-                            to: Data.fields._mail.value, // list of receivers
+                            to: Data.fields.tok_email.value, // list of receivers
                             subject: 'Hello', // Subject line
-                            markdown: () => {
-                                return "#Bonjour ${Data.fields.user_pseudo}\n \
-                            Ci-après le lien qui va vous permettre d'associer un nouveau mot de passe à votre compte\n \
-                            [Lien](https://pbillerot.freeboxos.fr/token/actusers/vident/fchgemail)\n \
-                            Cordialement."
-                            }
+                            template: 'tok_email.ejs'
                         }
                     }
                 }
@@ -117,42 +100,27 @@ const Dico = {
                     group: null,
                     owner: 'user_pseudo',
                     fields: {
-                        tok_id: {is_hidden: false},
-                        tok_url: {is_hidden: false},
+                        tok_id: { is_hidden: false },
+                        tok_url: { is_hidden: false },
                         _note_new_pwd: {},
                         tok_email: {}
                     },
-                    computeForm() {
+                    is_valide() {
+                        return true
+                    },
+                    compute() {
                         //
-                    }
-                },
+                    },
+                    server_check: [
+                        "select 'Compte inconnu' where not exists (select user_pseudo from actusers where user_pseudo = $user_pseudo)"
+                    ],
+                    server_post_update: {
 
+                    }
+                }
             }
         },
         actusers: {
-            /* 
-                CREATE TABLE "ACTUSERS" (
-                    "user_email" varchar(100) NOT NULL,
-                    "user_pseudo" varchar(20) NOT NULL,
-                    "user_profil" varchar(20) NULL,
-                    "user_actif" varchar(1) NULL,
-                    "user_pwd" varchar(255) NULL,
-                    primary key(user_email)
-                );
-                CREATE UNIQUE INDEX index_user_pseudo ON ACTUSERS(user_pseudo);
-                INSERT INTO ACTUSERS
-                (user_pseudo, user_email, user_profil, user_actif, user_pwd)
-                values
-                ('admin', 'philippe.billerot@gmail.com', 'ADMIN', '1', '');
-
-                CREATE TABLE "ACTTOKENS" (
-                    "tok_id" varchar(23) NOT NULL,
-                    "tok_url" varchar(255) NOT NULL,
-                    "tok_email" varchar(100) NOT NULL,
-                    primary key(tok_id)
-                );
-
-            */
             basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
             key: 'user_pseudo',
             rubs: {
@@ -181,7 +149,7 @@ const Dico = {
                     list: null, //val1,val2
                     help: "",
                     is_valide(value) {
-                        return ! validator.isEmpty(value) && validator.isEmail(value)
+                        return !validator.isEmpty(value) && validator.isEmail(value)
                     },
                     error: "Adresse email non valide"
                 },
@@ -242,7 +210,7 @@ const Dico = {
                     maxlength: 50,
                     pattern: "[A-Z,a-z,0-9,_\-]*",
                     is_valide(value) {
-                        return validator.isByteLength(value, {min: 8})
+                        return validator.isByteLength(value, { min: 8 })
                     },
                     error: "Obligatoire, d'une longueur minimum de 8 caractères, n'accepte que les caractères A-Z a-z 0-9 _-",
                 },
@@ -361,7 +329,7 @@ const Dico = {
                     is_valide() {
                         return true
                     },
-                    computeForm() {
+                    compute() {
                         Data.fields.user_pwd.value = Data.fields._user_pwd_1.value
                         Data.fields.user_actif.value = '1'
                         Data.fields.user_profil.value = 'INVITE'
@@ -377,6 +345,11 @@ const Dico = {
                         user_pwd: {},
                         _link_new_compte: {},
                         _link_forget_pwd: {}
+                    },
+                    server_check: {
+                        existsPseudo: {
+                            pseudo: Data.fields.user_pseudo
+                        }
                     }
                 },
                 fchgemail: {
@@ -388,7 +361,13 @@ const Dico = {
                     fields: {
                         user_pseudo: { is_read_only: true },
                         user_email: {},
-                    }
+                    },
+                    server_check: [
+                        "select 'Cet email existe déjà' \
+                        where exists (select user_pseudo from actusers \
+                        where user_pseudo <> $user_pseudo and user_email = $user_email)"
+                    ]
+
                 },
                 fchgpwd: {
                     title: "Changer mon mot de passe",
@@ -403,7 +382,7 @@ const Dico = {
                         _user_pwd_2: {},
                         user_pwd: { is_hidden: true }
                     },
-                    computeForm() {
+                    compute() {
                         Data.fields.user_pwd.value = Data.fields._user_pwd_1.value
                     }
                 },
@@ -424,5 +403,28 @@ const Dico = {
             }
         }
     }
-} // end exports
+}
+/**
+ * Fonctions utilisables sur le client et le serveur
+ */
+const Tools = {
+    isRubTemporary(key) {
+        return /^_/g.test(key)
+    },
+    replaceParams(uri) {
+        let params = uri.split('/')
+        let str = ''
+        params.forEach(param => {
+            if (param.length > 0) {
+                if (param.startsWith(':')) {
+                    let field = param.substring(1)
+                    str = str + '/' + Data.fields[field].value
+                } else {
+                    str = str + '/' + param
+                }
+            }
+        })
+        return str
+    }
+}
 export { Data, Dico, Tools }

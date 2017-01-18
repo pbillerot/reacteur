@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/pbillerot/reacteur#readme",
   "dependencies": {
+    "async": "^2.1.4",
     "babel-cli": "^6.11.4",
     "babel-core": "^6.13.2",
     "babel-loader": "^6.2.5",
@@ -44,12 +45,13 @@
     "morgan": "^1.7.0",
     "multer": "^1.2.0",
     "nodemailer": "^2.7.0",
-    "nodemailer-markdown": "^1.0.1",
     "randomstring": "^1.1.5",
     "react": "^15.3.1",
+    "react-alert": "^1.0.14",
     "react-dom": "^15.3.1",
     "react-remarkable": "^1.1.1",
     "react-router": "^2.6.1",
+    "sprintf-js": "^1.0.3",
     "sqlite3": "^3.1.8",
     "validator": "^6.2.0",
     "whatwg-fetch": "^2.0.1"

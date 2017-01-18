@@ -1,33 +1,26 @@
 'use strict';
 
-import path from 'path';
-import http from 'http';
-import https from 'https';
-import Express from 'express';
-import morgan from 'morgan';
+const Express = require('express')
+const http = require('http')
+const https = require('https')
+const morgan = require('morgan')
+const bodyParser = require('body-parser')
+const helmet = require('helmet')
 
-import bodyParser from 'body-parser';
-import helmet from 'helmet';
-import React from 'react';
+const React = require('react')
+const { match, RouterContext } = require('react-router')
+const { renderToString } = require('react-dom/server')
+const routes = require('../app/routes')
+const PageNotFound = require('../app/components/PageNotFound')
 
-import { renderToString } from 'react-dom/server';
-import { match, RouterContext } from 'react-router';
-import routes from '../app/routes';
-import PageNotFound from '../app/components/PageNotFound';
-
-import { Data, Dico, Tools } from './config/Dico';
-
+const path = require('path')
 const fs = require('fs')
 
-const options = {
-  key: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/privkey.pem'),
-  cert: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/cert.pem'),
-  ca: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/chain.pem'),
-};
+const { Reacteur } = require('./config/Reacteur')
 
 // initialize the server and configure support for ejs templates
 var app = new Express();
-var server = https.createServer(options, app); // HTTPS
+var server = https.createServer(Reacteur.config.ssl, app); // HTTPS
 //var server = http.createServer(app); // HTTP
 //var server = new Server(app);
 
