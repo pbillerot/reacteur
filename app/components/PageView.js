@@ -11,7 +11,7 @@ const {Button, Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import { Data, Dico, Tools } from '../config/Dico';
+import { ctx, Dico, Tools } from '../config/Dico';
 
 export default class PageView extends React.Component {
     constructor(props) {
@@ -151,9 +151,9 @@ export default class PageView extends React.Component {
         let row_key = Dico.tables[table].key
         return (
             <div>
-                <ContainerSidebar ctx={this} />
-                <ContainerContent ctx={this}>
-                    <Header title={Dico.tables[table].views[view].title} ctx={this} />
+                <ContainerSidebar apex={this} />
+                <ContainerContent apex={this}>
+                    <Header title={Dico.tables[table].views[view].title} apex={this} />
                     {this.state.is_error &&
                         <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
                             <p>{this.state.error.code} {this.state.error.message}</p>
@@ -169,14 +169,14 @@ export default class PageView extends React.Component {
                     }
                     {!this.state.is_error &&
                         <Card>
-                            <Table ctx={this}
+                            <Table apex={this}
                                 table={table} view={view}
                                 form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                                 row_key={row_key} rubs={rubs} cols={cols} rows={this.state.rows}
                                 />
                         </Card>
                     }
-                    <Footer ctx={this}>
+                    <Footer apex={this}>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
                 </ContainerContent>

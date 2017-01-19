@@ -11,7 +11,7 @@ const {Button, Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import {Data, Dico} from '../config/Dico.js';
+import {ctx, Dico} from '../config/Dico.js';
 
 export default class PagePortail extends React.Component {
     constructor(props) {
@@ -50,15 +50,15 @@ export default class PagePortail extends React.Component {
     render() {
         return (
             <div>
-                <ContainerSidebar ctx={this} />
-                <ContainerContent ctx={this}>
-                    <Header title={Dico.application.desc} ctx={this} />
+                <ContainerSidebar apex={this} />
+                <ContainerContent apex={this}>
+                    <Header title={Dico.application.desc} apex={this} />
 
                     <Card style={{ width: '100%', margin: 'auto' }}>
                         {<Markdown source={this.state.markdown} />}
                     </Card>
 
-                    <Footer ctx={this}>
+                    <Footer apex={this}>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
                 </ContainerContent>

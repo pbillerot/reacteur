@@ -9,7 +9,7 @@ const Markdown = require('react-remarkable')
 const {Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
 
-import { Data, Dico } from '../config/Dico';
+import { Dico } from '../config/Dico';
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 //const fs = require('fs')
@@ -30,11 +30,11 @@ export default class PageHelp extends React.Component {
         //let data = fs.readFileSync(__dirname + '/help.md', 'utf8')
         return (
             <div>
-                <ContainerSidebar ctx={this} />
-                <ContainerContent ctx={this} >
-                    <Header title="Aide" ctx={this} />
+                <ContainerSidebar apex={this} />
+                <ContainerContent apex={this} >
+                    <Header title="Aide" apex={this} />
                     <RestAPI />
-                    <Footer ctx={this}>
+                    <Footer apex={this}>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
                 </ContainerContent>

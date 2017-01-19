@@ -70,27 +70,25 @@ const Reacteur = {
     /**
      * server_check
      */
-    server_check: (table, formulaire, Data, callback) => {
-        let basename = Dico.tables[table].basename
+    server_check: (ctx, callback) => {
+        let basename = Dico.tables[ctx.table].basename
         let params = {}
-        Object.keys(Data.fields).forEach(key => {
-            params['$' + key] = Data.fields[key].value
+        Object.keys(ctx.fields).forEach(key => {
+            if (!Tools.isRubTemporary(key))
+                params['$' + key] = ctx.fields[key].value
         })
-
-        if (formulaire.server_check) {
-            formulaire.server_check.forEach(sql => {
+        if (ctx.formulaire.server_check) {
+            ctx.formulaire.server_check.forEach(sql => {
                 Reacteur.sql_select(basename, sql, params, (err, result) => {
-                    console.log('server_check', err, result)
                     if (err) {
-                        return callback(err, result)
+                        callback(err, result)
                     } else {
                         if (result.value != '') {
-                            return callback(400, { code: 4010, message: result.value });
+                            callback(400, { code: 4010, message: result.value });
                         }
                     }
                 })
             })
-            callback(null);
         } else {
             callback(null);
         }
@@ -181,6 +179,12 @@ const Reacteur = {
     */
     sqlUpdate(pathFileSqlite, sql, params, callback) {
         let db = new sqlite3.Database(pathFileSqlite)
+        // suppression des paramètres non trouvés dans la commande sql
+        params.forEach(key => {
+            if ( ! sql.search('$' + key) ) {
+                delete params[key]
+            }
+        })
         db.serialize(function () {
             db.run(sql, params, function (err) {
                 if (err) {
@@ -194,6 +198,12 @@ const Reacteur = {
     },
     sqlSelect(pathFileSqlite, sql, params, callback) {
         let db = new sqlite3.Database(pathFileSqlite, sqlite3.OPEN_READONLY)
+        // suppression des paramètres non trouvés dans la commande sql
+        params.forEach(key => {
+            if ( ! sql.search('$' + key) ) {
+                delete params[key]
+            }
+        })
         db.serialize(function () {
             db.all(sql, params, function (err, rows) {
                 if (err) {
@@ -215,6 +225,12 @@ const Reacteur = {
     },
     sql_update(pathFileSqlite, sql, params, callback) {
         let db = new sqlite3.Database(pathFileSqlite)
+        // suppression des paramètres non trouvés dans la commande sql
+        Object.keys(params).forEach(key => {
+            if ( ! sql.indexOf(key) ) {
+                delete params[key]
+            }
+        })
         db.serialize(function () {
             db.run(sql, params, function (err) {
                 if (err) {
@@ -228,9 +244,16 @@ const Reacteur = {
     },
     sql_select(pathFileSqlite, sql, params, callback) {
         let db = new sqlite3.Database(pathFileSqlite, sqlite3.OPEN_READONLY)
+        // suppression des paramètres non trouvés dans la commande sql
+        Object.keys(params).forEach(key => {
+            if ( ! sql.indexOf(key) ) {
+                delete params[key]
+            }
+        })
         db.serialize(function () {
             db.all(sql, params, function (err, rows) {
                 if (err) {
+                    console.log('sql_select', err, sql, params)
                     return callback(500, Reacteur.message(5001))
                 }
                 // On récupère la 1ère cellule
@@ -260,8 +283,8 @@ const Reacteur = {
         console.log('CHECK_SESSION...')
         // Ctrl session
         if (!ctx.session || !ctx.session.user_pseudo || ctx.session.user_pseudo.length < 3) {
-            if (req.params.form != 'forgetpwd') {
-                res.status(400).json(Reacteur.message(9901))
+            if (ctx.req.params.form != 'forgetpwd' && ctx.req.params.form != 'fnew' && ctx.table != 'actusers') {
+                ctx.res.status(400).json(Reacteur.message(9901))
             } else {
                 callback(null, ctx)
             }
@@ -562,7 +585,7 @@ const Reacteur = {
         console.log('CHECK_FORM...')
         // Controle sur le serveur
         if (ctx.formulaire.server_check) {
-            Reacteur.server_check(ctx.table, ctx.formulaire, ctx, (err, result) => {
+            Reacteur.server_check(ctx, (err, result) => {
                 if (err) {
                     callback(err, result)
                 } else {

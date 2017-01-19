@@ -29,13 +29,13 @@ export default class HeaderContainer extends React.Component {
                 )
             case PageLayout.HELP:
                 return (
-                    <Header title={this.props.title} ctx={this.props.ctx}>
+                    <Header title={this.props.title} apex={this.props.ctx}>
                     </Header>
                 )
             case PageLayout.VIEW:
                 if (this.props.rows_selected.length == 1) {
                     return (
-                        <Header title={this.props.title} ctx={this.props.ctx}>
+                        <Header title={this.props.title} apex={this.props.ctx}>
                             <Toolbar>
                                 <Button color="default" icon="plus-circled"
                                     onClick={(event) => {
@@ -53,7 +53,7 @@ export default class HeaderContainer extends React.Component {
                     )
                 } else if (this.props.rows_selected.length > 1) {
                     return (
-                        <Header title={this.props.title} ctx={this.props.ctx}>
+                        <Header title={this.props.title} apex={this.props.ctx}>
                             <Toolbar>
                                 <Button color="default" icon="trash"
                                     onClick={(event) => this.props.ctx.handleUpdateForm('DELETE')} />
@@ -62,7 +62,7 @@ export default class HeaderContainer extends React.Component {
                     )
                 } else {
                     return (
-                        <Header title={this.props.title} ctx={this.props.ctx}>
+                        <Header title={this.props.title} apex={this.props.ctx}>
                         </Header>
                     )
                 }

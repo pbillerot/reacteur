@@ -16,7 +16,7 @@ export default class FooterContainer extends React.Component {
     }
     render() {
         return (
-            <Footer ctx={this}>
+            <Footer apex={this}>
                 <p>{Dico.application.copyright}</p>
             </Footer>
         )

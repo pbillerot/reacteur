@@ -22,7 +22,7 @@ import moment from 'moment'
  * aussi bien du serveur vers le client
  * que le client vers le serveur
  */
-const Data = {
+const ctx = {
     fields: {},
     user: {}, // id email profil
     server: {} // host (https://server:port)
@@ -57,7 +57,7 @@ const Dico = {
                     label_long: "Url",
                     label_short: "Url",
                     type: "text",
-                    default: () => { return Data.server.host + "/toctoc/" + Data.fields.tok_id.value },
+                    default: () => { return ctx.server.host + "/toctoc/" + ctx.fields.tok_id.value },
                 },
                 _note_new_pwd: {
                     type: 'note',
@@ -74,7 +74,7 @@ const Dico = {
                     mail: () => { // voir https://github.com/nodemailer/nodemailer
                         return {
                             from: null, // sender address défini dans canfig
-                            to: Data.fields.tok_email.value, // list of receivers
+                            to: ctx.fields.tok_email.value, // list of receivers
                             subject: 'Hello', // Subject line
                             template: 'tok_email.ejs'
                         }
@@ -96,7 +96,7 @@ const Dico = {
                 forgetpwd: {
                     title: "J'ai perdu mon mot de passe",
                     action_title: 'Envoyer',
-                    return_url: '/',
+                    return_route: '/',
                     group: null,
                     owner: 'user_pseudo',
                     fields: {
@@ -112,7 +112,7 @@ const Dico = {
                         //
                     },
                     server_check: [
-                        "select 'Compte inconnu' where not exists (select user_pseudo from actusers where user_pseudo = $user_pseudo)"
+                        "select 'Email inconnu' where not exists (select user_pseudo from actusers where user_email = $tok_email)"
                     ],
                     server_post_update: {
 
@@ -222,7 +222,7 @@ const Dico = {
                     maxlength: 50,
                     pattern: "[A-Z,a-z,0-9,_\-]*",
                     is_valide(value) {
-                        return value == Data.fields._user_pwd_1.value ? true : false
+                        return value == ctx.fields._user_pwd_1.value ? true : false
                     },
                     error: "Les mots de passe ne sont pas identiques",
                 },
@@ -324,6 +324,7 @@ const Dico = {
                 fnew: {
                     title: "Création d'un compte",
                     action_title: 'Créer',
+                    return_route: '/',
                     group: null,
                     fields: {
                         user_pseudo: {},
@@ -338,9 +339,9 @@ const Dico = {
                         return true
                     },
                     compute() {
-                        Data.fields.user_pwd.value = Data.fields._user_pwd_1.value
-                        Data.fields.user_actif.value = '1'
-                        Data.fields.user_profil.value = 'INVITE'
+                        ctx.fields.user_pwd.value = ctx.fields._user_pwd_1.value
+                        ctx.fields.user_actif.value = '1'
+                        ctx.fields.user_profil.value = 'INVITE'
                     }
 
                 },
@@ -356,14 +357,14 @@ const Dico = {
                     },
                     server_check: {
                         existsPseudo: {
-                            pseudo: Data.fields.user_pseudo
+                            pseudo: ctx.fields.user_pseudo
                         }
                     }
                 },
                 fchgemail: {
                     title: "Changer mon adresse email",
                     action_title: 'Valider',
-                    return_url: '/',
+                    return_route: '/',
                     group: '',
                     owner: 'user_pseudo',
                     fields: {
@@ -380,7 +381,7 @@ const Dico = {
                 fchgpwd: {
                     title: "Changer mon mot de passe",
                     action_title: 'Valider',
-                    return_url: '/',
+                    return_route: '/',
                     group: null,
                     owner: 'user_pseudo',
                     fields: {
@@ -391,13 +392,13 @@ const Dico = {
                         user_pwd: { is_hidden: true }
                     },
                     compute() {
-                        Data.fields.user_pwd.value = Data.fields._user_pwd_1.value
+                        ctx.fields.user_pwd.value = ctx.fields._user_pwd_1.value
                     }
                 },
                 fmenuident: {
                     title: "Mon compte",
                     action_title: null,
-                    return_url: '/',
+                    return_route: '/',
                     group: null,
                     owner: 'user_pseudo',
                     fields: {
@@ -427,7 +428,7 @@ const Tools = {
             if (param.length > 0) {
                 if (param.startsWith(':')) {
                     let field = param.substring(1)
-                    str = str + '/' + Data.fields[field].value
+                    str = str + '/' + ctx.fields[field].value
                 } else {
                     str = str + '/' + param
                 }
@@ -436,4 +437,4 @@ const Tools = {
         return str
     }
 }
-export { Data, Dico, Tools }
+export { ctx, Dico, Tools }

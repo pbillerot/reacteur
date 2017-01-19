@@ -69,7 +69,7 @@ export class Header extends React.Component {
         return (
             <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
                 <i className="fa fa-bars w3-opennav w3-hide-large w3-xlarge w3-margin-right"
-                    onClick={(e) => this.props.ctx.handlerCtx({ w3_sidebar_open: true })}
+                    onClick={(e) => this.props.apex.handlerCtx({ w3_sidebar_open: true })}
                     ></i>
                 <span id="myIntro">{this.props.title}</span>
             </div>
@@ -82,7 +82,7 @@ export class Nav extends React.Component {
         return (
             <a href="javascript:void(0)"
                 onClick={(event) => this.props.onClick(this.props.table, this.props.view, event)}
-                className={this.props.ctx.state.w3_menu_current == this.props.table + '_' + this.props.view ? 'w3-theme-l4' : ''}
+                className={this.props.apex.state.w3_menu_current == this.props.table + '_' + this.props.view ? 'w3-theme-l4' : ''}
                 >{this.props.children}</a>
         )
     }
@@ -107,19 +107,19 @@ export class Toolbar extends React.Component {
 
 export class Sidebar extends React.Component {
     render() {
-        let w3_sidebar_open = this.props.ctx.state.w3_sidebar_open
+        let w3_sidebar_open = this.props.apex.state.w3_sidebar_open
         return (
             <div>
                 <nav className="w3-sidenav w3-collapse w3-white w3-animate-left w3-card-2"
-                    onClick={(e) => this.props.ctx.state.w3_sidebar_open ? this.props.ctx.handleState({ w3_sidebar_open: false }) : {}}
-                    style={{ zIndex: 3, width: '250px', display: this.props.ctx.state.w3_sidebar_open ? 'block' : 'none' }} id="mySidenav">
+                    onClick={(e) => this.props.apex.state.w3_sidebar_open ? this.props.apex.handleState({ w3_sidebar_open: false }) : {}}
+                    style={{ zIndex: 3, width: '250px', display: this.props.apex.state.w3_sidebar_open ? 'block' : 'none' }} id="mySidenav">
                     <Link href="/" className="w3-border-bottom w3-large w3-theme-dark">{this.props.title}</Link>
                     {this.props.children}
                 </nav >
                 {/* Permet de fermer le sidebar en clicquant dans le Content si small screen*/}
                 <div className="w3-overlay w3-hide-large w3-animate-opacity"
-                    onClick={(e) => this.props.ctx.handleState({ w3_sidebar_open: false })}
-                    style={{ cursor: 'pointer', display: this.props.ctx.state.w3_sidebar_open ? 'block' : 'none' }}
+                    onClick={(e) => this.props.apex.handleState({ w3_sidebar_open: false })}
+                    style={{ cursor: 'pointer', display: this.props.apex.state.w3_sidebar_open ? 'block' : 'none' }}
                     id="myOverlay"></div>
             </div>
         )

@@ -10,7 +10,7 @@ const {Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import { Data, Dico, Tools } from '../config/Dico';
+import { ctx, Dico, Tools } from '../config/Dico';
 
 export default class PageForm extends React.Component {
     constructor(props) {
@@ -52,8 +52,8 @@ export default class PageForm extends React.Component {
         const MyForm = this.state.MyForm;
         return (
             <div>
-                <ContainerSidebar ctx={this} />
-                <ContainerContent ctx={this}>
+                <ContainerSidebar apex={this} />
+                <ContainerContent apex={this}>
                     <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
                         <a onClick={this.handleBack}>
                             <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
@@ -65,7 +65,7 @@ export default class PageForm extends React.Component {
                     <Card >
                         <MyForm />
                     </Card>
-                    <Footer ctx={this}>
+                    <Footer apex={this}>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
                 </ContainerContent>
@@ -97,7 +97,7 @@ class Form extends React.Component {
             },
             host: ''
         }
-        Data.fields = this.state.fields
+        ctx.fields = this.state.fields
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.checkFormulaire = this.checkFormulaire.bind(this);
@@ -153,7 +153,7 @@ class Form extends React.Component {
             .then(response => {
                 response.json().then(json => {
                     //console.log('response', response, json)
-                    Data.server.host = json.host
+                    ctx.server.host = json.host
                     this.state.host = json.host
                     this.getData(this.state.action, this.state.table, this.state.view, this.state.form, this.state.id,
                         (result) => {
@@ -223,7 +223,7 @@ class Form extends React.Component {
         this.state.cols = Dico.tables[table].views[view].cols
         this.state.fields = Dico.tables[table].forms[form].fields
         this.state.formulaire = Dico.tables[table].forms[form]
-        Data.fields = this.state.fields
+        ctx.fields = this.state.fields
 
         Object.keys(this.state.fields).forEach(key => {
             this.state.fields[key].value = ''
@@ -319,8 +319,8 @@ class Form extends React.Component {
                 //console.log('json', json)
                 if (response.ok == true) {
                     if (json.code < 4000) {
-                        if (this.state.formulaire.return_url) {
-                            browserHistory.push(this.state.formulaire.return_url)
+                        if (this.state.formulaire.return_route) {
+                            browserHistory.push(this.state.formulaire.return_route)
                         } else {
                             browserHistory.goBack()
                         }
@@ -403,8 +403,8 @@ class Form extends React.Component {
                 if (response.ok == true) {
                     //console.log('json', json)
                     if (json.code < 4000) {
-                        if (this.state.formulaire.return_url) {
-                            browserHistory.push(this.state.formulaire.return_url)
+                        if (this.state.formulaire.return_route) {
+                            browserHistory.push(this.state.formulaire.return_route)
                         } else {
                             browserHistory.goBack()
                         }

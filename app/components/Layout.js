@@ -3,11 +3,6 @@
 import React from 'react';
 import { Link } from 'react-router';
 
-// W3
-//const {Button, Card, Content, Footer, Header, IconButton
-//    , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
-import Dico from '../config/Dico.js';
-
 export default class Layout extends React.Component {
     constructor(props) {
         super(props);

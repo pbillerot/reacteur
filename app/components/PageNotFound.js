@@ -23,9 +23,9 @@ export default class PageNotFound extends React.Component {
   render() {
     return (
       <div>
-        <ContainerSidebar ctx={this} />
+        <ContainerSidebar apex={this} />
         <ContainerContent>
-          <Header title="Page not found" ctx={this} />
+          <Header title="Page not found" apex={this} />
 
           <Card style={{ width: '100%', margin: 'auto' }}>
             <h1>404</h1>
@@ -34,7 +34,7 @@ export default class PageNotFound extends React.Component {
               <Link to="/">Go back to the main page</Link>
             </p>
           </Card>
-          <Footer ctx={this}>
+          <Footer apex={this}>
             <p>{Dico.application.copyright}</p>
           </Footer>
         </ContainerContent>

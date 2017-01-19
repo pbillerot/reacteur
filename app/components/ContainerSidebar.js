@@ -17,17 +17,17 @@ export default class ContainerSidebar extends React.Component {
     handleAPropos(e) {
         e.preventDefault
         this.closeDrawer()
-        this.props.ctx.handleState({ about: true })
+        this.props.apex.handleState({ about: true })
     }
     handleAccueil(e) {
         e.preventDefault
         this.closeDrawer()
-        this.props.ctx.setState({ title: 'Aide', layout: PageLayout.HOME })
+        this.props.apex.setState({ title: 'Aide', layout: PageLayout.HOME })
     }
     handleHelp(e) {
         e.preventDefault
         this.closeDrawer()
-        this.props.ctx.setState({ title: 'Aide', layout: PageLayout.HELP })
+        this.props.apex.setState({ title: 'Aide', layout: PageLayout.HELP })
     }
     componentDidMount() {
         //console.log('ContainerSidebar.componentDidMount')
@@ -36,18 +36,18 @@ export default class ContainerSidebar extends React.Component {
         //console.log('ContainerSidebar.componentWillReceiveProps', nextProps)
     }
     render() {
-        let w3_sidebar_open = this.props.ctx.state.w3_sidebar_open
+        let w3_sidebar_open = this.props.apex.state.w3_sidebar_open
         return (
             <div>
                 <nav className="w3-sidenav w3-collapse w3-white w3-animate-left w3-card-2"
-                    onClick={(e) => w3_sidebar_open ? this.props.ctx.handlerCtx({ w3_sidebar_open: false }) : {}}
+                    onClick={(e) => w3_sidebar_open ? this.props.apex.handlerCtx({ w3_sidebar_open: false }) : {}}
                     style={{ zIndex: 3, width: '250px', display: w3_sidebar_open ? 'block' : 'none' }} id="mySidenav">
                     <Link to="/" className="w3-border-bottom w3-large w3-theme-dark">{Dico.application.title}</Link>
                     <IdentContainer />
                     <hr />
                     {
                         Object.keys(Dico.tables).map(table =>
-                            <NavView table={table} key={table} ctx={this.props.ctx} />
+                            <NavView table={table} key={table} apex={this.props.apex} />
                         )
                     }
                     <hr />
@@ -56,7 +56,7 @@ export default class ContainerSidebar extends React.Component {
                 </nav >
                 {/* Permet de fermer le sidebar en cliquant dans le Content si small screen*/}
                 <div className="w3-overlay w3-hide-large w3-animate-opacity"
-                    onClick={(e) => this.props.ctx.handlerCtx({ w3_sidebar_open: false })}
+                    onClick={(e) => this.props.apex.handlerCtx({ w3_sidebar_open: false })}
                     style={{ cursor: 'pointer', display: w3_sidebar_open ? 'block' : 'none' }}
                     id="myOverlay"></div>
             </div>
@@ -70,10 +70,10 @@ class NavView extends React.Component {
     }
     handleClickView(table, view, event) {
         event.preventDefault()
-        this.props.ctx.state.table = table
-        this.props.ctx.state.view = view
-        this.props.ctx.state.w3_menu_current = table + '_' + view
-        this.props.ctx.handleOpenView()
+        this.props.apex.state.table = table
+        this.props.apex.state.view = view
+        this.props.apex.state.w3_menu_current = table + '_' + view
+        this.props.apex.handleOpenView()
     }
     render() {
         let views = []
@@ -164,7 +164,7 @@ class IdentContainer extends React.Component {
             <div className="">
                 {this.state.is_connected &&
                     <div>
-                        <Link to={'/form/view/actusers/vident/fmenuident/' + sessionStorage.getItem('user_pseudo')}>
+                        <Link className="w3-text-teal" to={'/form/view/actusers/vident/fmenuident/' + sessionStorage.getItem('user_pseudo')}>
                             {sessionStorage.getItem('user_pseudo')} <i className="fa fa-caret-right"></i>
                             <br/><span className="w3-small">{sessionStorage.getItem('user_email')}</span>
                         </Link>
