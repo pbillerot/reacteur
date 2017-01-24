@@ -129,7 +129,7 @@ const Dico = {
                         tok_url: { is_hidden: true },
                         tok_redirect: { is_hidden: true },
                         tok_pseudo: { is_hidden: true },
-                        tok_expired: { is_hidden: false },
+                        tok_expired: { is_hidden: true },
                         _note_new_pwd: {},
                         tok_email: {}
                     },
@@ -148,6 +148,21 @@ const Dico = {
             }
         },
         actusers: {
+            /*
+            CREATE TABLE "ACTUSERS" (
+                    "user_email" varchar(100) NOT NULL,
+                    "user_pseudo" varchar(20) NOT NULL,
+                    "user_profil" varchar(20) NULL,
+                    "user_actif" varchar(1) NULL,
+                    "user_pwd" varchar(255) NULL,
+                    primary key(user_email)
+            )
+            CREATE INDEX index_user_pseudo ON ACTUSERS(user_pseudo);
+            INSERT INTO ACTUSERS
+                 (user_pseudo, user_email, user_profil, user_actif, user_pwd)
+                 values
+                 ('admin', 'reacteur@yopmail.com', 'ADMIN', '1', '');
+            */
             basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
             key: 'user_pseudo',
             rubs: {

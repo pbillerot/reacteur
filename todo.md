@@ -6,7 +6,7 @@ x ident créer un compte
 x ajouter un enregistrement
 x supprimer un enregistrement
 
-MEP
+MEP 1.1.24
 npm i randomstring
 npm i save moment
 npm i save nodemailer

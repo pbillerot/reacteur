@@ -541,22 +541,23 @@ const Reacteur = {
                 if (result.rows.length > 0) {
                     result.rows.forEach((row) => {
                         pwdmd5 = row.user_pwd
+                        if ( pwdmd5.length == 0 ) {
+                            // 1ére connexion on accepte le nouveau password
+                            pwdmd5 = md5(user_pwd)
+                        }
                         user_email = row.user_email
                         user_profil = row.user_profil
                     })
                     if (md5(user_pwd) != pwdmd5) {
-                        console.log(user_pseudo, Reacteur.message(4002))
                         callback(400, Reacteur.message(4002))
                     } else {
                         // User OK
                         ctx.session.user_pseudo = user_pseudo
                         ctx.session.user_email = user_email
                         ctx.session.user_profil = user_profil
-                        console.log(user_pseudo, Reacteur.message(2003))
                         callback(200, Reacteur.message(2003))
                     }
                 } else {
-                    console.log(user_pseudo, Reacteur.message(4004))
                     callback(400, Reacteur.message(4004))
                 }
             }
