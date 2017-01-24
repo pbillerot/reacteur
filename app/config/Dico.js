@@ -32,7 +32,7 @@ const Dico = {
         title: 'REACTEUR',
         desc: 'REACTEUR, un simple CRUD',
         url: 'https://github.com/pbillerot/atomium',
-        copyright: 'REACTEUR 2016 - version 1.1.10',
+        copyright: 'REACTEUR 2016 - version 1.1.24',
     },
     tables: {
         acttokens: {
