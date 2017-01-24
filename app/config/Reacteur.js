@@ -67,7 +67,9 @@ const Reacteur = {
         m9903: "Accès refusé au formulaire",
         m9904: "Accès refusé à la rubrique",
         m9905: "Accès refusé, jeton non reconnu",
-        m9906: "Accès refusé, pseudo non reconnu"
+        m9906: "Accès refusé, pseudo non reconnu",
+        m9907: "Accès refusé, Vous n'êtes pas le propriétaire de cette ressource",
+        m9908: "Accès refusé, le jeton est expiré"
     },
     /**
      * server_check
@@ -572,31 +574,39 @@ const Reacteur = {
             } else {
                 if (result.rows.length > 0) { // le token est trouvé
                     let token = result.rows[0]
+                    // ctrl expiration du token
+                    if (moment(token.tok_expired).isAfter(moment())) {
+                        // le jeton n'est pas expiré
 
-                    // recherche dans actusers
-                    let sql = "select * from ACTUSERS where user_pseudo = $user_pseudo"
-                    let params = { $user_pseudo: token.tok_pseudo }
-                    let basename = Dico.tables['actusers'].basename
-                    Reacteur.sql_select(basename, sql, params, (err, result) => {
-                        if (err) {
-                            callback(err, result)
-                        } else {
-                            if (result.rows.length > 0) { // le pseudo est trouvé
-                                let user = result.rows[0]
-                                // Initialisation de la session
-                                ctx.session.user_pseudo = user.user_pseudo
-                                ctx.session.user_email = user.user_email
-                                ctx.session.user_profil = user.user_profil
-                                // redirection sur l'URL liée au token
-                                ctx.session.redirect = token.tok_redirect 
-                                callback(null, ctx)
+                        // recherche dans actusers
+                        let sql = "select * from ACTUSERS where user_pseudo = $user_pseudo"
+                        let params = { $user_pseudo: token.tok_pseudo }
+                        let basename = Dico.tables['actusers'].basename
+                        Reacteur.sql_select(basename, sql, params, (err, result) => {
+                            if (err) {
+                                callback(err, result)
                             } else {
-                                console.log(token.tok_pseudo, token.tok_email, Reacteur.message(9906))
-                                callback(400, Reacteur.message(9906))
+                                if (result.rows.length > 0) { // le pseudo est trouvé
+                                    let user = result.rows[0]
+                                    // Initialisation de la session
+                                    ctx.session.user_pseudo = user.user_pseudo
+                                    ctx.session.user_email = user.user_email
+                                    ctx.session.user_profil = user.user_profil
+                                    // redirection sur l'URL liée au token
+                                    ctx.session.redirect = token.tok_redirect
+                                    callback(null, ctx)
+                                } else {
+                                    // le pseudo n'existe plus
+                                    console.log(token.tok_pseudo, token.tok_email, Reacteur.message(9906))
+                                    callback(400, Reacteur.message(9906))
+                                }
                             }
-                        }
-                    })
-
+                        })
+                    } else {
+                        // le jeton est expiré
+                        console.log(Reacteur.message(9908))
+                        callback(400, Reacteur.message(9908))
+                    }
                 } else {
                     console.log(Reacteur.message(9905))
                     callback(400, Reacteur.message(9905))
@@ -607,38 +617,49 @@ const Reacteur = {
     api_check_group_form: (ctx, callback) => {
         console.log('CHECK_GROUP_FORM...')
         // Ctrl accès au formulaire
-        let bret = false
+        let bret = true
         if (ctx.formulaire.group) {
             let groups = ctx.session.user_profil.split(',')
+            let ok = false
             groups.forEach(group => {
                 if (group == ctx.formulaire.group)
-                    bret = true
+                    ok = true
             })
-        } else {
-            bret = true
+            if (!ok) {
+                bret = false
+                callback(400, Reacteur.message(9903))
+            }
         }
-        if (!bret) {
-            callback(400, Reacteur.message(9903))
-        } else {
+        if (bret) {
+            // Ctrl owner
+            if (ctx.formulaire.owner) {
+                if (ctx.req.params.id != ctx.session.user_pseudo) {
+                    bret = false
+                    callback(400, Reacteur.message(9907))
+                }
+            }
+        }
+        if (bret) {
             callback(null, ctx)
         }
     },
     api_check_group_view: (ctx, callback) => {
         console.log('CHECK_GROUP_VIEW...')
-        // Ctrl accès au formulaire
-        let bret = false
+        // Ctrl accès à la vue
+        let bret = true
         if (ctx.vue.group) {
             let groups = ctx.session.user_profil.split(',')
+            let ok = false
             groups.forEach(group => {
                 if (group == ctx.vue.group)
-                    bret = true
+                    ok = true
             })
-        } else {
-            bret = true
+            if (!ok) {
+                bret = false
+                callback(400, Reacteur.message(9902))
+            }
         }
-        if (!bret) {
-            callback(400, Reacteur.message(9903))
-        } else {
+        if (bret) {
             callback(null, ctx)
         }
     },

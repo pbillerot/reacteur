@@ -43,6 +43,7 @@ const Dico = {
 		        "tok_redirect" varchar(255) NOT NULL,
                 "tok_pseudo" varchar(100) NOT NULL,
                 "tok_email" varchar(100) NOT NULL,
+                "tok_expired" datetime NOT NULL,
                 primary key(tok_id)
             )
             */
@@ -59,7 +60,7 @@ const Dico = {
                     label_long: "Url",
                     label_short: "Url",
                     type: "text",
-                    default: () => { return ctx.session.host + "/toctoc/" + ctx.fields.tok_id.value },
+                    default: () => { return ctx.session.host + "/api/toctoc/" + ctx.fields.tok_id.value },
                 },
                 tok_redirect: {
                     label_long: "Redirect to",
@@ -75,6 +76,14 @@ const Dico = {
                     label_short: "Pseudo",
                     type: 'text',
                     server_compute: "select user_pseudo from actusers where user_email = $tok_email"
+                },
+                tok_expired: {
+                    label_long: "Expire le",
+                    label_short: "Expire le",
+                    type: 'text',
+                    default: () => {
+                        return moment().add(7, 'days').format()
+                    }
                 },
                 tok_email: {
                     label_short: "Email",
@@ -114,12 +123,13 @@ const Dico = {
                     action_title: 'Envoyer',
                     return_route: '/',
                     group: null,
-                    owner: 'user_pseudo',
+                    owner: true,
                     fields: {
                         tok_id: { is_hidden: true },
                         tok_url: { is_hidden: true },
                         tok_redirect: { is_hidden: true },
                         tok_pseudo: { is_hidden: true },
+                        tok_expired: { is_hidden: false },
                         _note_new_pwd: {},
                         tok_email: {}
                     },
@@ -220,7 +230,7 @@ const Dico = {
                 },
 
                 _user_pwd_1: {
-                    label_long: "Créez un nouveau mot de passe",
+                    label_long: "Créer un nouveau mot de passe",
                     label_short: "",
                     type: "password",
                     required: false,
@@ -403,7 +413,7 @@ const Dico = {
                     action_title: 'Valider',
                     return_route: '/',
                     group: '',
-                    owner: 'user_pseudo',
+                    owner: true,
                     fields: {
                         user_pseudo: { is_read_only: true },
                         user_email: {},
@@ -420,7 +430,7 @@ const Dico = {
                     action_title: 'Valider',
                     return_route: '/',
                     group: null,
-                    owner: 'user_pseudo',
+                    owner: true,
                     fields: {
                         user_pseudo: { is_read_only: true },
                         user_email: { is_read_only: true },
@@ -437,7 +447,7 @@ const Dico = {
                     action_title: null,
                     return_route: '/',
                     group: null,
-                    owner: 'user_pseudo',
+                    owner: true,
                     fields: {
                         user_pseudo: { is_read_only: true },
                         user_email: { is_read_only: true },

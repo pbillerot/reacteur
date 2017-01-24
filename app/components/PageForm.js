@@ -439,8 +439,8 @@ class Form extends React.Component {
                 list_fields.push(key)
         })
         let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
-            && ctx.session.host.length > 3
-        //console.log('host', display_form, this.state.fields)
+            && ctx.session.host && ctx.session.host.length > 3
+        //console.log('session', ctx.session)
         return (
             <form>
                 {this.state.is_error &&
