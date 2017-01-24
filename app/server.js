@@ -12,7 +12,6 @@ const { match, RouterContext } = require('react-router')
 const { renderToString } = require('react-dom/server')
 const routes = require('../app/routes')
 const PageNotFound = require('../app/components/PageNotFound')
-
 const path = require('path')
 const fs = require('fs')
 
@@ -63,6 +62,7 @@ app.use(function (req, res, next) {
   //console.log('fullUrl', req.protocol + '://' + req.get('host') + req.originalUrl)
   //res.setHeader('Access-Control-Allow-Credentials', 'true')
   var sess = req.session
+  req.session.host = req.protocol + '://' + req.get('host')
   if ( sess.count ) {
     sess.count += 1
     //console.log(sess.id, sess.count)

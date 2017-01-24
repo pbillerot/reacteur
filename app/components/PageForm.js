@@ -83,7 +83,7 @@ class Form extends React.Component {
             view: this.props.view,
             form: this.props.form,
             id: this.props.id,
-            row_key: Dico.tables[this.props.table].key,
+            key_name: Dico.tables[this.props.table].key,
             rubs: Dico.tables[this.props.table].rubs,
             cols: Dico.tables[this.props.table].views[this.props.view].cols,
             fields: Dico.tables[this.props.table].forms[this.props.form].fields,
@@ -94,8 +94,7 @@ class Form extends React.Component {
             error: {
                 code: '',
                 message: ''
-            },
-            host: ''
+            }
         }
         ctx.fields = this.state.fields
         this.onEditRow = this.onEditRow.bind(this);
@@ -149,12 +148,11 @@ class Form extends React.Component {
     }
     componentDidMount() {
         //console.log('Form.componentDidMount...', this.state)
-        fetch('/api/server', { credentials: 'same-origin' })
+        fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
                     //console.log('response', response, json)
-                    ctx.server.host = json.host
-                    this.state.host = json.host
+                    ctx.session = json
                     this.getData(this.state.action, this.state.table, this.state.view, this.state.form, this.state.id,
                         (result) => {
                         })
@@ -189,8 +187,8 @@ class Form extends React.Component {
             }
             // ctrl accès - ko le champ sera caché
             if (this.state.rubs[key].group) {
-                if (sessionStorage.getItem('user_pseudo') && sessionStorage.getItem('user_pseudo').length > 3) {
-                    if (sessionStorage.getItem('user_profil') != this.state.rubs[key].group)
+                if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 3) {
+                    if (ctx.session.user_profil != this.state.rubs[key].group)
                         this.state.fields[key].is_hidden = true
                 } else {
                     this.state.fields[key].is_hidden = true
@@ -218,7 +216,7 @@ class Form extends React.Component {
         this.state.view = view
         this.state.form = form
         this.state.id = id
-        this.state.row_key = Dico.tables[table].key
+        this.state.key_name = Dico.tables[table].key
         this.state.rubs = Dico.tables[table].rubs
         this.state.cols = Dico.tables[table].views[view].cols
         this.state.fields = Dico.tables[table].forms[form].fields
@@ -363,7 +361,11 @@ class Form extends React.Component {
             response.json().then(json => {
                 if (response.ok == true) {
                     if (json.code < 4000) {
-                        browserHistory.push('/view/' + this.state.table + '/' + this.state.view);
+                        if (this.state.formulaire.return_route) {
+                            browserHistory.push(this.state.formulaire.return_route)
+                        } else {
+                            browserHistory.goBack()
+                        }
                     } else {
                         this.state.error = {
                             code: json.code,
@@ -437,7 +439,7 @@ class Form extends React.Component {
                 list_fields.push(key)
         })
         let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
-            && this.state.host.length > 3
+            && ctx.session.host.length > 3
         //console.log('host', display_form, this.state.fields)
         return (
             <form>
@@ -448,7 +450,9 @@ class Form extends React.Component {
                 }
                 {display_form &&
                     list_fields.map(key =>
-                        <div className="w3-row-padding w3-margin-top" key={key}>
+                        <div className={this.state.fields[key].is_hidden
+                            ? 'w3-row-padding w3-margin-top w3-hide' : 'w3-row-padding w3-margin-top'}
+                            key={key}>
                             <Label {...this.state} id={key} />
                             <div className="w3-threequarter">
                                 <Field {...this.state} id={key}
@@ -596,7 +600,7 @@ class Field extends React.Component {
     handleButton(e) {
         e.preventDefault();
         //console.log('handleButton', this.props.rubs[this.props.id].action_url)
-        fetch(this.props.rubs[this.props.id].on_click.action, 
+        fetch(this.props.rubs[this.props.id].on_click.action,
             { method: this.props.rubs[this.props.id].on_click.method, credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {

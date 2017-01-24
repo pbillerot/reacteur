@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Link, browserHistory, Route } from 'react-router';
-import { Data, Dico } from '../config/Dico';
+import { ctx, Dico } from '../config/Dico';
 // W3
 const {Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
@@ -82,6 +82,12 @@ class NavView extends React.Component {
             if (Dico.tables[this.props.table].views[view].is_hidden
                 && Dico.tables[this.props.table].views[view].is_hidden == true)
                 is_ok = false
+            if (Dico.tables[this.props.table].views[view].group
+                && Dico.tables[this.props.table].views[view].group.length > 0) {
+                if (Dico.tables[this.props.table].views[view].group != ctx.session.user_profil) {
+                    is_ok = false
+                }
+            }
             if (is_ok)
                 views.push(view)
         })
@@ -124,17 +130,9 @@ class IdentContainer extends React.Component {
         fetch('/api/session/', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    //console.log('session', json)
-                    if (json.user_pseudo) {
-                        sessionStorage.setItem('user_pseudo', json.user_pseudo)
-                        sessionStorage.setItem('user_email', json.user_email)
-                        sessionStorage.setItem('user_profil', json.user_profil)
+                    ctx.session = json
+                    if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 0) {
                         this.setState({ is_connected: true })
-                    } else {
-                        sessionStorage.removeItem('user_pseudo')
-                        sessionStorage.removeItem('user_email')
-                        sessionStorage.removeItem('user_profil')
-                        this.setState({ is_connected: false })
                     }
                 })
             })
@@ -145,16 +143,9 @@ class IdentContainer extends React.Component {
             .then(response => {
                 response.json().then(json => {
                     //console.log('session', json)
-                    if (json.user_pseudo) {
-                        sessionStorage.setItem('user_pseudo', json.user_pseudo)
-                        sessionStorage.setItem('user_email', json.user_email)
-                        sessionStorage.setItem('user_profil', json.user_profil)
+                    ctx.session = json
+                    if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 0) {
                         this.setState({ is_connected: true })
-                    } else {
-                        sessionStorage.removeItem('user_pseudo')
-                        sessionStorage.removeItem('user_email')
-                        sessionStorage.removeItem('user_profil')
-                        this.setState({ is_connected: false })
                     }
                 })
             })
@@ -164,9 +155,9 @@ class IdentContainer extends React.Component {
             <div className="">
                 {this.state.is_connected &&
                     <div>
-                        <Link className="w3-text-teal" to={'/form/view/actusers/vident/fmenuident/' + sessionStorage.getItem('user_pseudo')}>
-                            {sessionStorage.getItem('user_pseudo')} <i className="fa fa-caret-right"></i>
-                            <br/><span className="w3-small">{sessionStorage.getItem('user_email')}</span>
+                        <Link className="w3-text-teal" to={'/form/view/actusers/vident/fmenuident/' + ctx.session.user_pseudo}>
+                            {ctx.session.user_pseudo} <i className="fa fa-caret-right"></i>
+                            <br /><span className="w3-small">{ctx.session.user_email}</span>
                         </Link>
                     </div>
                 }

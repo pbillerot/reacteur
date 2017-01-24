@@ -14,7 +14,7 @@ module.exports = {
     port: 3333,
     contentBase: "app/static/",
     historyApiFallback: {
-      index: '/index-static.html'
+      index: '/index.html'
     },
     proxy: {
       '/api': {

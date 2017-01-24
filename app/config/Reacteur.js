@@ -65,7 +65,9 @@ const Reacteur = {
         m9901: "Accès refusé, session non ouverte",
         m9902: "Accès refusé à la vue",
         m9903: "Accès refusé au formulaire",
-        m9904: "Accès refusé à la rubrique"
+        m9904: "Accès refusé à la rubrique",
+        m9905: "Accès refusé, jeton non reconnu",
+        m9906: "Accès refusé, pseudo non reconnu"
     },
     /**
      * server_check
@@ -74,38 +76,70 @@ const Reacteur = {
         let basename = Dico.tables[ctx.table].basename
         let params = {}
         Object.keys(ctx.fields).forEach(key => {
-            if (!Tools.isRubTemporary(key))
-                params['$' + key] = ctx.fields[key].value
+            params['$' + key] = ctx.fields[key].value
         })
         if (ctx.formulaire.server_check) {
+            let countMax = ctx.formulaire.server_check.length
+            let count = 0
+            let isCallback = false
             ctx.formulaire.server_check.forEach(sql => {
-                Reacteur.sql_select(basename, sql, params, (err, result) => {
-                    if (err) {
-                        callback(err, result)
-                    } else {
-                        if (result.value != '') {
-                            callback(400, { code: 4010, message: result.value });
-                        }
+                let db = new sqlite3.Database(Dico.tables[ctx.table].basename, sqlite3.OPEN_READONLY)
+                // suppression des paramètres non trouvés dans la commande sql
+                let args = {}
+                Object.keys(params).forEach(key => {
+                    if (sql.indexOf(key) >= 0) {
+                        args[key] = params[key]
                     }
                 })
-            })
+                db.all(sql, args, (err, rows) => {
+                    count++
+                    if (err) {
+                        if (!isCallback) {
+                            callback(500, Reacteur.message(5001))
+                            isCallback = true
+                        }
+                    } else {
+                        // On récupère la 1ère cellule
+                        let value = ''
+                        rows.forEach((row) => {
+                            Object.keys(row).forEach(key => {
+                                value = row[key]
+                                return
+                            })
+                        })
+                        if (value.length > 0) {
+                            if (!isCallback) {
+                                callback(400, { code: 4010, message: value });
+                                isCallback = true
+                            }
+                        } else {
+                            if (count >= countMax) {
+                                if (!isCallback) {
+                                    callback(null)
+                                    isCallback = true
+                                }
+                            }
+                        }
+                    }
+                }).close()
+            }) // end forEach
         } else {
-            callback(null);
+            callback(null)
         }
     },
     /**
      * server_post_update
      */
-    server_post_update_fields: (table, formulaire, rubs, Data, callback) => {
+    server_post_update_fields: (ctx, callback) => {
         // post_update des champs
         let error = null
         let resultat = null
-        Object.keys(Data.fields).forEach(field => {
+        Object.keys(ctx.fields).forEach(field => {
             //console.log(field)
             if (error) return
-            switch (rubs[field].type) {
+            switch (ctx.rubs[field].type) {
                 case 'mail':
-                    Reacteur.sendMail(field, rubs, Data.fields, (err, result) => {
+                    Reacteur.sendMail(field, ctx.rubs, ctx, (err, result) => {
                         error = err
                         resultat = result
                     })
@@ -120,20 +154,31 @@ const Reacteur = {
             return callback(null, Reacteur.message(2009));
         }
     },
-    server_post_update: (table, formulaire, rubs, Data, callback) => {
+    server_post_update: (ctx, callback) => {
         // poste_update du formulaire
-        let basename = Dico.tables[table].basename
+        let basename = Dico.tables[ctx.table].basename
         let params = {}
-        Object.keys(Data.fields).forEach(key => {
-            params['$' + key] = Data.fields[key].value
+        Object.keys(ctx.fields).forEach(key => {
+            params['$' + key] = ctx.fields[key].value
         })
-        if (formulaire.server_post_update) {
-            Object.keys(formulaire.server_post_update).forEach(sql => {
+        if (ctx.formulaire.server_post_update) {
+            let countMax = ctx.formulaire.server_post_update.length
+            let count = 0
+            let isCallback = false
+
+            ctx.formulaire.server_post_update.forEach(sql => {
                 Reacteur.sql_update(basename, sql, params, (err, result) => {
-                    if (err) {
-                        callback(500, Reacteur.message(5001))
-                    } else {
-                        callback(null, result)
+                    count++
+                    if (!isCallback) {
+                        if (err) {
+                            isCallback = true
+                            callback(500, Reacteur.message(5001))
+                        } else {
+                            if (count >= countMax) {
+                                isCallback = true
+                                callback(null)
+                            }
+                        }
                     }
                 })
 
@@ -145,18 +190,18 @@ const Reacteur = {
      * Envoi de mails
      * https://github.com/nodemailer/nodemailer
      */
-    sendMail(key, rubs, Data, callback) {
+    sendMail(key, rubs, ctx, callback) {
         //console.log('sendMail', key, rubs, Data.fields)
         let transport = nodemailer.createTransport(Reacteur.config.smtpConfig)
         let mail = rubs[key].mail()
 
         if (!mail.from)
-            mail.from = Dico.config.from
+            mail.from = Reacteur.config.from
 
         let fileMail = mail.template
         let data = {}
-        Object.keys(Data.fields).forEach(key => {
-            data[key] = Data.fields[key].value
+        Object.keys(ctx.fields).forEach(key => {
+            data[key] = ctx.fields[key].value
         })
         let md = ejs.renderFile(__dirname + '/../config/' + fileMail, data, {}, function (err, str) {
             console.log('ejs', err, str)
@@ -181,7 +226,7 @@ const Reacteur = {
         let db = new sqlite3.Database(pathFileSqlite)
         // suppression des paramètres non trouvés dans la commande sql
         params.forEach(key => {
-            if ( ! sql.search('$' + key) ) {
+            if (sql.indexOf(key) == -1) {
                 delete params[key]
             }
         })
@@ -200,7 +245,7 @@ const Reacteur = {
         let db = new sqlite3.Database(pathFileSqlite, sqlite3.OPEN_READONLY)
         // suppression des paramètres non trouvés dans la commande sql
         params.forEach(key => {
-            if ( ! sql.search('$' + key) ) {
+            if (sql.indexOf(key) == -1) {
                 delete params[key]
             }
         })
@@ -226,48 +271,56 @@ const Reacteur = {
     sql_update(pathFileSqlite, sql, params, callback) {
         let db = new sqlite3.Database(pathFileSqlite)
         // suppression des paramètres non trouvés dans la commande sql
+        let args = {}
         Object.keys(params).forEach(key => {
-            if ( ! sql.indexOf(key) ) {
-                delete params[key]
+            if (sql.indexOf(key) >= 0) {
+                args[key] = params[key]
             }
         })
         db.serialize(function () {
-            db.run(sql, params, function (err) {
+            db.run(sql, args, function (err) {
                 if (err) {
-                    console.error(err, 'SQL: ' + sql, 'PARAMS: ' + JSON.stringify(params))
+                    console.error(err, 'SQL: ' + sql, 'PARAMS: ' + JSON.stringify(args))
                     return callback(500, Reacteur.message(5001))
+                } else {
+                    //console.log('sql_update:', this, JSON.stringify(args))
+                    return callback(null, { lastID: this.lastID, changes: this.changes })
                 }
-                console.log('sql_update:', this, JSON.stringify(params))
-                return callback(null, { lastID: this.lastID, changes: this.changes })
             }).close()
         });
     },
     sql_select(pathFileSqlite, sql, params, callback) {
         let db = new sqlite3.Database(pathFileSqlite, sqlite3.OPEN_READONLY)
         // suppression des paramètres non trouvés dans la commande sql
+        let args = {}
         Object.keys(params).forEach(key => {
-            if ( ! sql.indexOf(key) ) {
-                delete params[key]
+            if (sql.indexOf(key) >= 0) {
+                args[key] = params[key]
             }
         })
-        db.serialize(function () {
-            db.all(sql, params, function (err, rows) {
+        db.serialize(() => {
+            //console.log('sql_select', args, sql)
+            db.all(sql, args, (err, rows) => {
+                //console.log('<<<', err, rows)
                 if (err) {
-                    console.log('sql_select', err, sql, params)
-                    return callback(500, Reacteur.message(5001))
-                }
-                // On récupère la 1ère cellule
-                let value = ''
-                rows.forEach((row) => {
-                    Object.keys(row).forEach(key => {
-                        //console.log('row', row)
-                        value = row[key]
-                        return
+                    console.log('sql_select', err, sql, args)
+                    callback(500, Reacteur.message(5001))
+                } else {
+                    // On récupère la 1ère cellule
+                    let value = ''
+                    rows.forEach((row) => {
+                        Object.keys(row).forEach(key => {
+                            //console.log('row', row)
+                            value = row[key]
+                            return
+                        })
                     })
-                })
-                //console.log('sql_select_result:', rows)
-                return callback(null, { rows: rows, value: value })
+                    //console.log('sql_select_result:', rows, value)
+                    callback(null, { rows: rows, value: value })
+                }
             }).close()
+            //console.log('end sql_select')
+
         });
     },
     api_check_session: (ctx, callback) => {
@@ -412,11 +465,13 @@ const Reacteur = {
                 if (err) {
                     callback(err, result)
                 } else {
-                    Object.keys(ctx.fields).map(key => {
-                        if (!Tools.isRubTemporary(key)) {
-                            ctx.fields[key].value = result.rows[0][key]
-                        }
-                    })
+                    if (result.rows.length > 0) {
+                        Object.keys(ctx.fields).map(key => {
+                            if (!Tools.isRubTemporary(key)) {
+                                ctx.fields[key].value = result.rows[0][key]
+                            }
+                        })
+                    }
                     callback(null, ctx)
                 }
             })
@@ -434,8 +489,8 @@ const Reacteur = {
             if (!Tools.isRubTemporary(key))
                 sql += sql.length > 0 ? ', ' + ctx.table + "." + key : ctx.table + "." + key
         })
-        sql = 'SELECT ' + sql + ' FROM ' + ctx.table
         if (sql.length > 0) {
+            sql = 'SELECT ' + sql + ' FROM ' + ctx.table
             params['$' + ctx.key_name] = ctx.id
             Reacteur.sql_select(Dico.tables[ctx.table].basename, sql, params, (err, result) => {
                 if (err) {
@@ -505,6 +560,50 @@ const Reacteur = {
             }
         })
     },
+    api_token: (ctx, callback) => {
+        let tok_id = ctx.req.params.token
+
+        let sql = "select * from ACTTOKENS where tok_id = $tok_id"
+        let params = { $tok_id: tok_id }
+        let basename = Dico.tables['acttokens'].basename
+        Reacteur.sql_select(basename, sql, params, (err, result) => {
+            if (err) {
+                callback(err, result)
+            } else {
+                if (result.rows.length > 0) { // le token est trouvé
+                    let token = result.rows[0]
+
+                    // recherche dans actusers
+                    let sql = "select * from ACTUSERS where user_pseudo = $user_pseudo"
+                    let params = { $user_pseudo: token.tok_pseudo }
+                    let basename = Dico.tables['actusers'].basename
+                    Reacteur.sql_select(basename, sql, params, (err, result) => {
+                        if (err) {
+                            callback(err, result)
+                        } else {
+                            if (result.rows.length > 0) { // le pseudo est trouvé
+                                let user = result.rows[0]
+                                // Initialisation de la session
+                                ctx.session.user_pseudo = user.user_pseudo
+                                ctx.session.user_email = user.user_email
+                                ctx.session.user_profil = user.user_profil
+                                // redirection sur l'URL liée au token
+                                ctx.session.redirect = token.tok_redirect 
+                                callback(null, ctx)
+                            } else {
+                                console.log(token.tok_pseudo, token.tok_email, Reacteur.message(9906))
+                                callback(400, Reacteur.message(9906))
+                            }
+                        }
+                    })
+
+                } else {
+                    console.log(Reacteur.message(9905))
+                    callback(400, Reacteur.message(9905))
+                }
+            }
+        })
+    },
     api_check_group_form: (ctx, callback) => {
         console.log('CHECK_GROUP_FORM...')
         // Ctrl accès au formulaire
@@ -543,8 +642,8 @@ const Reacteur = {
             callback(null, ctx)
         }
     },
-    api_check_fields: (ctx, callback) => {
-        console.log('CHECK_FIELDS...')
+    api_load_fields: (ctx, callback) => {
+        console.log('LOAD_FIELDS...')
         // Recup des valeurs transmises
         let post_data = ctx.req.body
         Object.keys(ctx.fields).forEach((key) => {
@@ -556,11 +655,59 @@ const Reacteur = {
                 ctx.fields[key].is_read_only = false
             }
         })
-
+        callback(null, ctx)
+    },
+    api_compute_fields: (ctx, callback) => {
+        console.log('COMPUTE_FIELDS...')
+        // calcul des champs sql
+        let countMax = 0
+        let params = {}
+        Object.keys(ctx.fields).forEach((key) => {
+            if (ctx.rubs[key].server_compute && ctx.rubs[key].server_compute.length > 0) {
+                countMax++
+            }
+            params['$' + key] = ctx.fields[key].value
+        })
+        let count = 0
+        let isCallback = false
+        let basename = Dico.tables[ctx.table].basename
+        if (countMax > 0) {
+            Object.keys(ctx.fields).forEach((key) => {
+                if (ctx.rubs[key].server_compute && ctx.rubs[key].server_compute.length > 0) {
+                    Reacteur.sql_select(basename, ctx.rubs[key].server_compute, params, (err, result) => {
+                        count++
+                        if (err) {
+                            if (!isCallback) {
+                                isCallback = true
+                                callback(500, Reacteur.message(5001))
+                            }
+                        } else {
+                            ctx.fields[key].value = result.value
+                            console.log('set', key, result.value)
+                            if (!isCallback) {
+                                if (count >= countMax) {
+                                    isCallback = true
+                                    callback(null, ctx)
+                                }
+                            }
+                        }
+                    })
+                }
+            })
+        } else {
+            callback(null, ctx)
+        }
+    },
+    api_compute_form: (ctx, callback) => {
+        console.log('COMPUTE_FORM...')
         // calcul du formulaire
         if (ctx.formulaire.compute) {
             ctx.formulaire.compute()
         }
+        callback(null, ctx)
+    },
+    api_check_fields: (ctx, callback) => {
+        console.log('CHECK_FIELDS...')
 
         // Ctrl intrinséque des champs
         let bret = true
@@ -599,7 +746,7 @@ const Reacteur = {
     api_post_update_fields: (ctx, callback) => {
         console.log('POST_UPDATE_FIELDS...')
         // Mise à jour post des champs
-        Reacteur.server_post_update_fields(ctx.table, ctx.formulaire, ctx.rubs, ctx, (err, result) => {
+        Reacteur.server_post_update_fields(ctx, (err, result) => {
             if (err) {
                 callback(err, result)
             } else {
@@ -607,10 +754,10 @@ const Reacteur = {
             }
         })
     },
-    api_post_update: (ctx, callback) => {
+    api_post_update_form: (ctx, callback) => {
         // Mise à jour post du formulaire
         console.log('POST_UPDATE...')
-        Reacteur.server_post_update(ctx.table, ctx.formulaire, ctx.rubs, ctx, (err, result) => {
+        Reacteur.server_post_update(ctx, (err, result) => {
             if (err) {
                 callback(err, result)
             } else {

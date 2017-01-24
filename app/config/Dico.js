@@ -25,7 +25,7 @@ import moment from 'moment'
 const ctx = {
     fields: {},
     user: {}, // id email profil
-    server: {} // host (https://server:port)
+    session: {} // host (https://server:port)
 }
 const Dico = {
     application: {
@@ -37,12 +37,14 @@ const Dico = {
     tables: {
         acttokens: {
             /*
-                CREATE TABLE "ACTTOKENS" (
-                        "tok_id" varchar(23) NOT NULL,
-                        "tok_url" varchar(255) NOT NULL,
-                        "tok_email" varchar(100) NOT NULL,
-                        primary key(tok_id)
-                );
+            CREATE TABLE "ACTTOKENS" (
+                "tok_id" varchar(23) NOT NULL,
+                "tok_url" varchar(255) NOT NULL,
+		        "tok_redirect" varchar(255) NOT NULL,
+                "tok_pseudo" varchar(100) NOT NULL,
+                "tok_email" varchar(100) NOT NULL,
+                primary key(tok_id)
+            )
             */
             basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
             key: 'tok_id',
@@ -57,14 +59,26 @@ const Dico = {
                     label_long: "Url",
                     label_short: "Url",
                     type: "text",
-                    default: () => { return ctx.server.host + "/toctoc/" + ctx.fields.tok_id.value },
+                    default: () => { return ctx.session.host + "/toctoc/" + ctx.fields.tok_id.value },
+                },
+                tok_redirect: {
+                    label_long: "Redirect to",
+                    label_short: "Redirect to",
+                    type: "text"
                 },
                 _note_new_pwd: {
                     type: 'note',
                     note: "Vous recevrez un mail pour vous inviter à créer un nouveau mot de passe"
                 },
+                tok_pseudo: {
+                    label_long: "Pseudo",
+                    label_short: "Pseudo",
+                    type: 'text',
+                    server_compute: "select user_pseudo from actusers where user_email = $tok_email"
+                },
                 tok_email: {
-                    label_long: "Mail à",
+                    label_short: "Email",
+                    label_long: "Votre email",
                     type: "mail",
                     group: '',
                     is_valide(value) {
@@ -73,9 +87,9 @@ const Dico = {
                     error: "Adresse email non valide",
                     mail: () => { // voir https://github.com/nodemailer/nodemailer
                         return {
-                            from: null, // sender address défini dans canfig
+                            from: null, // sender address défini dans config
                             to: ctx.fields.tok_email.value, // list of receivers
-                            subject: 'Hello', // Subject line
+                            subject: "J'ai perdu mon mot de passe", // Subject line
                             template: 'tok_email.ejs'
                         }
                     }
@@ -87,8 +101,10 @@ const Dico = {
                     group: 'ADMIN',
                     cols: {
                         tok_id: {},
+                        tok_pseudo: {},
                         tok_email: {},
-                        tok_url: {}
+                        tok_url: {},
+                        tok_redirect: {}
                     }
                 }
             },
@@ -100,8 +116,10 @@ const Dico = {
                     group: null,
                     owner: 'user_pseudo',
                     fields: {
-                        tok_id: { is_hidden: false },
-                        tok_url: { is_hidden: false },
+                        tok_id: { is_hidden: true },
+                        tok_url: { is_hidden: true },
+                        tok_redirect: { is_hidden: true },
+                        tok_pseudo: { is_hidden: true },
                         _note_new_pwd: {},
                         tok_email: {}
                     },
@@ -109,14 +127,13 @@ const Dico = {
                         return true
                     },
                     compute() {
+                        ctx.fields.tok_redirect.value = ctx.session.host + "/form/edit/actusers/vident/fchgpwd/" + ctx.fields.tok_pseudo.value
                         //
                     },
                     server_check: [
-                        "select 'Email inconnu' where not exists (select user_pseudo from actusers where user_email = $tok_email)"
+                        "select 'Email inconnu' where not exists (select user_pseudo from actusers where user_email = $tok_email)",
                     ],
-                    server_post_update: {
-
-                    }
+                    server_post_update: []
                 }
             }
         },
@@ -203,7 +220,7 @@ const Dico = {
                 },
 
                 _user_pwd_1: {
-                    label_long: "Créez un mot de passe",
+                    label_long: "Créez un nouveau mot de passe",
                     label_short: "",
                     type: "password",
                     required: false,
@@ -215,7 +232,7 @@ const Dico = {
                     error: "Obligatoire, d'une longueur minimum de 8 caractères, n'accepte que les caractères A-Z a-z 0-9 _-",
                 },
                 _user_pwd_2: {
-                    label_long: "Confirmer votre mot de passe",
+                    label_long: "Confirmer ce mot de passe",
                     label_short: "",
                     type: "password",
                     required: false,
@@ -246,6 +263,11 @@ const Dico = {
                     label_long: "Changer mon adresse email...",
                     type: "link",
                     action_url: '/form/edit/actusers/vident/fchgemail/:user_pseudo'
+                },
+                _link_delete_account: {
+                    label_long: "Supprimer mon compte...",
+                    type: "link",
+                    action_url: '/form/delete/actusers/vident/fdelaccount/:user_pseudo'
                 },
                 _link_adm_compte: {
                     label_long: "Administrer les comptes...",
@@ -342,8 +364,23 @@ const Dico = {
                         ctx.fields.user_pwd.value = ctx.fields._user_pwd_1.value
                         ctx.fields.user_actif.value = '1'
                         ctx.fields.user_profil.value = 'INVITE'
-                    }
+                    },
+                    server_check: [
+                        "select 'Ce pseudo existe déjà' where exists (select user_pseudo from actusers where user_pseudo = $user_pseudo)",
+                        "select 'Cet Email existe déjà' where exists (select user_email from actusers where user_email = $user_email)",
+                    ]
 
+
+                },
+                fdelaccount: {
+                    title: 'Supprimer mon compte',
+                    owner: true,
+                    return_route: '/',
+                    group: null,
+                    fields: {
+                        user_pseudo: {},
+                        user_email: {}
+                    }
                 },
                 fident: {
                     title: 'CONNEXION',
@@ -406,6 +443,7 @@ const Dico = {
                         user_email: { is_read_only: true },
                         _link_chg_pwd: {},
                         _link_chg_email: {},
+                        _link_delete_account: {},
                         _link_adm_compte: {},
                         _btn_disconnect: {}
                     }
