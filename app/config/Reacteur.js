@@ -13,7 +13,8 @@ const moment = require('moment')
 const ejs = require('ejs')
 const sprintf = require('sprintf-js').sprintf
 
-const { Dico, Tools } = require('./Dico')
+const { Dico } = require('./Dico')
+const { Tools } = require('./Tools')
 
 /**
  * Reacteur: 

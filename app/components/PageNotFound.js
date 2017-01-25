@@ -5,7 +5,9 @@ import { Link } from 'react-router';
 const {Button, Card, CardText, Content, Footer, Header, IconButton
   , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
 
-import { Data, Dico } from '../config/Dico';
+import { ctx, Dico } from '../config/Dico'
+import { Tools } from '../config/Tools'
+
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 

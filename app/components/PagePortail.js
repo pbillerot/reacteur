@@ -11,7 +11,8 @@ const {Button, Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import {ctx, Dico} from '../config/Dico.js';
+import { ctx, Dico } from '../config/Dico'
+import { Tools } from '../config/Tools'
 
 export default class PagePortail extends React.Component {
     constructor(props) {

@@ -11,7 +11,8 @@ const {Button, Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import { ctx, Dico, Tools } from '../config/Dico';
+import { ctx, Dico } from '../config/Dico'
+import { Tools } from '../config/Tools'
 
 export default class PageView extends React.Component {
     constructor(props) {
@@ -29,7 +30,9 @@ export default class PageView extends React.Component {
             }
         }
     }
-
+    handlerCtx(obj) {
+        this.setState(obj)
+    }
     setRows(table, view, rows) {
         let form_edit = Dico.tables[table].views[view].form_edit
         let rubs = Dico.tables[table].rubs

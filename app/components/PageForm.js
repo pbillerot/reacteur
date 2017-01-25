@@ -10,7 +10,8 @@ const {Card, Content, Footer, Header, IconButton
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 
-import { ctx, Dico, Tools } from '../config/Dico';
+import { ctx, Dico } from '../config/Dico'
+import { Tools } from '../config/Tools'
 
 export default class PageForm extends React.Component {
     constructor(props) {
@@ -610,8 +611,8 @@ class Field extends React.Component {
             })
     }
     handleChange(e) {
-        //console.log('Field.handleChange: ', this.props.id, e.target.value)
-        e.preventDefault();
+        console.log('Field.handleChange: ', this.props.id, e.target.value)
+        //e.preventDefault();
         this.setState({ value: e.target.value })
         this.props.onEditRow(this.props.id, e.target.value)
     }
@@ -700,6 +701,7 @@ class Field extends React.Component {
                                         checked={this.state.value == key}
                                         disabled={this.props.fields[this.props.id].is_read_only}
                                         name={this.props.id} value={key} id={key}
+                                        onChange={this.handleChange}
                                         />
                                     <label htmlFor={key} className="w3-validate">
                                         &nbsp;{this.props.rubs[this.props.id].list[key]}

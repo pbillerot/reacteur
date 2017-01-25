@@ -7,6 +7,7 @@ import validator from 'validator'
 import md5 from 'js-md5'
 import randomstring from 'randomstring'
 import moment from 'moment'
+const { Tools } = require('./Tools')
 /**
  * Le dictionnaire de l'application
  * -> les tables sql (sqlite aujourd'hui)
@@ -477,27 +478,4 @@ const Dico = {
         }
     }
 }
-/**
- * Fonctions utilisables sur le client et le serveur
- */
-const Tools = {
-    isRubTemporary(key) {
-        return /^_/g.test(key)
-    },
-    replaceParams(uri) {
-        let params = uri.split('/')
-        let str = ''
-        params.forEach(param => {
-            if (param.length > 0) {
-                if (param.startsWith(':')) {
-                    let field = param.substring(1)
-                    str = str + '/' + ctx.fields[field].value
-                } else {
-                    str = str + '/' + param
-                }
-            }
-        })
-        return str
-    }
-}
-export { ctx, Dico, Tools }
+export { ctx, Dico }

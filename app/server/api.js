@@ -1,36 +1,10 @@
-/*
-Google JSON guide
-
-Success response return data
-{
-  "data": {
-    "id": 1001,
-    "name": "Wing"
-  }
-}
-
-Error response return error
-{
-  "error": {
-    "code": 404,
-    "message": "ID not found"
-  }
-}
-{status: "rejected", result: "Fetch is not yet implemented"}
-*/
-
 const express = require('express');
 const router = express.Router();
-const sqlite3 = require('sqlite3').verbose()
-const md5 = require('js-md5')
-const fs = require('fs')
-const nodemailer = require('nodemailer')
-const randomstring = require('randomstring')
-const moment = require('moment')
-const ejs = require('ejs')
 const async = require('async')
+const fs = require('fs')
 
-const { Dico, Tools, ctx } = require('../config/Dico')
+const { Dico, ctx } = require('../config/Dico')
+const { Tools } = require('../config/Tools')
 const { Reacteur } = require('../config/Reacteur')
 
 /**
