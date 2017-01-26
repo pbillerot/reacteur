@@ -211,7 +211,7 @@ class Table extends React.Component {
                         }
                         {
                             Object.keys(cols).map(key =>
-                                <th key={key}>{rubs[key].label_short}</th>
+                                <TH key={key} id={key} cols={cols} rubs={rubs} />
                             )
                         }
                         {form_delete &&
@@ -231,6 +231,18 @@ class Table extends React.Component {
                 </tbody>
             </table>
         )
+    }
+}
+
+class TH extends React.Component {
+    render() {
+        if (this.props.cols[this.props.id].is_hidden) {
+            return null
+        } else {
+            return (
+                <th>{this.props.rubs[this.props.id].label_short}</th>
+            )
+        }
     }
 }
 
@@ -268,12 +280,9 @@ class Row extends React.Component {
                 }
                 {
                     Object.keys(row).map(key =>
-                        <td key={icol++} >
-                            <Cell row_key={row_key} col_id={key}
-                                table={table} view={view}
-                                row={row} cols={cols} rubs={rubs}
-                                />
-                        </td>
+                        <TD key={icol++} row_key={row_key} id={key}
+                            table={table} view={view}
+                            row={row} cols={cols} rubs={rubs} />
                     )
                 }
                 {form_delete &&
@@ -289,6 +298,23 @@ class Row extends React.Component {
     }
 }
 
+class TD extends React.Component {
+    render() {
+        if (this.props.cols[this.props.id].is_hidden) {
+            return null
+        } else {
+            return (
+                <td>
+                    <Cell row_key={this.props.row_key} id={this.props.id}
+                        table={this.props.table} view={this.props.view}
+                        row={this.props.row} cols={this.props.cols} rubs={this.props.rubs}
+                        />
+                </td>
+            )
+        }
+    }
+}
+
 class Cell extends React.Component {
     constructor(props) {
         super(props);
@@ -299,14 +325,14 @@ class Cell extends React.Component {
         let row = this.props.row
         let row_key = this.props.row_key
         let key_val = row[row_key]
-        let key = this.props.col_id
-        let val = row[key]
-        let rub = rubs[key]
-        let col = cols[key]
+        let id = this.props.id
+        let val = row[id]
+        let rub = rubs[id]
+        let col = cols[id]
         let table = rub.table ? rub.table : this.props.table
         let view = rub.view ? rub.view : this.props.view
         let form = rub.form ? rub.form : this.props.form_edit
-        //console.log('Cell:', table, view, key+'='+ val)
+        //console.log('Cell:', table, view, id+'='+ val)
         switch (rub.type) {
             case 'check':
                 return (

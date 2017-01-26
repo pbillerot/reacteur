@@ -30,24 +30,13 @@ const ctx = {
 }
 const Dico = {
     application: {
-        title: 'REACTEUR',
-        desc: 'REACTEUR, un simple CRUD',
+        title: 'CEOU',
+        desc: "CEOU - Enquêtes de disponibilité des invités pour organiser un événement OU et QUAND ?",
         url: 'https://github.com/pbillerot/reacteur',
-        copyright: 'REACTEUR 2016 - version 1.1.25',
+        copyright: 'build with REACTEUR 2016 - version 1.1.25',
     },
     tables: {
-        acttokens: {
-            /*
-            CREATE TABLE "ACTTOKENS" (
-                "tok_id" varchar(23) NOT NULL,
-                "tok_url" varchar(255) NOT NULL,
-		        "tok_redirect" varchar(255) NOT NULL,
-                "tok_pseudo" varchar(100) NOT NULL,
-                "tok_email" varchar(100) NOT NULL,
-                "tok_expired" datetime NOT NULL,
-                primary key(tok_id)
-            )
-            */
+        acttokens: { // voir reacteur.sql
             basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
             key: 'tok_id',
             rubs: {
@@ -85,6 +74,11 @@ const Dico = {
                     default: () => {
                         return moment().add(7, 'days').format()
                     }
+                },
+                tok_used: {
+                    label_long: "Utilisé le",
+                    label_short: "Utilisé le",
+                    type: 'text',
                 },
                 tok_email: {
                     label_short: "Email",
@@ -148,22 +142,7 @@ const Dico = {
                 }
             }
         },
-        actusers: {
-            /*
-            CREATE TABLE "ACTUSERS" (
-                    "user_email" varchar(100) NOT NULL,
-                    "user_pseudo" varchar(20) NOT NULL,
-                    "user_profil" varchar(20) NULL,
-                    "user_actif" varchar(1) NULL,
-                    "user_pwd" varchar(255) NULL,
-                    primary key(user_email)
-            )
-            CREATE INDEX index_user_pseudo ON ACTUSERS(user_pseudo);
-            INSERT INTO ACTUSERS
-                 (user_pseudo, user_email, user_profil, user_actif, user_pwd)
-                 values
-                 ('admin', 'reacteur@yopmail.com', 'ADMIN', '1', '');
-            */
+        actusers: { // voir reacteur.sql
             basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
             key: 'user_pseudo',
             rubs: {
@@ -475,7 +454,153 @@ const Dico = {
                     }
                 }
             }
-        }
+        },
+        ceou_groupes: { // voir ceou.sql
+            basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
+            key: 'groupe_id',
+            rubs: {
+                groupe_id: {
+                    label_long: "Id",
+                    label_short: "Id",
+                    type: "text",
+                    default: () => { return randomstring.generate(23) },
+                },
+                groupe_nom: {
+                    label_long: "Nom du groupe",
+                    label_short: "Groupe",
+                    type: "text",
+                },
+                groupe_info: {
+                    label_long: "Désignation du groupe",
+                    label_short: "Désignation du groupe",
+                    type: "textarea",
+                },
+            },
+            views: {
+                vall: {
+                    title: 'Groupes',
+                    group: 'ADMIN',
+                    form_add: 'fall',
+                    form_edit: 'fall',
+                    form_delete: 'fall',
+                    cols: {
+                        groupe_id: { is_hidden: true },
+                        groupe_nom: {},
+                        groupe_info: {},
+                    }
+                }
+            },
+            forms: {
+                fall: {
+                    title: "Groupes",
+                    group: 'ADMIN',
+                    fields: {
+                        groupe_id: { is_protect: true },
+                        groupe_nom: {},
+                        groupe_info: {},
+                    },
+                    is_valide() {
+                        return true
+                    },
+                }
+            }
+        },
+        ceou_users: { // voir ceou.sql
+            basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
+            key: 'user_id',
+            rubs: {
+                user_id: {
+                    label_long: "Id",
+                    label_short: "Id",
+                    type: "text",
+                    default: () => { return randomstring.generate(23) },
+                },
+                user_pseudo: {
+                    label_long: "Pseudo",
+                    label_short: "Pseudo",
+                    type: "text",
+                },
+                user_email: {
+                    label_long: "Email",
+                    label_short: "Email",
+                    type: "email",
+                },
+                user_profil: {
+                    label_long: "Profil",
+                    label_short: "Profil",
+                    type: "radio",
+                    list: {
+                        ADMIN: "ADMIN",
+                        PARTICIPANT: "PARTICIPANT"
+                    },
+                    default: "PARTICIPANT",
+
+                },
+                user_actif: {
+                    label_long: "Actif",
+                    label_short: "Actif",
+                    title: "",
+                    type: "check",
+                    is_valide(value) {
+                        return true
+                    },
+                    error: ""
+                },
+                user_info: {
+                    label_long: "Commentaires",
+                    label_short: "Commentaires",
+                    type: "textarea",
+                },
+                user_groupe_id: {
+                    label_long: "Groupe",
+                    label_short: "Groupe",
+                    jointure: "CEOU_GROUPES.groupe_id",
+                    display: null,
+                    type: "select_sql",
+                    sql: "select groupe_nom || '(' || groupe_id || ')' from ceou_groupes",
+                    list: {
+                        g1: "g1",
+                        g2: "g2"
+                    },
+                },
+            },
+            views: {
+                vall: {
+                    title: 'Participants',
+                    group: 'ADMIN',
+                    form_add: 'fall',
+                    form_edit: 'fall',
+                    form_delete: 'fall',
+                    cols: {
+                        user_id: { is_hidden: true },
+                        user_groupe_id: { },
+                        user_pseudo: {},
+                        user_email: {},
+                        user_profil: {},
+                        user_actif: {},
+                        user_info: {},
+                    }
+                }
+            },
+            forms: {
+                fall: {
+                    title: "Participants",
+                    group: 'ADMIN',
+                    fields: {
+                        user_groupe_id: { },
+                        user_id: { is_hidden: true },
+                        user_pseudo: {},
+                        user_email: {},
+                        user_profil: {},
+                        user_actif: {},
+                        user_info: {},
+                    },
+                    is_valide() {
+                        return true
+                    },
+                }
+            }
+        },
     }
 }
 export { ctx, Dico }

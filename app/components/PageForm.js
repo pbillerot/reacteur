@@ -611,7 +611,7 @@ class Field extends React.Component {
             })
     }
     handleChange(e) {
-        console.log('Field.handleChange: ', this.props.id, e.target.value)
+        //console.log('Field.handleChange: ', this.props.id, e.target.value)
         //e.preventDefault();
         this.setState({ value: e.target.value })
         this.props.onEditRow(this.props.id, e.target.value)
@@ -726,6 +726,22 @@ class Field extends React.Component {
                             )}
                         </select>
                     )
+                case 'select_sql':
+                    return (
+                        <select className="w3-select w3-border"
+                            placeholder={this.props.rubs[this.props.id].placeholder}
+                            onChange={this.handleChange}
+                            disabled={this.props.fields[this.props.id].is_read_only}
+                            value={this.state.value}
+                            id={this.props.id}
+                            >
+                            {Object.keys(this.props.rubs[this.props.id].list).map(key =>
+                                <option key={key} value={key}>
+                                    {this.props.rubs[this.props.id].list[key]}
+                                </option>
+                            )}
+                        </select>
+                    )
                 case 'mail':
                     return (
                         <input className="w3-input w3-border" type="text"
@@ -734,6 +750,18 @@ class Field extends React.Component {
                             placeholder={this.props.rubs[this.props.id].placeholder}
                             onChange={this.handleChange}
                             disabled={this.props.fields[this.props.id].is_read_only}
+                            value={this.state.value}
+                            id={this.props.id}
+                            />
+                    )
+                case 'textarea':
+                    return (
+                        <textarea className="w3-input w3-border"
+                            maxLength={this.props.rubs[this.props.id].maxlength}
+                            pattern={this.props.rubs[this.props.id].pattern}
+                            placeholder={this.props.rubs[this.props.id].placeholder}
+                            onChange={this.handleChange}
+                            disabled={this.props.fields[this.props.id].is_read_only||this.props.fields[this.props.id].is_protect}
                             value={this.state.value}
                             id={this.props.id}
                             />
@@ -751,7 +779,7 @@ class Field extends React.Component {
                             pattern={this.props.rubs[this.props.id].pattern}
                             placeholder={this.props.rubs[this.props.id].placeholder}
                             onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only}
+                            disabled={this.props.fields[this.props.id].is_read_only||this.props.fields[this.props.id].is_protect}
                             value={this.state.value}
                             id={this.props.id}
                             onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }
