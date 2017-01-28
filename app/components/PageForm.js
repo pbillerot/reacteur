@@ -3,6 +3,9 @@
 import React from 'react';
 import 'whatwg-fetch'
 import { Link, browserHistory } from 'react-router';
+
+import Select from 'react-select';
+
 // W3
 const {Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
@@ -19,11 +22,12 @@ export default class PageForm extends React.Component {
         this.state = {
             w3_sidebar_open: false,
             action: this.props.params.action, // add view edit delete ident
+            app: this.props.params.app,
             table: this.props.params.table,
             view: this.props.params.view,
             form: this.props.params.form,
             id: this.props.params.id,
-            formulaire: Dico.tables[this.props.params.table].forms[this.props.params.form],
+            formulaire: Dico.apps[this.props.params.app].tables[this.props.params.table].forms[this.props.params.form],
             MyForm: () => <Form {...this.state} />,
         }
     }
@@ -39,21 +43,22 @@ export default class PageForm extends React.Component {
         if (nextProps.params) {
             this.setState({
                 action: nextProps.params.action,
+                app: nextProps.params.app,
                 table: nextProps.params.table,
                 view: nextProps.params.view,
                 form: nextProps.params.form,
                 id: nextProps.params.id,
-                formulaire: Dico.tables[nextProps.params.table].forms[nextProps.params.form],
+                formulaire: Dico.apps[nextProps.params.app].tables[nextProps.params.table].forms[nextProps.params.form],
                 MyForm: () => <Form {...this.state} />
             })
         }
     }
     render() {
-        let title = Dico.tables[this.state.table].forms[this.state.form].title
+        let title = Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form].title
         const MyForm = this.state.MyForm;
         return (
             <div>
-                <ContainerSidebar apex={this} />
+                <ContainerSidebar apex={this} {...this.props} />
                 <ContainerContent apex={this}>
                     <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
                         <a onClick={this.handleBack}>
@@ -80,15 +85,16 @@ class Form extends React.Component {
         super(props);
         this.state = {
             action: this.props.action,
+            app: this.props.app,
             table: this.props.table,
             view: this.props.view,
             form: this.props.form,
             id: this.props.id,
-            key_name: Dico.tables[this.props.table].key,
-            rubs: Dico.tables[this.props.table].rubs,
-            cols: Dico.tables[this.props.table].views[this.props.view].cols,
-            fields: Dico.tables[this.props.table].forms[this.props.form].fields,
-            formulaire: Dico.tables[this.props.table].forms[this.props.form],
+            key_name: Dico.apps[this.props.app].tables[this.props.table].key,
+            rubs: Dico.apps[this.props.app].tables[this.props.table].rubs,
+            cols: Dico.apps[this.props.app].tables[this.props.table].views[this.props.view].cols,
+            fields: Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form].fields,
+            formulaire: Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form],
             is_form_valide: false,
             is_read_only: false,
             is_error: false,
@@ -137,12 +143,13 @@ class Form extends React.Component {
     componentWillReceiveProps(nextProps) {
         //console.log('Form.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
-            this.getData(nextProps.params.action, nextProps.params.table, nextProps.params.view
-                , nextProps.params.form, nextProps.params.id, (result) => {
+            this.getData(nextProps.params.action, nextProps.params.app, nextProps.params.table
+            , nextProps.params.view, nextProps.params.form, nextProps.params.id, 
+            (result) => {
                     //
                 })
         } else {
-            this.getData(nextProps.action, nextProps.table, nextProps.view, nextProps.form, nextProps.id,
+            this.getData(nextProps.action, nextProps.app, nextProps.table, nextProps.view, nextProps.form, nextProps.id,
                 (result) => {
                 })
         }
@@ -154,7 +161,7 @@ class Form extends React.Component {
                 response.json().then(json => {
                     //console.log('response', response, json)
                     ctx.session = json
-                    this.getData(this.state.action, this.state.table, this.state.view, this.state.form, this.state.id,
+                    this.getData(this.state.action, this.state.app, this.state.table, this.state.view, this.state.form, this.state.id,
                         (result) => {
                         })
                 })
@@ -210,18 +217,19 @@ class Form extends React.Component {
         this.setState({ fields: this.state.fields })
     }
 
-    getData(action, table, view, form, id, callback) {
-        //console.log('Form.getData: ', action, table, view, form, id)
+    getData(action, app, table, view, form, id, callback) {
+        //console.log('Form.getData: ', action, app, table, view, form, id)
         this.state.action = action
+        this.state.app = app
         this.state.table = table
         this.state.view = view
         this.state.form = form
         this.state.id = id
-        this.state.key_name = Dico.tables[table].key
-        this.state.rubs = Dico.tables[table].rubs
-        this.state.cols = Dico.tables[table].views[view].cols
-        this.state.fields = Dico.tables[table].forms[form].fields
-        this.state.formulaire = Dico.tables[table].forms[form]
+        this.state.key_name = Dico.apps[app].tables[table].key
+        this.state.rubs = Dico.apps[app].tables[table].rubs
+        this.state.cols = Dico.apps[app].tables[table].views[view].cols
+        this.state.fields = Dico.apps[app].tables[table].forms[form].fields
+        this.state.formulaire = Dico.apps[app].tables[table].forms[form]
         ctx.fields = this.state.fields
 
         Object.keys(this.state.fields).forEach(key => {
@@ -229,7 +237,8 @@ class Form extends React.Component {
             this.state.fields[key].is_valide = false
         })
         if (action == 'view' || action == 'edit' || action == 'delete') {
-            fetch('/api/form/' + table + '/' + view + '/' + form + '/' + id, { credentials: 'same-origin' })
+            fetch('/api/form/' + app + '/'  + table + '/' + view + '/' + form + '/' + id, 
+            { credentials: 'same-origin' })
                 .then(response => {
                     response.json().then(json => {
                         //console.log('response', response, json)
@@ -304,7 +313,7 @@ class Form extends React.Component {
             let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
             data += data.length > 0 ? '&' + param : param
         })
-        fetch('/api/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+        fetch('/api/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
             method: "POST",
             credentials: 'same-origin',
             headers: {
@@ -349,7 +358,7 @@ class Form extends React.Component {
                 data += data.length > 0 ? '&' + param : param
             }
         })
-        fetch('/api/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+        fetch('/api/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
             method: "DELETE",
             credentials: 'same-origin',
             headers: {
@@ -392,7 +401,7 @@ class Form extends React.Component {
             let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
             data += data.length > 0 ? '&' + param : param
         })
-        fetch('/api/' + this.state.table + '/' + this.state.view + '/' + this.state.form, {
+        fetch('/api/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form, {
             method: "PUT",
             credentials: 'same-origin',
             headers: {
@@ -592,11 +601,14 @@ class Field extends React.Component {
         super(props)
         this.state = {
             value: props.value,
-            checked: props.value == '1' ? true : false
+            checked: props.value == '1' ? true : false,
+            options: []
         }
         this.handleChange = this.handleChange.bind(this);
         this.handleCheck = this.handleCheck.bind(this);
         this.handleButton = this.handleButton.bind(this);
+        this.handleSelectChange = this.handleSelectChange.bind(this);
+        this.getOptions = this.getOptions.bind(this);
     }
     handleButton(e) {
         e.preventDefault();
@@ -616,6 +628,12 @@ class Field extends React.Component {
         this.setState({ value: e.target.value })
         this.props.onEditRow(this.props.id, e.target.value)
     }
+    handleSelectChange(option) {
+        //console.log('Field.handleChange: ', this.props.id, option)
+        //e.preventDefault();
+        this.setState({ value: option.value })
+        this.props.onEditRow(this.props.id, option.value)
+    }
     handleCheck(e) {
         //console.log('Field.handleChange: ', this.props.id, e.target.value)
         this.setState({ checked: e.target.checked })
@@ -630,6 +648,24 @@ class Field extends React.Component {
     }
     componentDidMount() {
         //console.log('Field.componentDidMount...', this.state, this.props)
+        if (this.props.rubs[this.props.id].type == 'jointure_select') {
+            fetch('/api/select/' + this.props.app + '/' + this.props.table + '/' + this.props.id + '/0', { credentials: 'same-origin' })
+                .then(response => {
+                    response.json().then(json => {
+                        //console.log(json)
+                        this.setState({ options: json })
+                    })
+                })
+        }
+    }
+    getOptions(input) {
+        return fetch('/api/select/' + this.props.app + '/' + this.props.table + '/' + this.props.id + '/' + input, { credentials: 'same-origin' })
+            .then((response) => {
+                console.log('select', response)
+                return response.json();
+            }).then((json) => {
+                return { options: json };
+            });
     }
     render() {
         //console.log('render', this.state)
@@ -667,6 +703,17 @@ class Field extends React.Component {
                             disabled={this.props.fields[this.props.id].is_read_only}
                             value={this.state.value}
                             id={this.props.id}
+                            />
+                    )
+                case 'jointure_select':
+                    // https://github.com/JedWatson/react-select
+                    return (
+                        <Select
+                            name={this.props.id}
+                            value={this.state.value}
+                            //loadOptions={this.getOptions}
+                            options={this.state.options}
+                            onChange={this.handleSelectChange}
                             />
                     )
                 case 'link':
@@ -726,22 +773,6 @@ class Field extends React.Component {
                             )}
                         </select>
                     )
-                case 'select_sql':
-                    return (
-                        <select className="w3-select w3-border"
-                            placeholder={this.props.rubs[this.props.id].placeholder}
-                            onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only}
-                            value={this.state.value}
-                            id={this.props.id}
-                            >
-                            {Object.keys(this.props.rubs[this.props.id].list).map(key =>
-                                <option key={key} value={key}>
-                                    {this.props.rubs[this.props.id].list[key]}
-                                </option>
-                            )}
-                        </select>
-                    )
                 case 'mail':
                     return (
                         <input className="w3-input w3-border" type="text"
@@ -761,7 +792,7 @@ class Field extends React.Component {
                             pattern={this.props.rubs[this.props.id].pattern}
                             placeholder={this.props.rubs[this.props.id].placeholder}
                             onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only||this.props.fields[this.props.id].is_protect}
+                            disabled={this.props.fields[this.props.id].is_read_only || this.props.fields[this.props.id].is_protect}
                             value={this.state.value}
                             id={this.props.id}
                             />
@@ -779,7 +810,7 @@ class Field extends React.Component {
                             pattern={this.props.rubs[this.props.id].pattern}
                             placeholder={this.props.rubs[this.props.id].placeholder}
                             onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only||this.props.fields[this.props.id].is_protect}
+                            disabled={this.props.fields[this.props.id].is_read_only || this.props.fields[this.props.id].is_protect}
                             value={this.state.value}
                             id={this.props.id}
                             onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }

@@ -59,6 +59,7 @@ CREATE TABLE "CEOU_CHOIX"
 	"choix_id" varchar(23) NOT NULL,
 	"choix_ok" varchar(1) NULL,
 	"choix_ko" varchar(1) NULL,
+	"choix_kk" varchar(1) NULL,
 	
 	"choix_ceou_id" varchar(23) NOT NULL,
 	"choix_user_id" varchar(23) NOT NULL,

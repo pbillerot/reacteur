@@ -31,7 +31,7 @@ export default class PageHelp extends React.Component {
         //let data = fs.readFileSync(__dirname + '/help.md', 'utf8')
         return (
             <div>
-                <ContainerSidebar apex={this} />
+                <ContainerSidebar apex={this} {...this.props} />
                 <ContainerContent apex={this} >
                     <Header title="Aide" apex={this} />
                     <RestAPI />

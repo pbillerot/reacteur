@@ -59,6 +59,7 @@ const Reacteur = {
         m4006: "",
         m4009: "postUpdate K0",
         m4010: "ctrl K0",
+        m4101: "Rubrique [%s] non trouvée",
 
         m5001: "Erreur DATABASE sur le serveur",
         m5001: "Erreur %s non trouvée",
@@ -76,7 +77,7 @@ const Reacteur = {
      * server_check
      */
     server_check: (ctx, callback) => {
-        let basename = Dico.tables[ctx.table].basename
+        let basename = Dico.apps[ctx.app].tables[ctx.table].basename
         let params = {}
         Object.keys(ctx.fields).forEach(key => {
             params['$' + key] = ctx.fields[key].value
@@ -86,7 +87,7 @@ const Reacteur = {
             let count = 0
             let isCallback = false
             ctx.formulaire.server_check.forEach(sql => {
-                let db = new sqlite3.Database(Dico.tables[ctx.table].basename, sqlite3.OPEN_READONLY)
+                let db = new sqlite3.Database(Dico.apps[ctx.app].tables[ctx.table].basename, sqlite3.OPEN_READONLY)
                 // suppression des paramètres non trouvés dans la commande sql
                 let args = {}
                 Object.keys(params).forEach(key => {
@@ -159,7 +160,7 @@ const Reacteur = {
     },
     server_post_update: (ctx, callback) => {
         // poste_update du formulaire
-        let basename = Dico.tables[ctx.table].basename
+        let basename = Dico.apps[ctx.app].tables[ctx.table].basename
         let params = {}
         Object.keys(ctx.fields).forEach(key => {
             params['$' + key] = ctx.fields[key].value
@@ -286,7 +287,7 @@ const Reacteur = {
                     console.error(err, 'SQL: ' + sql, 'PARAMS: ' + JSON.stringify(args))
                     return callback(500, Reacteur.message(5001))
                 } else {
-                    //console.log('sql_update:', this, JSON.stringify(args))
+                    console.log('sql_update:', this, JSON.stringify(args))
                     return callback(null, { lastID: this.lastID, changes: this.changes })
                 }
             }).close()
@@ -302,7 +303,7 @@ const Reacteur = {
             }
         })
         db.serialize(() => {
-            //console.log('sql_select', args, sql)
+            console.log('sql_select', args, sql)
             db.all(sql, args, (err, rows) => {
                 //console.log('<<<', err, rows)
                 if (err) {
@@ -375,7 +376,7 @@ const Reacteur = {
             sql = 'UPDATE ' + ctx.table + ' SET ' + sql
             sql += " WHERE " + ctx.key_name + " = $" + ctx.key_name
             params['$' + ctx.key_name] = ctx.id
-            Reacteur.sql_update(Dico.tables[ctx.table].basename, sql, params, (err, result) => {
+            Reacteur.sql_update(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
                 if (err) {
                     callback(err, result)
                 } else {
@@ -422,7 +423,7 @@ const Reacteur = {
             })
             sql += ')'
             sql = 'INSERT INTO ' + ctx.table + ' ' + sql
-            Reacteur.sql_update(Dico.tables[ctx.table].basename, sql, params, (err, result) => {
+            Reacteur.sql_update(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
                 if (err) {
                     callback(err, result)
                 } else {
@@ -441,7 +442,7 @@ const Reacteur = {
         let params = {}
         params['$' + ctx.key_name] = ctx.id
 
-        Reacteur.sql_update(Dico.tables[ctx.table].basename, sql, params, (err, result) => {
+        Reacteur.sql_update(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
             if (err) {
                 callback(err, result)
             } else {
@@ -464,7 +465,7 @@ const Reacteur = {
             sql = 'SELECT ' + sql + ' FROM ' + ctx.table
             sql += " WHERE " + ctx.key_name + " = $" + ctx.key_name
             params['$' + ctx.key_name] = ctx.id
-            Reacteur.sql_select(Dico.tables[ctx.table].basename, sql, params, (err, result) => {
+            Reacteur.sql_select(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
                 if (err) {
                     callback(err, result)
                 } else {
@@ -488,39 +489,64 @@ const Reacteur = {
         // construction de l'ordre sql et des paramètres
         let params = {}
         let sql = ''
+        let joins = []
+        let err = null
         Object.keys(ctx.cols).forEach((key) => {
-            if (!Tools.isRubTemporary(key))
-                sql += sql.length > 0 ? ', ' + ctx.table + "." + key : ctx.table + "." + key
-        })
-        if (sql.length > 0) {
-            sql = 'SELECT ' + sql + ' FROM ' + ctx.table
-            params['$' + ctx.key_name] = ctx.id
-            Reacteur.sql_select(Dico.tables[ctx.table].basename, sql, params, (err, result) => {
-                if (err) {
-                    callback(err, result)
-                } else {
-                    result.rows.forEach((row) => {
-                        // insertion des colonnes des rubriques temporaires
-                        let ligne = {}
-                        let key_value = ''
-                        Object.keys(ctx.cols).forEach(key => {
-                            if (key == ctx.key_name) {
-                                key_value = row[key]
-                            }
-                            if (Tools.isRubTemporary(key)) {
-                                ligne[key] = key_value
-                            } else {
-                                ligne[key] = row[key]
-                            }
-                        })
-                        ctx.tableur.push(ligne)
-                    })
-                    callback(null, ctx)
+            if (!err) {
+                if (!Tools.isRubTemporary(key)) {
+                    let table = ctx.table
+                    let col_id = key
+                    if (!ctx.rubs[key]) {
+                        err = 400
+                        return callback(400, Reacteur.message(4101, key))
+                    }
+                    if (ctx.rubs[key].type == 'jointure_select') {
+                        table = ctx.rubs[key].jointure.table
+                        col_id = ctx.rubs[key].jointure.label
+                        let index_id = ctx.rubs[key].jointure.value
+                        joins.push(" left outer join " + table
+                            + " on " + table + "." + index_id + " = " + ctx.table + "." + key)
+                    }
+                    sql += sql.length > 0
+                        ? ", " + table + "." + col_id + " as '" + key + "'"
+                        : table + "." + col_id + " as '" + key + "'"
                 }
-            })
-        } else {
-            // record not found
-            callback(null, ctx)
+            }
+        })
+        if (!err) {
+            if (sql.length > 0) {
+                sql = 'SELECT ' + sql + ' FROM ' + ctx.table
+                if (joins.length > 0) {
+                    sql += joins.join(' ')
+                }
+                params['$' + ctx.key_name] = ctx.id
+                Reacteur.sql_select(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
+                    if (err) {
+                        callback(err, result)
+                    } else {
+                        result.rows.forEach((row) => {
+                            // insertion des colonnes des rubriques temporaires
+                            let ligne = {}
+                            let key_value = ''
+                            Object.keys(ctx.cols).forEach(key => {
+                                if (key == ctx.key_name) {
+                                    key_value = row[key]
+                                }
+                                if (Tools.isRubTemporary(key)) {
+                                    ligne[key] = key_value
+                                } else {
+                                    ligne[key] = row[key]
+                                }
+                            })
+                            ctx.tableur.push(ligne)
+                        })
+                        callback(null, ctx)
+                    }
+                })
+            } else {
+                // record not found
+                callback(null, ctx)
+            }
         }
     },
     api_connect: (ctx, callback) => {
@@ -529,9 +555,9 @@ const Reacteur = {
 
         let sql = "select user_email, user_profil, user_pwd from ACTUSERS where user_pseudo = $user_pseudo"
         let params = { $user_pseudo: user_pseudo }
-        let basename = Dico.tables['actusers'].basename
+        let basename = Dico.apps[ctx.app].tables['actusers'].basename
 
-        Reacteur.sql_select(Dico.tables['actusers'].basename, sql, params, (err, result) => {
+        Reacteur.sql_select(Dico.apps[ctx.app].tables['actusers'].basename, sql, params, (err, result) => {
             if (err) {
                 callback(err, result)
             } else {
@@ -542,7 +568,7 @@ const Reacteur = {
                 if (result.rows.length > 0) {
                     result.rows.forEach((row) => {
                         pwdmd5 = row.user_pwd
-                        if ( pwdmd5.length == 0 ) {
+                        if (pwdmd5.length == 0) {
                             // 1ére connexion on accepte le nouveau password
                             pwdmd5 = md5(user_pwd)
                         }
@@ -569,7 +595,7 @@ const Reacteur = {
 
         let sql = "select * from ACTTOKENS where tok_id = $tok_id"
         let params = { $tok_id: tok_id }
-        let basename = Dico.tables['acttokens'].basename
+        let basename = Dico.apps[ctx.app].tables['acttokens'].basename
         Reacteur.sql_select(basename, sql, params, (err, result) => {
             if (err) {
                 callback(err, result)
@@ -583,7 +609,7 @@ const Reacteur = {
                         // recherche dans actusers
                         let sql = "select * from ACTUSERS where user_pseudo = $user_pseudo"
                         let params = { $user_pseudo: token.tok_pseudo }
-                        let basename = Dico.tables['actusers'].basename
+                        let basename = Dico.apps[ctx.app].tables['actusers'].basename
                         Reacteur.sql_select(basename, sql, params, (err, result) => {
                             if (err) {
                                 callback(err, result)
@@ -693,7 +719,7 @@ const Reacteur = {
         })
         let count = 0
         let isCallback = false
-        let basename = Dico.tables[ctx.table].basename
+        let basename = Dico.apps[ctx.app].tables[ctx.table].basename
         if (countMax > 0) {
             Object.keys(ctx.fields).forEach((key) => {
                 if (ctx.rubs[key].server_compute && ctx.rubs[key].server_compute.length > 0) {
@@ -787,7 +813,29 @@ const Reacteur = {
                 callback(null, ctx)
             }
         })
-    }
+    },
+    api_select: (ctx, callback) => {
+        console.log('SELECT...')
+        let table = ctx.req.params.table
+        let rub_id = ctx.req.params.rub
+        let input = ctx.req.params.input
+        let rub = Dico.apps[ctx.app].tables[table].rubs[rub_id]
+
+        let sql = "select " + rub.jointure.value + " as 'value', "
+            + rub.jointure.label + " as 'label' from " + rub.jointure.table
+        let params = {}
+        let basename = Dico.apps[ctx.app].tables[rub.jointure.table].basename
+        Reacteur.sql_select(basename, sql, params, (err, result) => {
+            if (err) {
+                callback(err, result)
+            } else {
+                ctx.result = result.rows
+                callback(null, ctx)
+            }
+        })
+    },
+
+
 
 }
 export { Reacteur }

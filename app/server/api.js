@@ -28,9 +28,19 @@ router.get('/help', function (req, res) {
 })
 
 /**
+ * Appel de l'aide
+ */
+router.get('/help/:app', function (req, res) {
+  var session = req.session
+  let path = __dirname + '/../config/' + req.params.app + '.md';
+  let file = fs.readFileSync(path, 'utf8');
+  res.send((file.toString()));
+})
+
+/**
  * Mise à jour d'un enregistreemnt
  */
-router.post('/:table/:view/:form/:id', function (req, res) {
+router.post('/:app/:table/:view/:form/:id', function (req, res) {
   //console.log(req.url)
   async.waterfall([
     function (callback) {
@@ -38,6 +48,7 @@ router.post('/:table/:view/:form/:id', function (req, res) {
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
+      ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.formulaire = Dico.tables[req.params.table].forms[req.params.form]
       ctx.rubs = Dico.tables[req.params.table].rubs
@@ -72,13 +83,14 @@ router.post('/:table/:view/:form/:id', function (req, res) {
 /**
  * Création d'un enregistreement
  */
-router.put('/:table/:view/:form', function (req, res) {
+router.put('/:app/:table/:view/:form', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('INIT_CTX...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
+      ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.formulaire = Dico.tables[req.params.table].forms[req.params.form]
       ctx.rubs = Dico.tables[req.params.table].rubs
@@ -112,13 +124,14 @@ router.put('/:table/:view/:form', function (req, res) {
 /**
  * Suppression d'un enregistrement
  */
-router.delete('/:table/:view/:form/:id', function (req, res) {
+router.delete('/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('INIT_CTX...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
+      ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.formulaire = Dico.tables[req.params.table].forms[req.params.form]
       ctx.rubs = Dico.tables[req.params.table].rubs
@@ -153,13 +166,14 @@ router.delete('/:table/:view/:form/:id', function (req, res) {
 /**
  * Lecture d'un enregistrement
  */
-router.get('/form/:table/:view/:form/:id', function (req, res) {
+router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('INIT_CTX...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
+      ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.formulaire = Dico.tables[req.params.table].forms[req.params.form]
       ctx.rubs = Dico.tables[req.params.table].rubs
@@ -186,13 +200,14 @@ router.get('/form/:table/:view/:form/:id', function (req, res) {
 /**
  * Lecture d'une vue
  */
-router.get('/view/:table/:view', function (req, res) {
+router.get('/view/:app/:table/:view', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('INIT_CTX...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
+      ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.vue = Dico.tables[req.params.table].views[req.params.view]
       ctx.cols = Dico.tables[req.params.table].views[req.params.view].cols
@@ -276,6 +291,34 @@ router.get('/toctoc/:token', function (req, res) {
     function (ctx, callback) {
       console.log('END')
       res.status(200).redirect(ctx.session.redirect)
+    }
+  ],
+    function (err, result) {
+      console.log(err, result)
+      res.status(err).json(result) // KO
+    }
+  )
+
+})
+
+router.get('/select/:app/:table/:rub/:input', function (req, res) {
+  async.waterfall([
+    function (callback) {
+      console.log('INIT_CTX...')
+      ctx.req = req
+      ctx.res = res
+      ctx.session = req.session
+      ctx.app = req.params.app
+      ctx.table = req.params.table
+      ctx.rub = req.params.rub
+      ctx.input = req.params.input
+      ctx.result = [{value: '1', label: '1111'},{value: '2', label: '2222'}]
+      callback(null, ctx)
+    },
+    Reacteur.api_select,
+    function (ctx, callback) {
+      console.log('END')
+      res.status(200).send(ctx.result)
     }
   ],
     function (err, result) {

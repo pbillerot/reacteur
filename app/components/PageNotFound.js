@@ -25,7 +25,7 @@ export default class PageNotFound extends React.Component {
   render() {
     return (
       <div>
-        <ContainerSidebar apex={this} />
+        <ContainerSidebar apex={this} {...this.props} />
         <ContainerContent>
           <Header title="Page not found" apex={this} />
 

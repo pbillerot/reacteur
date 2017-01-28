@@ -11,6 +11,7 @@ export default class ContainerSidebar extends React.Component {
     constructor(props, context) {
         super(props, context);
         this.state = {
+            app: this.props.params.app,
         }
     }
 
@@ -34,20 +35,28 @@ export default class ContainerSidebar extends React.Component {
     }
     componentWillReceiveProps(nextProps) {
         //console.log('ContainerSidebar.componentWillReceiveProps', nextProps)
+        if (nextProps.params) {
+            this.setState({app: nextProps.params.app})
+        }
     }
     render() {
         let w3_sidebar_open = this.props.apex.state.w3_sidebar_open
+        let title = this.state.app ? Dico.apps[this.state.app].title : Dico.application.title
+        //console.log("ContainerSidebar", this.state, title)
         return (
             <div>
                 <nav className="w3-sidenav w3-collapse w3-white w3-animate-left w3-card-2"
                     onClick={(e) => w3_sidebar_open ? this.props.apex.handlerCtx({ w3_sidebar_open: false }) : {}}
                     style={{ zIndex: 3, width: '250px', display: w3_sidebar_open ? 'block' : 'none' }} id="mySidenav">
-                    <Link to="/" className="w3-border-bottom w3-large w3-theme-dark">{Dico.application.title}</Link>
+                    <Link to="/" className="w3-border-bottom w3-large w3-theme-dark">{title}</Link>
+                    {this.props.location.pathname != '/' &&
+                        <Link to={'/'} className=""><i className="fa fa-home"></i> retour au portail</Link>
+                    }
                     <IdentContainer />
                     <hr />
-                    {
-                        Object.keys(Dico.tables).map(table =>
-                            <NavView table={table} key={table} apex={this.props.apex} />
+                    {this.state.app &&
+                        Object.keys(Dico.apps[this.state.app].tables).map(table =>
+                            <NavView app={this.state.app} table={table} key={table} apex={this.props.apex} />
                         )
                     }
                     <hr />
@@ -77,34 +86,35 @@ class NavView extends React.Component {
     }
     render() {
         let views = []
-        Object.keys(Dico.tables[this.props.table].views).forEach(view => {
+        Object.keys(Dico.apps[this.props.app].tables[this.props.table].views).forEach(view => {
             let is_ok = true
-            if (Dico.tables[this.props.table].views[view].is_hidden
-                && Dico.tables[this.props.table].views[view].is_hidden == true)
+            if (Dico.apps[this.props.app].tables[this.props.table].views[view].is_hidden
+                && Dico.apps[this.props.app].tables[this.props.table].views[view].is_hidden == true)
                 is_ok = false
-            if (Dico.tables[this.props.table].views[view].group
-                && Dico.tables[this.props.table].views[view].group.length > 0) {
-                if (Dico.tables[this.props.table].views[view].group != ctx.session.user_profil) {
+            if (Dico.apps[this.props.app].tables[this.props.table].views[view].group
+                && Dico.apps[this.props.app].tables[this.props.table].views[view].group.length > 0) {
+                if (Dico.apps[this.props.app].tables[this.props.table].views[view].group != ctx.session.user_profil) {
                     is_ok = false
                 }
             }
             if (is_ok)
                 views.push(view)
         })
+        //console.log("NavView2", this.props.app, this.props.table, views)
         return (
             <div>
                 {
                     views.map(view =>
-                        <Link to={Dico.tables[this.props.table].views[view].form_auto
-                            ? '/form/' + Dico.tables[this.props.table].views[view].form_auto_action
-                            + '/' + this.props.table + '/' + view + '/'
-                            + Dico.tables[this.props.table].views[view].form_auto + '/0'
-                            : '/view/' + this.props.table + '/' + view
+                        <Link to={Dico.apps[this.props.app].tables[this.props.table].views[view].form_auto
+                            ? '/form/' + Dico.apps[this.props.app].tables[this.props.table].views[view].form_auto_action
+                            + '/' + this.props.app + '/' + this.props.table + '/' + view + '/'
+                            + Dico.apps[this.props.app].tables[this.props.table].views[view].form_auto + '/0'
+                            : '/view/' + this.props.app + '/' + this.props.table + '/' + view
                         }
                             key={this.props.table + '_' + view}
                             activeClassName="w3-theme-l1"
                             >
-                            {Dico.tables[this.props.table].views[view].title}
+                            {Dico.apps[this.props.app].tables[this.props.table].views[view].title}
                         </Link>
                     )
                 }
@@ -151,18 +161,19 @@ class IdentContainer extends React.Component {
             })
     }
     render() {
+        //console.log("IdentContainer", this.props)
         return (
             <div className="">
                 {this.state.is_connected &&
                     <div>
-                        <Link className="w3-text-teal" to={'/form/view/actusers/vident/fmenuident/' + ctx.session.user_pseudo}>
+                        <Link className="w3-text-teal" to={'/form/view/reacteur/actusers/vident/fmenuident/' + ctx.session.user_pseudo}>
                             {ctx.session.user_pseudo} <i className="fa fa-caret-right"></i>
                             <br /><span className="w3-small">{ctx.session.user_email}</span>
                         </Link>
                     </div>
                 }
                 {!this.state.is_connected &&
-                    <Link to={'/form/ident/actusers/vident/fident/0'} activeClassName="w3-text-dark-grey">Se connecter...</Link>
+                    <Link to={'/form/ident/reacteur/actusers/vident/fident/0'} activeClassName="w3-text-dark-grey">Se connecter...</Link>
                 }
             </div>
         )

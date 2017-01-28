@@ -19,46 +19,51 @@ export default class PagePortail extends React.Component {
         super(props);
         this.state = {
             w3_sidebar_open: false,
-            markdown: ''
+            markdown: '',
+            app: null
         }
     }
     handlerCtx(obj) {
         this.setState(obj)
     }
     componentDidMount() {
-        //console.log('componentDidMount...')
-        fetch('/api/portail', {
-            credentials: 'same-origin'
-        })
-            .then(response => {
-                var contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    response.json().then(json => {
-                        // traitement du JSON
-                        //console.log('response: ', json)
-                        this.setState(json)
-                    })
-                } else {
-                    response.text().then(text => {
-                        // traitement du JSON
-                        //console.log('response: ', text)
-                        this.setState({ markdown: text })
-                    })
-                }
-            })
+        //console.log('componentDidMount...', this.props.location.pathname)
     }
 
     render() {
+        let apps = []
+        Object.keys(Dico.apps).map(app => {
+            if ( Dico.apps[app].group && Dico.apps[app].group.length > 0 ) {
+                if ( ctx.session.user_profil == Dico.apps[app].group ) {
+                    apps.push(app)
+                }
+            } else {
+                apps.push(app)
+            }
+        })
         return (
             <div>
-                <ContainerSidebar apex={this} />
+                <ContainerSidebar apex={this} {...this.props}/>
                 <ContainerContent apex={this}>
                     <Header title={Dico.application.desc} apex={this} />
+                    <div className="w3-row-padding">
+                        {apps.sort().map(app =>
+                            <Link className="w3-col m6 l4 w3-margin-top" to={'/app/' + app} key={app}>
+                                <div className="w3-card">
+                                    <header className="w3-container w3-theme-dark">
+                                        <h3>{Dico.apps[app].title}</h3>
+                                    </header>
 
-                    <Card style={{ width: '100%', margin: 'auto' }}>
-                        {<Markdown source={this.state.markdown} />}
-                    </Card>
+                                    <div className="w3-container">
+                                        <p>{Dico.apps[app].desc}</p>
+                                    </div>
 
+                                    <footer className="w3-container w3-dark-grey">                                        
+                                    </footer>
+                                </div>
+                            </Link>
+                        )}
+                    </div>
                     <Footer apex={this}>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
@@ -67,3 +72,6 @@ export default class PagePortail extends React.Component {
         )
     }
 }
+// <Card style={{ width: '100%', margin: 'auto' }}>
+//     {<Markdown source={this.state.markdown} />}
+// </Card>

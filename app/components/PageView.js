@@ -19,6 +19,7 @@ export default class PageView extends React.Component {
         super(props);
         this.state = {
             w3_sidebar_open: false,
+            app: this.props.params.app,
             table: this.props.params.table,
             view: this.props.params.view,
             rows: [],
@@ -33,11 +34,11 @@ export default class PageView extends React.Component {
     handlerCtx(obj) {
         this.setState(obj)
     }
-    setRows(table, view, rows) {
-        let form_edit = Dico.tables[table].views[view].form_edit
-        let rubs = Dico.tables[table].rubs
-        let cols = Dico.tables[table].views[view].cols
-        let row_key = Dico.tables[table].key
+    setRows(app, table, view, rows) {
+        let form_edit = Dico.apps[app].tables[table].views[view].form_edit
+        let rubs = Dico.apps[app].tables[table].rubs
+        let cols = Dico.apps[app].tables[table].views[view].cols
+        let row_key = Dico.apps[app].tables[table].key
 
         //console.log(JSON.stringify(rows))
         var tableur = []
@@ -59,7 +60,7 @@ export default class PageView extends React.Component {
         })
         //console.log(JSON.stringify(tableur))
         this.setState({
-            table: table, view: view,
+            app: app, table: table, view: view,
             rows_selected: [], rows: tableur
         })
     }
@@ -88,16 +89,16 @@ export default class PageView extends React.Component {
         Object.assign(rows[e.rowIdx], e.updated);
         this.setState({ rows: rows });
     }
-    getData(table, view) {
-        fetch('/api/view/' + table + '/' + view, { credentials: 'same-origin' })
+    getData(app, table, view) {
+        fetch('/api/view/' + app + '/' + table + '/' + view, { credentials: 'same-origin' })
             .then(response => {
                 //console.log('response', response)
                 response.json().then(json => {
                     //console.log('json', json)
                     if (response.ok == true) {
-                        let rubs = Dico.tables[table].rubs
-                        let cols = Dico.tables[table].views[view].cols
-                        let row_key = Dico.tables[table].key
+                        let rubs = Dico.apps[app].tables[table].rubs
+                        let cols = Dico.apps[app].tables[table].views[view].cols
+                        let row_key = Dico.apps[app].tables[table].key
 
                         //console.log(JSON.stringify(rows))
                         var tableur = []
@@ -119,7 +120,7 @@ export default class PageView extends React.Component {
                         })
                         //console.log(JSON.stringify(tableur))
                         this.setState({
-                            table: table, view: view,
+                            app: app, table: table, view: view,
                             rows_selected: [], rows: tableur,
                             is_error: false
                         })
@@ -135,28 +136,29 @@ export default class PageView extends React.Component {
     }
     componentWillReceiveProps(nextProps) {
         //console.log('componentWillReceiveProps', nextProps.params)
-        this.getData(nextProps.params.table, nextProps.params.view)
+        this.getData(nextProps.params.app, nextProps.params.table, nextProps.params.view)
     }
     componentDidMount() {
         //console.log('componentDidMount...')
-        this.getData(this.state.table, this.state.view)
+        this.getData(this.state.app, this.state.table, this.state.view)
     }
 
     render() {
+        let app = this.state.app
         let table = this.state.table
         let view = this.state.view
-        let form_add = Dico.tables[table].views[view].form_add
-        let form_view = Dico.tables[table].views[view].form_view
-        let form_edit = Dico.tables[table].views[view].form_edit
-        let form_delete = Dico.tables[table].views[view].form_delete
-        let rubs = Dico.tables[table].rubs
-        let cols = Dico.tables[table].views[view].cols
-        let row_key = Dico.tables[table].key
+        let form_add = Dico.apps[app].tables[table].views[view].form_add
+        let form_view = Dico.apps[app].tables[table].views[view].form_view
+        let form_edit = Dico.apps[app].tables[table].views[view].form_edit
+        let form_delete = Dico.apps[app].tables[table].views[view].form_delete
+        let rubs = Dico.apps[app].tables[table].rubs
+        let cols = Dico.apps[app].tables[table].views[view].cols
+        let row_key = Dico.apps[app].tables[table].key
         return (
             <div>
-                <ContainerSidebar apex={this} />
+                <ContainerSidebar apex={this} {...this.props}/>
                 <ContainerContent apex={this}>
-                    <Header title={Dico.tables[table].views[view].title} apex={this} />
+                    <Header title={Dico.apps[app].tables[table].views[view].title} apex={this} />
                     {this.state.is_error &&
                         <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
                             <p>{this.state.error.code} {this.state.error.message}</p>
@@ -164,16 +166,16 @@ export default class PageView extends React.Component {
                     }
 
                     {(!this.state.is_error && form_add) &&
-                        <Link to={'/form/add/' + table + '/' + view + '/' + form_add + '/0'}>
+                        <Link to={'/form/add/' + app + '/' + table + '/' + view + '/' + form_add + '/0'}>
                             <span className="w3-btn-floating-large w3-theme-action"
-                                title={'Ajout ' + Dico.tables[table].forms[form_add].title + '...'}
+                                title={'Ajout ' + Dico.apps[app].tables[table].forms[form_add].title + '...'}
                                 style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
                         </Link>
                     }
                     {!this.state.is_error &&
                         <Card>
                             <Table apex={this}
-                                table={table} view={view}
+                                app={app} table={table} view={view}
                                 form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                                 row_key={row_key} rubs={rubs} cols={cols} rows={this.state.rows}
                                 />
@@ -189,6 +191,7 @@ export default class PageView extends React.Component {
 }
 class Table extends React.Component {
     render() {
+        let app = this.props.app
         let table = this.props.table
         let view = this.props.view
         let form_view = this.props.form_view
@@ -223,7 +226,7 @@ class Table extends React.Component {
                     {
                         this.props.rows.map(row =>
                             <Row key={irow++} row_key={row_key}
-                                table={table} view={view}
+                                app={app} table={table} view={view}
                                 form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                                 row={row} cols={cols} rubs={rubs} />
                         )
@@ -248,6 +251,7 @@ class TH extends React.Component {
 
 class Row extends React.Component {
     render() {
+        let app = this.props.app
         let table = this.props.table
         let view = this.props.view
         let form_view = this.props.form_view
@@ -264,16 +268,16 @@ class Row extends React.Component {
             <tr>
                 {form_view &&
                     <td style={{ width: '30px' }}>
-                        <Link to={'/form/view/' + table + '/' + view + '/' + form_view + '/' + key_val}
-                            title={'Voir ' + Dico.tables[table].forms[form_view].title + '...'}>
+                        <Link to={'/form/view/' + app + '/' + table + '/' + view + '/' + form_view + '/' + key_val}
+                            title={'Voir ' + Dico.apps[app].tables[table].forms[form_view].title + '...'}>
                             <i className="material-icons w3-text-blue-grey">visibility</i>
                         </Link>
                     </td>
                 }
                 {form_edit &&
                     <td style={{ width: '30px' }}>
-                        <Link to={'/form/edit/' + table + '/' + view + '/' + form_edit + '/' + key_val}
-                            title={'Modifier ' + Dico.tables[table].forms[form_edit].title + '...'}
+                        <Link to={'/form/edit/' + app + '/' + table + '/' + view + '/' + form_edit + '/' + key_val}
+                            title={'Modifier ' + Dico.apps[app].tables[table].forms[form_edit].title + '...'}
                             ><i className="material-icons w3-text-teal">edit</i>
                         </Link>
                     </td>
@@ -287,8 +291,8 @@ class Row extends React.Component {
                 }
                 {form_delete &&
                     <td style={{ width: '30px' }}>
-                        <Link to={'/form/delete/' + table + '/' + view + '/' + form_delete + '/' + key_val}
-                            title={'Supprimer ' + Dico.tables[table].forms[form_delete].title + '...'}
+                        <Link to={'/form/delete/' + app + '/' + table + '/' + view + '/' + form_delete + '/' + key_val}
+                            title={'Supprimer ' + Dico.apps[app].tables[table].forms[form_delete].title + '...'}
                             ><i className="material-icons w3-text-orange">delete</i>
                         </Link>
                     </td>
