@@ -214,7 +214,7 @@ class Form extends React.Component {
             //console.log('checkFormulaire', key, this.state.fields[key])
         })
         //console.log('checkFormulaire', this.state.is_form_valide)
-        this.setState({ fields: this.state.fields })
+        this.setState({})
     }
 
     getData(action, app, table, view, form, id, callback) {
@@ -244,7 +244,7 @@ class Form extends React.Component {
                         //console.log('response', response, json)
                         if (response.ok == true) {
                             let row = JSON.parse(json)
-                            Object.keys(JSON.parse(json)).forEach(key => {
+                            Object.keys(row).forEach(key => {
                                 //console.log('Form.response: ', key, row[key].value)
                                 this.state.fields[key].value = row[key].value ? row[key].value : ''
                             })
