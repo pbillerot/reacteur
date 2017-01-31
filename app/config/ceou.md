@@ -6,7 +6,7 @@ PHILIPPE BILLEROT
 Description
 Je proposerai un restaurant coté Bessines
 
-[framadate](https://framadate.org/ADhFKSfCnl5cYn4F)
+[framadate](https://framadate.org/ADhFKSfCnl5cYn4Fx)
 Pour participer à ce sondage, 
 veuillez entrer votre nom, choisir toutes les valeurs qui vous conviennent 
 et valider votre choix avec le bouton en bout de ligne.
@@ -27,7 +27,7 @@ Ce message ne doit PAS être diffusé aux sondés. Il est réservé à l'auteur 
 
 Vous pouvez modifier ce sondage à l'adresse suivante :
 
-https://framadate.org/ADhFKSfCnl5cYn4F31bpqyk1/admin 
+https://framadate.org/ADhFKSfCnl5cYn4F31bpqyk1x/admin 
 
 Merci de votre confiance. 
 …
@@ -39,7 +39,7 @@ Vous pouvez maintenant transmettre ce message à toutes les personnes susceptibl
 PHILIPPE BILLEROT vient de créer un sondage intitulé : "ESSAI 3 DATES".
 Merci de bien vouloir participer au sondage à l'adresse suivante :
 
-https://framadate.org/ADhFKSfCnl5cYn4F 
+https://framadate.org/ADhFKSfCnl5cYn4Fx 
 …
 
 ## Mail vient de voter

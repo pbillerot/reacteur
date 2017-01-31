@@ -19,10 +19,10 @@ const routes = (
     <Route path="/view/:app/:table/:view" component={PageView} />
     <Route path="/form/:action/:app/:table/:view/:form/:id" component={PageForm}/>
     <Route path="/help/:app" component={PageHelp} />
+    <Route path="*" component={PageNotFound} />
     {/*
           <Route path="/about" component={PageAbout}/>
     */}
-    <Route path="*" component={PageNotFound} />
   </Route>
 );
 export default routes;

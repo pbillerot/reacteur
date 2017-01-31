@@ -84,6 +84,7 @@ app.use('/api', api);
 
 // universal routing and rendering
 app.get('*', (req, res) => {
+  //console.log(routes, req.url)
   match(
     { routes, location: req.url },
     (err, redirectLocation, renderProps) => {
@@ -104,8 +105,10 @@ app.get('*', (req, res) => {
         markup = renderToString(<RouterContext {...renderProps} />);
       } else {
         // otherwise we can render a 404 page
-        markup = renderToString(<PageNotFound />);
-        res.status(404);
+        // markup = renderToString(<PageNotFound />);
+        // res.status(404);
+        return res.status(404).send('Not found')
+
       }
 
       // render the index template with the embedded React markup
