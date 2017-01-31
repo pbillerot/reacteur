@@ -2,6 +2,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { renderToString } from 'react-dom/server'
 import 'whatwg-fetch'
 import { Link } from 'react-router'
 // W3
@@ -22,6 +23,8 @@ export default class PageView extends React.Component {
             app: this.props.params.app,
             table: this.props.params.table,
             view: this.props.params.view,
+            rubs: Dico.apps[this.props.params.app].tables[this.props.params.table].rubs,
+            cols: Dico.apps[this.props.params.app].tables[this.props.params.table].views[this.props.params.view].cols,
             rows: [],
             rows_selected: [],
             is_error: false,
@@ -30,15 +33,19 @@ export default class PageView extends React.Component {
                 message: ''
             }
         }
+        ctx.elements = {}
+        Object.keys(this.state.cols).forEach(key => {
+            ctx.elements[key] = Object.assign({}, this.state.rubs[key], this.state.cols[key])
+        })
     }
     handlerCtx(obj) {
         this.setState(obj)
     }
     setRows(app, table, view, rows) {
-        let form_edit = Dico.apps[app].tables[table].views[view].form_edit
-        let rubs = Dico.apps[app].tables[table].rubs
-        let cols = Dico.apps[app].tables[table].views[view].cols
-        let row_key = Dico.apps[app].tables[table].key
+        // let form_edit = Dico.apps[app].tables[table].views[view].form_edit
+        // let rubs = Dico.apps[app].tables[table].rubs
+        // let cols = Dico.apps[app].tables[table].views[view].cols
+        // let row_key = Dico.apps[app].tables[table].key
 
         //console.log(JSON.stringify(rows))
         var tableur = []
@@ -46,7 +53,7 @@ export default class PageView extends React.Component {
             // insertion des colonnes des rubriques temporaires
             let ligne = {}
             let key_value = ''
-            Object.keys(cols).forEach(key => {
+            Object.keys(ctx.elements).forEach(key => {
                 if (key == this.state.key_id) {
                     key_value = row[key]
                 }
@@ -60,8 +67,8 @@ export default class PageView extends React.Component {
         })
         //console.log(JSON.stringify(tableur))
         this.setState({
-            app: app, table: table, view: view,
-            rows_selected: [], rows: tableur
+            rows_selected: [], 
+            rows: tableur
         })
     }
 
@@ -71,16 +78,6 @@ export default class PageView extends React.Component {
     add(form) {
         this.props.ctx.handleState({ form: form, rows_selected: [], key_value: [], action_form: 'INSERT' })
         this.props.ctx.handleOpenForm('INSERT')
-    }
-    columns(rubs, cols) {
-        let columns = []
-        Object.keys(cols).forEach(key => {
-            columns.push({
-                name: key,
-                title: rubs[key].label_short
-            })
-        })
-        return columns
     }
     handleRowUpdated(e) {
         //merge updated row with current row and rerender by setting state
@@ -96,9 +93,13 @@ export default class PageView extends React.Component {
                 response.json().then(json => {
                     //console.log('json', json)
                     if (response.ok == true) {
-                        let rubs = Dico.apps[app].tables[table].rubs
-                        let cols = Dico.apps[app].tables[table].views[view].cols
                         let row_key = Dico.apps[app].tables[table].key
+                        ctx.elements = {}
+                        Object.keys(Dico.apps[app].tables[table].views[view].cols).forEach(key => {
+                            ctx.elements[key] = Object.assign({}, 
+                            Dico.apps[app].tables[table].rubs[key], 
+                            Dico.apps[app].tables[table].views[view].cols[key])
+                        })
 
                         //console.log(JSON.stringify(rows))
                         var tableur = []
@@ -106,7 +107,7 @@ export default class PageView extends React.Component {
                             // insertion des colonnes des rubriques temporaires
                             let ligne = {}
                             let key_value = ''
-                            Object.keys(cols).forEach(key => {
+                            Object.keys(ctx.elements).forEach(key => {
                                 if (key == this.state.key_id) {
                                     key_value = row[key]
                                 }
@@ -120,8 +121,8 @@ export default class PageView extends React.Component {
                         })
                         //console.log(JSON.stringify(tableur))
                         this.setState({
-                            app: app, table: table, view: view,
-                            rows_selected: [], rows: tableur,
+                            rows_selected: [], 
+                            rows: tableur,
                             is_error: false
                         })
                     } else {
@@ -136,11 +137,22 @@ export default class PageView extends React.Component {
     }
     componentWillReceiveProps(nextProps) {
         //console.log('componentWillReceiveProps', nextProps.params)
-        this.getData(nextProps.params.app, nextProps.params.table, nextProps.params.view)
+        if (nextProps.params) {
+            this.getData(nextProps.params.app, nextProps.params.table, nextProps.params.view)
+        } else {
+            this.getData(nextProps.app, nextProps.table, nextProps.view)
+        }
     }
     componentDidMount() {
         //console.log('componentDidMount...')
-        this.getData(this.state.app, this.state.table, this.state.view)
+        fetch('/api/session', { credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    //console.log('response', response, json)
+                    ctx.session = json
+                    this.getData(this.state.app, this.state.table, this.state.view)
+               })
+            })
     }
 
     render() {
@@ -151,8 +163,6 @@ export default class PageView extends React.Component {
         let form_view = Dico.apps[app].tables[table].views[view].form_view
         let form_edit = Dico.apps[app].tables[table].views[view].form_edit
         let form_delete = Dico.apps[app].tables[table].views[view].form_delete
-        let rubs = Dico.apps[app].tables[table].rubs
-        let cols = Dico.apps[app].tables[table].views[view].cols
         let row_key = Dico.apps[app].tables[table].key
         return (
             <div>
@@ -177,7 +187,7 @@ export default class PageView extends React.Component {
                             <Table apex={this}
                                 app={app} table={table} view={view}
                                 form_view={form_view} form_edit={form_edit} form_delete={form_delete}
-                                row_key={row_key} rubs={rubs} cols={cols} rows={this.state.rows}
+                                row_key={row_key} rows={this.state.rows}
                                 />
                         </Card>
                     }
@@ -197,8 +207,6 @@ class Table extends React.Component {
         let form_view = this.props.form_view
         let form_edit = this.props.form_edit
         let form_delete = this.props.form_delete
-        let cols = this.props.cols
-        let rubs = this.props.rubs
         let row_key = this.props.row_key
         let irow = 0
         //console.log('Table: ', this.props.rows)
@@ -213,8 +221,8 @@ class Table extends React.Component {
                             <th>&nbsp;</th>
                         }
                         {
-                            Object.keys(cols).map(key =>
-                                <TH key={key} id={key} cols={cols} rubs={rubs} />
+                            Object.keys(ctx.elements).map(key =>
+                                <TH key={key} id={key}/>
                             )
                         }
                         {form_delete &&
@@ -228,7 +236,7 @@ class Table extends React.Component {
                             <Row key={irow++} row_key={row_key}
                                 app={app} table={table} view={view}
                                 form_view={form_view} form_edit={form_edit} form_delete={form_delete}
-                                row={row} cols={cols} rubs={rubs} />
+                                row={row} />
                         )
                     }
                 </tbody>
@@ -239,11 +247,11 @@ class Table extends React.Component {
 
 class TH extends React.Component {
     render() {
-        if (this.props.cols[this.props.id].is_hidden) {
+        if (ctx.elements[this.props.id].is_hidden) {
             return null
         } else {
             return (
-                <th>{this.props.rubs[this.props.id].label_short}</th>
+                <th>{ctx.elements[this.props.id].label_short}</th>
             )
         }
     }
@@ -257,8 +265,6 @@ class Row extends React.Component {
         let form_view = this.props.form_view
         let form_edit = this.props.form_edit
         let form_delete = this.props.form_delete
-        let cols = this.props.cols
-        let rubs = this.props.rubs
         let row = this.props.row
         let row_key = this.props.row_key
         let key_val = row[row_key]
@@ -286,7 +292,7 @@ class Row extends React.Component {
                     Object.keys(row).map(key =>
                         <TD key={icol++} row_key={row_key} id={key}
                             table={table} view={view}
-                            row={row} cols={cols} rubs={rubs} />
+                            row={row} />
                     )
                 }
                 {form_delete &&
@@ -304,14 +310,14 @@ class Row extends React.Component {
 
 class TD extends React.Component {
     render() {
-        if (this.props.cols[this.props.id].is_hidden) {
+        if (ctx.elements[this.props.id].is_hidden) {
             return null
         } else {
             return (
                 <td>
                     <Cell row_key={this.props.row_key} id={this.props.id}
                         table={this.props.table} view={this.props.view}
-                        row={this.props.row} cols={this.props.cols} rubs={this.props.rubs}
+                        row={this.props.row}
                         />
                 </td>
             )
@@ -324,20 +330,17 @@ class Cell extends React.Component {
         super(props);
     }
     render() {
-        let cols = this.props.cols
-        let rubs = this.props.rubs
         let row = this.props.row
         let row_key = this.props.row_key
         let key_val = row[row_key]
         let id = this.props.id
         let val = row[id]
-        let rub = rubs[id]
-        let col = cols[id]
-        let table = rub.table ? rub.table : this.props.table
-        let view = rub.view ? rub.view : this.props.view
-        let form = rub.form ? rub.form : this.props.form_edit
+        let element = ctx.elements[id]
+        let table = element.table ? element.table : this.props.table
+        let view = element.view ? element.view : this.props.view
+        let form = element.form ? element.form : this.props.form_edit
         //console.log('Cell:', table, view, id+'='+ val)
-        switch (rub.type) {
+        switch (element.type) {
             case 'check':
                 return (
                     <input className="w3-check" type="checkbox" disabled
@@ -346,9 +349,15 @@ class Cell extends React.Component {
                 )
             case 'radio':
                 return (
-                    <span>{rub.list[val]}</span>
+                    <span>{element.list[val]}</span>
                 )
             case 'text':
+                //let element = React.createElement('<span>A</span>', {})
+                if (element.display) {
+                    return (<span dangerouslySetInnerHTML={{__html: element.display(val)}}></span>)
+                } else {
+                    return <span>{val}</span> 
+                }
             default:
                 return (
                     <span>{val}</span>

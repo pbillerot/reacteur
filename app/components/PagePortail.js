@@ -19,8 +19,6 @@ export default class PagePortail extends React.Component {
         super(props);
         this.state = {
             w3_sidebar_open: false,
-            markdown: '',
-            app: null
         }
     }
     handlerCtx(obj) {
@@ -28,8 +26,18 @@ export default class PagePortail extends React.Component {
     }
     componentDidMount() {
         //console.log('componentDidMount...', this.props.location.pathname)
-    }
+        fetch('/api/session', { credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    ctx.session = json
+                    this.setState({})
+                })
+            })
 
+    }
+    componentWillReceiveProps(nextProps) {
+        //console.log('Form.componentWillReceiveProps', nextProps)
+    }
     render() {
         let apps = []
         Object.keys(Dico.apps).map(app => {
@@ -41,6 +49,7 @@ export default class PagePortail extends React.Component {
                 apps.push(app)
             }
         })
+        //console.log("PagePortail", apps)
         return (
             <div>
                 <ContainerSidebar apex={this} {...this.props}/>
@@ -48,8 +57,8 @@ export default class PagePortail extends React.Component {
                     <Header title={Dico.application.desc} apex={this} />
                     <div className="w3-row-padding">
                         {apps.sort().map(app =>
-                            <Link className="w3-col m6 l4 w3-margin-top" to={'/app/' + app} key={app}>
-                                <div className="w3-card">
+                            <Link style={{textDecoration: 'none'}} className="w3-col m6 l4 w3-margin-top" to={'/app/' + app} key={app}>
+                                <div className="w3-card" >
                                     <header className="w3-container w3-theme-dark">
                                         <h3>{Dico.apps[app].title}</h3>
                                     </header>

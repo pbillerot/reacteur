@@ -1,6 +1,8 @@
 # TODO
 
 
-MEP 1.2.28
-npm install react-select --save
 
+
+## MISE EN PRODUCTION
+npm install react-checkbox-group --save
+table CEOU_CHOIX

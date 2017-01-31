@@ -28,25 +28,28 @@ export default class PageApp extends React.Component {
     }
     componentDidMount() {
         //console.log('componentDidMount...', this.props.location.pathname)
-
-        fetch('/api/help/' + this.state.app, {
-            credentials: 'same-origin'
-        })
+        fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
-                var contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    response.json().then(json => {
-                        // traitement du JSON
-                        //console.log('response: ', json)
-                        this.setState(json)
+                response.json().then(json => {
+                    ctx.session = json
+                    fetch('/api/help/' + this.state.app, {credentials: 'same-origin'})
+                    .then(response => {
+                        var contentType = response.headers.get("content-type");
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            response.json().then(json => {
+                                // traitement du JSON
+                                //console.log('response: ', json)
+                                this.setState(json)
+                            })
+                        } else {
+                            response.text().then(text => {
+                                // traitement du JSON
+                                //console.log('response: ', text)
+                                this.setState({ markdown: text })
+                            })
+                        }
                     })
-                } else {
-                    response.text().then(text => {
-                        // traitement du JSON
-                        //console.log('response: ', text)
-                        this.setState({ markdown: text })
-                    })
-                }
+                })
             })
 
     }

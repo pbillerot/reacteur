@@ -79,8 +79,8 @@ const Reacteur = {
     server_check: (ctx, callback) => {
         let basename = Dico.apps[ctx.app].tables[ctx.table].basename
         let params = {}
-        Object.keys(ctx.fields).forEach(key => {
-            params['$' + key] = ctx.fields[key].value
+        Object.keys(ctx.elements).forEach(key => {
+            params['$' + key] = ctx.elements[key].value
         })
         if (ctx.formulaire.server_check) {
             let countMax = ctx.formulaire.server_check.length
@@ -138,12 +138,12 @@ const Reacteur = {
         // post_update des champs
         let error = null
         let resultat = null
-        Object.keys(ctx.fields).forEach(field => {
+        Object.keys(ctx.elements).forEach(key => {
             //console.log(field)
             if (error) return
-            switch (ctx.rubs[field].type) {
+            switch (ctx.elements[key].type) {
                 case 'mail':
-                    Reacteur.sendMail(field, ctx.rubs, ctx, (err, result) => {
+                    Reacteur.sendMail(key, ctx, (err, result) => {
                         error = err
                         resultat = result
                     })
@@ -162,8 +162,8 @@ const Reacteur = {
         // poste_update du formulaire
         let basename = Dico.apps[ctx.app].tables[ctx.table].basename
         let params = {}
-        Object.keys(ctx.fields).forEach(key => {
-            params['$' + key] = ctx.fields[key].value
+        Object.keys(ctx.elements).forEach(key => {
+            params['$' + key] = ctx.elements[key].value
         })
         if (ctx.formulaire.server_post_update) {
             let countMax = ctx.formulaire.server_post_update.length
@@ -194,33 +194,34 @@ const Reacteur = {
      * Envoi de mails
      * https://github.com/nodemailer/nodemailer
      */
-    sendMail(key, rubs, ctx, callback) {
-        //console.log('sendMail', key, rubs, Data.fields)
+    sendMail(key, ctx, callback) {
+        //console.log('sendMail', key, ctx)
         let transport = nodemailer.createTransport(Reacteur.config.smtpConfig)
-        let mail = rubs[key].mail()
+        let mail = ctx.elements[key].mail()
 
         if (!mail.from)
             mail.from = Reacteur.config.from
 
         let fileMail = mail.template
         let data = {}
-        Object.keys(ctx.fields).forEach(key => {
-            data[key] = ctx.fields[key].value
+        Object.keys(ctx.elements).forEach(key => {
+            data[key] = ctx.elements[key].value
         })
         let md = ejs.renderFile(__dirname + '/../config/' + fileMail, data, {}, function (err, str) {
-            console.log('ejs', err, str)
+            //console.log('ejs', err, str)
             if (err) {
-                return callback(Reacteur.message(5001))
+                callback(Reacteur.message(5001))
+            } else {
+                mail.html = str
+                //console.log('mail',mail)
+                transport.sendMail(mail).then(function (info) {
+                    console.log(info);
+                    callback(null, { code: 2009, message: info.response })
+                }).catch(function (err) {
+                    console.log(err, mail);
+                    callback(500, { code: 5001, message: err.response })
+                });
             }
-            mail.html = str
-            transport.sendMail(mail).then(function (info) {
-                console.log(info);
-                return callback(null, { code: 2009, message: info.response })
-            }).catch(function (err) {
-                console.log(err);
-                return callback(500, { code: 5001, message: err.response })
-            });
-
         });
     },
     /**
@@ -352,22 +353,22 @@ const Reacteur = {
     api_update_record: (ctx, callback) => {
         console.log('UPDATE_RECORD...')
         // Transformation des values en record
-        Object.keys(ctx.fields).forEach((key) => {
-            if (!Tools.isRubTemporary(key) && ctx.fields[key].is_read_only == false) {
-                ctx.fields[key].record_value = ctx.fields[key].value // par défaut record_value = value
-                if (ctx.rubs[key].srv_record)
-                    ctx.fields[key].record_value = ctx.rubs[key].srv_record(ctx.fields[key].value)
+        Object.keys(ctx.elements).forEach((key) => {
+            if (!Tools.isRubTemporary(key) && ctx.elements[key].is_read_only == false) {
+                ctx.elements[key].record_value = ctx.elements[key].value // par défaut record_value = value
+                if (ctx.elements[key].srv_record)
+                    ctx.elements[key].record_value = ctx.elements[key].srv_record(ctx.elements[key].value)
             }
         })
 
         // construction de l'ordre sql et des paramètres
         let sql = ""
         let params = {}
-        Object.keys(ctx.fields).forEach((key) => {
-            if (!Tools.isRubTemporary(key) && ctx.fields[key].is_read_only == false) {
+        Object.keys(ctx.elements).forEach((key) => {
+            if (!Tools.isRubTemporary(key) && ctx.elements[key].is_read_only == false) {
                 sql += sql.length > 0 ? ", " : ""
                 sql += key + " = $" + key
-                params['$' + key] = ctx.fields[key].record_value
+                params['$' + key] = ctx.elements[key].record_value
             }
         })
 
@@ -390,19 +391,19 @@ const Reacteur = {
     api_insert_record: (ctx, callback) => {
         console.log('INSERT_RECORD...')
         // Transformation des values en record
-        Object.keys(ctx.fields).forEach((key) => {
-            if (!Tools.isRubTemporary(key) && ctx.fields[key].is_read_only == false) {
-                ctx.fields[key].record_value = ctx.fields[key].value // par défaut record_value = value
-                if (ctx.rubs[key].srv_record)
-                    ctx.fields[key].record_value = ctx.rubs[key].srv_record(ctx.fields[key].value)
+        Object.keys(ctx.elements).forEach((key) => {
+            if (!Tools.isRubTemporary(key) && ctx.elements[key].is_read_only == false) {
+                ctx.elements[key].record_value = ctx.elements[key].value // par défaut record_value = value
+                if (ctx.elements[key].srv_record)
+                    ctx.elements[key].record_value = ctx.elements[key].srv_record(ctx.elements[key].value)
             }
         })
 
         let params = {}
         let sql = '('
         let bstart = true;
-        Object.keys(ctx.fields).forEach((key) => {
-            if (!Tools.isRubTemporary(key) && ctx.fields[key].is_read_only == false) {
+        Object.keys(ctx.elements).forEach((key) => {
+            if (!Tools.isRubTemporary(key) && ctx.elements[key].is_read_only == false) {
                 sql += !bstart ? ", " : ""
                 sql += key
                 bstart = false;
@@ -413,12 +414,12 @@ const Reacteur = {
         if (sql.length > 2) {
             sql += ') VALUES ('
             bstart = true;
-            Object.keys(ctx.fields).forEach((key) => {
-                if (!Tools.isRubTemporary(key) && ctx.fields[key].is_read_only == false) {
+            Object.keys(ctx.elements).forEach((key) => {
+                if (!Tools.isRubTemporary(key) && ctx.elements[key].is_read_only == false) {
                     sql += !bstart ? ", " : ""
                     sql += "$" + key
                     bstart = false;
-                    params['$' + key] = ctx.fields[key].record_value
+                    params['$' + key] = ctx.elements[key].record_value
                 }
             })
             sql += ')'
@@ -455,11 +456,11 @@ const Reacteur = {
         // construction de l'ordre sql et des paramètres
         let params = {}
         let sql = ''
-        Object.keys(ctx.fields).forEach((key) => {
+        Object.keys(ctx.elements).forEach((key) => {
             if (!Tools.isRubTemporary(key)) {
                 sql += sql.length > 0 ? ', ' + ctx.table + "." + key : ctx.table + "." + key
             }
-            ctx.fields[key].value = ''
+            ctx.elements[key].value = ''
         })
         if (sql.length > 0) {
             sql = 'SELECT ' + sql + ' FROM ' + ctx.table
@@ -470,11 +471,13 @@ const Reacteur = {
                     callback(err, result)
                 } else {
                     if (result.rows.length > 0) {
-                        Object.keys(ctx.fields).map(key => {
-                            if (!Tools.isRubTemporary(key)) {
-                                ctx.fields[key].value = result.rows[0][key]
-                            }
-                        })
+                        //console.log("rows", result.rows)
+                        ctx.row = result.rows[0]
+                        // Object.keys(ctx.elements).map(key => {
+                        //     if (!Tools.isRubTemporary(key)) {
+                        //         ctx.elements[key].value = result.rows[0][key]
+                        //     }
+                        // })
                     }
                     callback(null, ctx)
                 }
@@ -496,14 +499,14 @@ const Reacteur = {
                 if (!Tools.isRubTemporary(key)) {
                     let table = ctx.table
                     let col_id = key
-                    if (!ctx.rubs[key]) {
+                    if (!ctx.elements[key]) {
                         err = 400
                         return callback(400, Reacteur.message(4101, key))
                     }
-                    if (ctx.rubs[key].type == 'jointure_select') {
-                        table = ctx.rubs[key].jointure.table
-                        col_id = ctx.rubs[key].jointure.label
-                        let index_id = ctx.rubs[key].jointure.value
+                    if (ctx.elements[key].type == 'jointure_select') {
+                        table = ctx.elements[key].jointure.table
+                        col_id = ctx.elements[key].jointure.label
+                        let index_id = ctx.elements[key].jointure.value
                         joins.push(" left outer join " + table
                             + " on " + table + "." + index_id + " = " + ctx.table + "." + key)
                     }
@@ -518,6 +521,9 @@ const Reacteur = {
                 sql = 'SELECT ' + sql + ' FROM ' + ctx.table
                 if (joins.length > 0) {
                     sql += joins.join(' ')
+                }
+                if (ctx.vue.order_by) {
+                    sql += " order by " + ctx.vue.order_by
                 }
                 params['$' + ctx.key_name] = ctx.id
                 Reacteur.sql_select(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
@@ -555,9 +561,9 @@ const Reacteur = {
 
         let sql = "select user_email, user_profil, user_pwd from ACTUSERS where user_pseudo = $user_pseudo"
         let params = { $user_pseudo: user_pseudo }
-        let basename = Dico.apps[ctx.app].tables['actusers'].basename
+        let basename = Dico.apps['reacteur'].tables['actusers'].basename
 
-        Reacteur.sql_select(Dico.apps[ctx.app].tables['actusers'].basename, sql, params, (err, result) => {
+        Reacteur.sql_select(basename, sql, params, (err, result) => {
             if (err) {
                 callback(err, result)
             } else {
@@ -595,7 +601,7 @@ const Reacteur = {
 
         let sql = "select * from ACTTOKENS where tok_id = $tok_id"
         let params = { $tok_id: tok_id }
-        let basename = Dico.apps[ctx.app].tables['acttokens'].basename
+        let basename = Dico.apps['reacteur'].tables['acttokens'].basename
         Reacteur.sql_select(basename, sql, params, (err, result) => {
             if (err) {
                 callback(err, result)
@@ -609,7 +615,7 @@ const Reacteur = {
                         // recherche dans actusers
                         let sql = "select * from ACTUSERS where user_pseudo = $user_pseudo"
                         let params = { $user_pseudo: token.tok_pseudo }
-                        let basename = Dico.apps[ctx.app].tables['actusers'].basename
+                        let basename = Dico.apps['reacteur'].tables['actusers'].basename
                         Reacteur.sql_select(basename, sql, params, (err, result) => {
                             if (err) {
                                 callback(err, result)
@@ -695,13 +701,13 @@ const Reacteur = {
         console.log('LOAD_FIELDS...')
         // Recup des valeurs transmises
         let post_data = ctx.req.body
-        Object.keys(ctx.fields).forEach((key) => {
-            ctx.fields[key].value = ''
+        Object.keys(ctx.elements).forEach((key) => {
+            ctx.elements[key].value = ''
             if (post_data[key]) {
-                ctx.fields[key].value = post_data[key]
+                ctx.elements[key].value = post_data[key]
             }
-            if (!ctx.fields[key].is_read_only) {
-                ctx.fields[key].is_read_only = false
+            if (!ctx.elements[key].is_read_only) {
+                ctx.elements[key].is_read_only = false
             }
         })
         callback(null, ctx)
@@ -711,19 +717,19 @@ const Reacteur = {
         // calcul des champs sql
         let countMax = 0
         let params = {}
-        Object.keys(ctx.fields).forEach((key) => {
-            if (ctx.rubs[key].server_compute && ctx.rubs[key].server_compute.length > 0) {
+        Object.keys(ctx.elements).forEach((key) => {
+            if (ctx.elements[key].server_compute && ctx.elements[key].server_compute.length > 0) {
                 countMax++
             }
-            params['$' + key] = ctx.fields[key].value
+            params['$' + key] = ctx.elements[key].value
         })
         let count = 0
         let isCallback = false
         let basename = Dico.apps[ctx.app].tables[ctx.table].basename
         if (countMax > 0) {
-            Object.keys(ctx.fields).forEach((key) => {
-                if (ctx.rubs[key].server_compute && ctx.rubs[key].server_compute.length > 0) {
-                    Reacteur.sql_select(basename, ctx.rubs[key].server_compute, params, (err, result) => {
+            Object.keys(ctx.elements).forEach((key) => {
+                if (ctx.elements[key].server_compute && ctx.elements[key].server_compute.length > 0) {
+                    Reacteur.sql_select(basename, ctx.elements[key].server_compute, params, (err, result) => {
                         count++
                         if (err) {
                             if (!isCallback) {
@@ -731,7 +737,7 @@ const Reacteur = {
                                 callback(500, Reacteur.message(5001))
                             }
                         } else {
-                            ctx.fields[key].value = result.value
+                            ctx.elements[key].value = result.value
                             console.log('set', key, result.value)
                             if (!isCallback) {
                                 if (count >= countMax) {
@@ -761,11 +767,11 @@ const Reacteur = {
         // Ctrl intrinséque des champs
         let bret = true
         let errors = []
-        Object.keys(ctx.fields).forEach((key) => {
-            if (ctx.rubs[key].is_valide) {
-                if (!ctx.rubs[key].is_valide(ctx.fields[key].value)) {
+        Object.keys(ctx.elements).forEach((key) => {
+            if (ctx.elements[key].is_valide) {
+                if (!ctx.elements[key].is_valide(ctx.elements[key].value)) {
                     bret = false
-                    errors.push(ctx.rubs[key].error)
+                    errors.push(ctx.elements[key].error)
                 }
             }
         })

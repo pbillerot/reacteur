@@ -44,17 +44,21 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
   //console.log(req.url)
   async.waterfall([
     function (callback) {
-      console.log('INIT_CTX...')
+      console.log('FORM_UPDATE...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
-      ctx.formulaire = Dico.tables[req.params.table].forms[req.params.form]
-      ctx.rubs = Dico.tables[req.params.table].rubs
-      ctx.fields = Dico.tables[req.params.table].forms[req.params.form].fields
-      ctx.key_name = Dico.tables[req.params.table].key
+      ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
+      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
+      ctx.fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].fields
+      ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
+      ctx.elements = {}
+      Object.keys(ctx.fields).forEach(key => {
+          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.fields[key])
+      })
       callback(null, ctx)
     },
     Reacteur.api_check_session,
@@ -86,17 +90,21 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
 router.put('/:app/:table/:view/:form', function (req, res) {
   async.waterfall([
     function (callback) {
-      console.log('INIT_CTX...')
+      console.log('FORM_ADD...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
-      ctx.formulaire = Dico.tables[req.params.table].forms[req.params.form]
-      ctx.rubs = Dico.tables[req.params.table].rubs
-      ctx.fields = Dico.tables[req.params.table].forms[req.params.form].fields
-      ctx.key_name = Dico.tables[req.params.table].key
+      ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
+      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
+      ctx.fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].fields
+      ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
+      ctx.elements = {}
+      Object.keys(ctx.fields).forEach(key => {
+          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.fields[key])
+      })
       callback(null, ctx)
     },
     Reacteur.api_check_session_forgetpwd,
@@ -127,17 +135,21 @@ router.put('/:app/:table/:view/:form', function (req, res) {
 router.delete('/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
-      console.log('INIT_CTX...')
+      console.log('FORM_DELETE...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
-      ctx.formulaire = Dico.tables[req.params.table].forms[req.params.form]
-      ctx.rubs = Dico.tables[req.params.table].rubs
-      ctx.fields = Dico.tables[req.params.table].forms[req.params.form].fields
-      ctx.key_name = Dico.tables[req.params.table].key
+      ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
+      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
+      ctx.fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].fields
+      ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
+      ctx.elements = {}
+      Object.keys(ctx.fields).forEach(key => {
+          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.fields[key])
+      })
       callback(null, ctx)
     },
     Reacteur.api_check_session,
@@ -169,17 +181,21 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
 router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
-      console.log('INIT_CTX...')
+      console.log('FORM_READ...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
-      ctx.formulaire = Dico.tables[req.params.table].forms[req.params.form]
-      ctx.rubs = Dico.tables[req.params.table].rubs
-      ctx.fields = Dico.tables[req.params.table].forms[req.params.form].fields
-      ctx.key_name = Dico.tables[req.params.table].key
+      ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
+      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
+      ctx.fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].fields
+      ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
+      ctx.elements = {}
+      Object.keys(ctx.fields).forEach(key => {
+          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.fields[key])
+      })
       callback(null, ctx)
     },
     Reacteur.api_check_session,
@@ -187,7 +203,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
     Reacteur.api_read_record,
     function (ctx, callback) {
       console.log('END')
-      res.status(200).json(JSON.stringify(ctx.fields))
+      res.status(200).json(JSON.stringify(ctx.row))
     }
   ],
     function (err, result) {
@@ -203,17 +219,22 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
 router.get('/view/:app/:table/:view', function (req, res) {
   async.waterfall([
     function (callback) {
-      console.log('INIT_CTX...')
+      console.log('VIEW...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
-      ctx.vue = Dico.tables[req.params.table].views[req.params.view]
-      ctx.cols = Dico.tables[req.params.table].views[req.params.view].cols
-      ctx.rubs = Dico.tables[req.params.table].rubs
+      ctx.vue = Dico.apps[req.params.app].tables[req.params.table].views[req.params.view]
+      ctx.cols = Dico.apps[req.params.app].tables[req.params.table].views[req.params.view].cols
+      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
       ctx.tableur = []
-      ctx.key_name = Dico.tables[req.params.table].key
+      ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
+      ctx.elements = {}
+      Object.keys(ctx.cols).forEach(key => {
+          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.cols[key])
+      })
+
       callback(null, ctx)
     },
     Reacteur.api_check_session,
@@ -237,7 +258,7 @@ router.get('/view/:app/:table/:view', function (req, res) {
 router.put('/cnx/ident', function (req, res) {
   async.waterfall([
     function (callback) {
-      console.log('INIT_CTX...')
+      console.log('IDENT...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
@@ -278,10 +299,9 @@ router.get('/session', function (req, res) {
  * et redirection sur l'url trouvée
  */
 router.get('/toctoc/:token', function (req, res) {
-  console.log(req.url)
   async.waterfall([
     function (callback) {
-      console.log('INIT_CTX...')
+      console.log('TOCTOC...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session
@@ -304,7 +324,7 @@ router.get('/toctoc/:token', function (req, res) {
 router.get('/select/:app/:table/:rub/:input', function (req, res) {
   async.waterfall([
     function (callback) {
-      console.log('INIT_CTX...')
+      console.log('SELECT...')
       ctx.req = req
       ctx.res = res
       ctx.session = req.session

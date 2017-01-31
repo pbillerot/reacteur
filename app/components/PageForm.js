@@ -1,10 +1,12 @@
 'use strict';
 
 import React from 'react';
-import 'whatwg-fetch'
+import 'whatwg-fetch';
 import { Link, browserHistory } from 'react-router';
 
 import Select from 'react-select';
+import {Checkbox, CheckboxGroup} from 'react-checkbox-group';
+
 
 // W3
 const {Card, Content, Footer, Header, IconButton
@@ -92,7 +94,6 @@ class Form extends React.Component {
             id: this.props.id,
             key_name: Dico.apps[this.props.app].tables[this.props.table].key,
             rubs: Dico.apps[this.props.app].tables[this.props.table].rubs,
-            cols: Dico.apps[this.props.app].tables[this.props.table].views[this.props.view].cols,
             fields: Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form].fields,
             formulaire: Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form],
             is_form_valide: false,
@@ -103,7 +104,11 @@ class Form extends React.Component {
                 message: ''
             }
         }
-        ctx.fields = this.state.fields
+        ctx.element = {}
+        Object.keys(this.state.fields).forEach(key => {
+            ctx.elements[key] = Object.assign({}, this.state.rubs[key], this.state.fields[key])
+        })
+
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.checkFormulaire = this.checkFormulaire.bind(this);
@@ -111,7 +116,7 @@ class Form extends React.Component {
 
     onEditRow(key, value) {
         //console.log('onEditRow', key, value)
-        this.state.fields[key].value = value
+        ctx.elements[key].value = value
         this.checkFormulaire()
     }
 
@@ -155,7 +160,7 @@ class Form extends React.Component {
         }
     }
     componentDidMount() {
-        //console.log('Form.componentDidMount...', this.state)
+        //console.log('Form.componentDidMount...')
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
@@ -176,49 +181,52 @@ class Form extends React.Component {
         if (this.state.formulaire.compute) {
             this.state.formulaire.compute()
         }
-        Object.keys(this.state.fields).forEach(key => {
-            this.state.fields[key].is_valide = true
+        Object.keys(ctx.elements).forEach(key => {
+            ctx.elements[key].is_valide = true
             // read only
             if (this.state.is_read_only)
-                this.state.fields[key].is_read_only = true
+                ctx.elements[key].is_read_only = true
+            
             // valeur par défaut
-            if (this.state.fields[key].value == '') {
+            if (ctx.elements[key].value == '') {
                 if (this.state.rubs[key].default) {
                     if (typeof this.state.rubs[key].default === 'function')
-                        this.state.fields[key].value = this.state.rubs[key].default()
+                        ctx.elements[key].value = this.state.rubs[key].default()
                     else
-                        this.state.fields[key].value = this.state.rubs[key].default
+                        ctx.elements[key].value = this.state.rubs[key].default
                 }
             }
-            if (!this.state.fields[key].value) {
-                this.state.fields[key].value = ''
+            if (!ctx.elements[key].value) {
+                ctx.elements[key].value = ''
             }
+            
             // ctrl accès - ko le champ sera caché
             if (this.state.rubs[key].group) {
                 if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 3) {
                     if (ctx.session.user_profil != this.state.rubs[key].group)
-                        this.state.fields[key].is_hidden = true
+                        ctx.elements[key].is_hidden = true
                 } else {
-                    this.state.fields[key].is_hidden = true
+                    ctx.elements[key].is_hidden = true
                 }
             }
+            
             // Field valide ?
-            if (!this.state.fields[key].is_read_only && !this.state.fields[key].is_hidden) {
+            if (ctx.elements[key].value && !ctx.elements[key].is_read_only && !ctx.elements[key].is_hidden) {
                 //console.log(key, this.state.rubs[key])
-                if (this.state.rubs[key].is_valide && !this.state.rubs[key].is_valide(this.state.fields[key].value)) {
-                    //console.log('checkFormulaire', key, false, this.state.fields[key].value)
-                    this.state.fields[key].is_valide = false
+                if (this.state.rubs[key].is_valide && !this.state.rubs[key].is_valide(ctx.elements[key].value)) {
+                    //console.log('checkFormulaire', key, false, ctx.elements[key].value)
+                    ctx.elements[key].is_valide = false
                     this.state.is_form_valide = false
                 }
             }
-            //console.log('checkFormulaire', key, this.state.fields[key])
+            //console.log('checkFormulaire', key, ctx.elements[key])
         })
         //console.log('checkFormulaire', this.state.is_form_valide)
         this.setState({})
     }
 
     getData(action, app, table, view, form, id, callback) {
-        //console.log('Form.getData: ', action, app, table, view, form, id)
+        //console.log('Form.getData: ', action, app, table, view, form, id, ctx.elements)
         this.state.action = action
         this.state.app = app
         this.state.table = table
@@ -230,23 +238,26 @@ class Form extends React.Component {
         this.state.cols = Dico.apps[app].tables[table].views[view].cols
         this.state.fields = Dico.apps[app].tables[table].forms[form].fields
         this.state.formulaire = Dico.apps[app].tables[table].forms[form]
-        ctx.fields = this.state.fields
-
+        ctx.elements = {}
         Object.keys(this.state.fields).forEach(key => {
-            this.state.fields[key].value = ''
-            this.state.fields[key].is_valide = false
+            ctx.elements[key] = Object.assign({}, this.state.rubs[key], this.state.fields[key])
+        })
+
+        Object.keys(ctx.elements).forEach(key => {
+            ctx.elements[key].value = ''
+            ctx.elements[key].is_valide = false
         })
         if (action == 'view' || action == 'edit' || action == 'delete') {
             fetch('/api/form/' + app + '/'  + table + '/' + view + '/' + form + '/' + id, 
             { credentials: 'same-origin' })
                 .then(response => {
                     response.json().then(json => {
-                        //console.log('response', response, json)
                         if (response.ok == true) {
                             let row = JSON.parse(json)
+                            //console.log("json", json)
                             Object.keys(row).forEach(key => {
                                 //console.log('Form.response: ', key, row[key].value)
-                                this.state.fields[key].value = row[key].value ? row[key].value : ''
+                                ctx.elements[key].value = row[key] ? row[key] : ''
                             })
                             this.checkFormulaire()
                             return callback({ ok: true })
@@ -269,9 +280,9 @@ class Form extends React.Component {
 
     identData() {
         let data = ''
-        Object.keys(this.state.fields).forEach(key => {
+        Object.keys(ctx.elements).forEach(key => {
             if (!Tools.isRubTemporary(key)) {
-                let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
+                let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
                 data += data.length > 0 ? '&' + param : param
             }
         })
@@ -309,8 +320,8 @@ class Form extends React.Component {
 
     updateData() {
         let data = ''
-        Object.keys(this.state.fields).forEach(key => {
-            let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
+        Object.keys(ctx.elements).forEach(key => {
+            let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
             data += data.length > 0 ? '&' + param : param
         })
         fetch('/api/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
@@ -352,9 +363,9 @@ class Form extends React.Component {
 
     deleteData() {
         let data = ''
-        Object.keys(this.state.fields).forEach(key => {
+        Object.keys(ctx.elements).forEach(key => {
             if (!Tools.isRubTemporary(key)) {
-                let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
+                let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
                 data += data.length > 0 ? '&' + param : param
             }
         })
@@ -397,8 +408,8 @@ class Form extends React.Component {
 
     insertData() {
         let data = ''
-        Object.keys(this.state.fields).forEach(key => {
-            let param = key + '=' + encodeURIComponent(this.state.fields[key].value)
+        Object.keys(ctx.elements).forEach(key => {
+            let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
             data += data.length > 0 ? '&' + param : param
         })
         fetch('/api/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form, {
@@ -441,9 +452,9 @@ class Form extends React.Component {
 
     render() {
         let list_fields = []
-        Object.keys(this.state.fields).forEach(key => {
+        Object.keys(ctx.elements).forEach(key => {
             let is_ok = true
-            // if (this.state.fields[key].is_hidden)
+            // if (ctx.elements[key].is_hidden)
             //     is_ok = false
             if (is_ok)
                 list_fields.push(key)
@@ -460,13 +471,13 @@ class Form extends React.Component {
                 }
                 {display_form &&
                     list_fields.map(key =>
-                        <div className={this.state.fields[key].is_hidden
+                        <div className={ctx.elements[key].is_hidden
                             ? 'w3-row-padding w3-margin-top w3-hide' : 'w3-row-padding w3-margin-top'}
                             key={key}>
                             <Label {...this.state} id={key} />
                             <div className="w3-threequarter">
                                 <Field {...this.state} id={key}
-                                    value={this.state.fields[key].value}
+                                    value={ctx.elements[key].value}
                                     onEditRow={this.onEditRow}
                                     handleSubmit={this.handleSubmit}
                                     />
@@ -521,8 +532,9 @@ class Form extends React.Component {
 class Label extends React.Component {
     render() {
         //console.log('render', this.props)
-        if (!this.props.fields[this.props.id].is_hidden) {
-            switch (this.props.rubs[this.props.id].type) {
+        let element = ctx.elements[this.props.id]
+        if (!element.is_hidden) {
+            switch (element.type) {
                 case 'button':
                 case 'check':
                 case 'link':
@@ -539,14 +551,14 @@ class Label extends React.Component {
                     return (
                         <span>
                             <label htmlFor={this.props.id} className="w3-label w3-quarter w3-right-align w3-hide-small" >
-                                {this.props.rubs[this.props.id].label_long}</label>
+                                {element.label_long}</label>
                             <label htmlFor={this.props.id} className="w3-label w3-quarter w3-left-align w3-hide-medium w3-hide-large" >
-                                {this.props.rubs[this.props.id].label_long}</label>
+                                {element.label_long}</label>
                         </span>
                     )
             }
         } else {
-            // Field hidden
+            // element hidden
             return (
                 null
             )
@@ -556,18 +568,19 @@ class Label extends React.Component {
 class Error extends React.Component {
     render() {
         //console.log('render', this.state)
-        if (!this.props.fields[this.props.id].is_hidden) {
-            switch (this.props.rubs[this.props.id].type) {
+        let element = ctx.elements[this.props.id]
+        if (!element.is_hidden) {
+            switch (element.type) {
                 default:
                     return (
                         <div className="w3-label w3-text-red w3-small" >
-                            {!this.props.fields[this.props.id].is_valide && this.props.rubs[this.props.id].error &&
-                                <span>{this.props.rubs[this.props.id].error}</span>}
+                            {!element.is_valide && element.error &&
+                                <span>{element.error}</span>}
                         </div>
                     )
             }
         } else {
-            // Field hidden
+            // element hidden
             return (
                 null
             )
@@ -576,19 +589,20 @@ class Error extends React.Component {
 }
 class Help extends React.Component {
     render() {
+        let element = ctx.elements[this.props.id]
         //console.log('render', this.state)
-        if (!this.props.fields[this.props.id].is_hidden) {
-            switch (this.props.rubs[this.props.id].type) {
+        if (!element.is_hidden) {
+            switch (element.type) {
                 default:
                     return (
                         <div className="w3-label w3-small" >
-                            {this.props.rubs[this.props.id].help && this.props.rubs[this.props.id].help &&
-                                <span>{this.props.rubs[this.props.id].help}</span>}
+                            {element.help && element.help &&
+                                <span>{element.help}</span>}
                         </div>
                     )
             }
         } else {
-            // Field hidden
+            // element hidden
             return (
                 null
             )
@@ -602,19 +616,20 @@ class Field extends React.Component {
         this.state = {
             value: props.value,
             checked: props.value == '1' ? true : false,
-            options: []
+            options: [],
         }
         this.handleChange = this.handleChange.bind(this);
         this.handleCheck = this.handleCheck.bind(this);
+        this.handleCheckGroup = this.handleCheckGroup.bind(this);
         this.handleButton = this.handleButton.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
         this.getOptions = this.getOptions.bind(this);
     }
     handleButton(e) {
         e.preventDefault();
-        //console.log('handleButton', this.props.rubs[this.props.id].action_url)
-        fetch(this.props.rubs[this.props.id].on_click.action,
-            { method: this.props.rubs[this.props.id].on_click.method, credentials: 'same-origin' })
+        //console.log('handleButton', element.action_url)
+        fetch(ctx.elements[this.props.id].on_click.action,
+            { method: ctx.elements[this.props.id].on_click.method, credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
                     //console.log(json)
@@ -640,6 +655,17 @@ class Field extends React.Component {
         this.props.onEditRow(this.props.id, e.target.checked ? '1' : '0')
         //console.log('handleChange', this.state)
     }
+    handleCheckGroup(obj) {
+        console.log('Field.handleChangeGroup: ', this.props.id, obj.join(','), obj)
+        this.setState({ value: obj.join(',') })
+        if ( ! ctx.elements[this.props.id].is_multiple ) {
+            if ( obj.length > 1 ) {
+                obj.shift()
+            }
+        }
+        this.props.onEditRow(this.props.id, obj.join(','))
+        //console.log('handleChange', this.state)
+    }
     componentWillReceiveProps(nextProps) {
         //console.log('Field.componentWillReceiveProps', nextProps.value)
         this.state.value = nextProps.value
@@ -648,7 +674,7 @@ class Field extends React.Component {
     }
     componentDidMount() {
         //console.log('Field.componentDidMount...', this.state, this.props)
-        if (this.props.rubs[this.props.id].type == 'jointure_select') {
+        if (ctx.elements[this.props.id].type == 'jointure_select') {
             fetch('/api/select/' + this.props.app + '/' + this.props.table + '/' + this.props.id + '/0', { credentials: 'same-origin' })
                 .then(response => {
                     response.json().then(json => {
@@ -669,15 +695,16 @@ class Field extends React.Component {
     }
     render() {
         //console.log('render', this.state)
-        if (!this.props.fields[this.props.id].is_hidden) {
-            switch (this.props.rubs[this.props.id].type) {
+        let element = ctx.elements[this.props.id]
+        if (!element.is_hidden) {
+            switch (element.type) {
                 case 'button':
                     return (
-                        <button to={this.props.rubs[this.props.id].action_url} className="w3-btn w3-teal"
-                            title={this.props.rubs[this.props.id].title}
+                        <button to={element.action_url} className="w3-btn w3-teal"
+                            title={element.title}
                             onClick={this.handleButton}
                             >
-                            {this.props.rubs[this.props.id].label_long}
+                            {element.label_long}
                         </button>
                     )
                 case 'check':
@@ -685,23 +712,52 @@ class Field extends React.Component {
                         <span className="">
                             <input className="w3-check" type="checkbox"
                                 onChange={this.handleCheck}
-                                checked={this.state.checked}
+                                defaultValue={element.value == '1' ? true : false}
+                                value={element.value == '1' ? true : false}
+                                checked={element.value == '1' ? true : false}
                                 name={this.props.id} id={this.props.id}
                                 />
                             <label htmlFor={this.props.id} className="w3-validate">
-                                &nbsp;{this.props.rubs[this.props.id].label_long}
+                                &nbsp;{element.label_long}
+                            </label>
+                        </span>
+                    )
+                case 'checkgroup':
+                    return (
+                        <span className="">
+                            <CheckboxGroup className=""
+                                onChange={this.handleCheckGroup}
+                                value={element.value && element.value.length > 0 
+                                    ? element.value.split(',')
+                                    : []
+                                }
+                                name={this.props.id} id={this.props.id}
+                                >
+                                {
+                                    Object.keys(element.list).map(item => 
+                                        <span key={item}>
+                                            <Checkbox className="w3-check" value={item}/>
+                                            <label htmlFor={this.props.id} className="w3-validate">
+                                                &nbsp;{element.list[item]}&nbsp;
+                                            </label>
+                                        </span>
+                                    )
+                                }
+                            </CheckboxGroup>
+                            <label htmlFor={this.props.id} className="w3-validate">
+                                &nbsp;{element.label_long}
                             </label>
                         </span>
                     )
                 case 'email':
                     return (
                         <input className="w3-input w3-border" type="email"
-                            maxLength={this.props.rubs[this.props.id].maxlength}
-                            pattern={this.props.rubs[this.props.id].pattern}
-                            placeholder={this.props.rubs[this.props.id].placeholder}
+                            maxLength={element.maxlength}
+                            pattern={element.pattern}
+                            placeholder={element.placeholder}
                             onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only}
-                            value={this.state.value}
+                            disabled={element.is_read_only}
+                            value={element.value}
                             id={this.props.id}
                             />
                     )
@@ -710,31 +766,31 @@ class Field extends React.Component {
                     return (
                         <Select
                             name={this.props.id}
-                            value={this.state.value}
+                            value={element.value}
                             //loadOptions={this.getOptions}
                             options={this.state.options}
                             onChange={this.handleSelectChange}
                             />
                     )
                 case 'link':
-                    let uri = Tools.replaceParams(this.props.rubs[this.props.id].action_url,
-                        this.props.fields)
+                    let uri = Tools.replaceParams(element.action_url,
+                        ctx.elements)
                     return (
                         <Link to={uri} className="w3-text-teal"
-                            title={this.props.rubs[this.props.id].title}
+                            title={element.title}
                             >
-                            {this.props.rubs[this.props.id].label_long}
+                            {element.label_long}
                         </Link>
                     )
                 case 'password':
                     return (
                         <input className="w3-input w3-border" type="password"
-                            maxLength={this.props.rubs[this.props.id].maxlength}
-                            pattern={this.props.rubs[this.props.id].pattern}
-                            placeholder={this.props.rubs[this.props.id].placeholder}
+                            maxLength={element.maxlength}
+                            pattern={element.pattern}
+                            placeholder={element.placeholder}
                             onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only}
-                            value={this.state.value}
+                            disabled={element.is_read_only}
+                            value={element.value}
                             id={this.props.id}
                             onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }
                             />
@@ -742,16 +798,16 @@ class Field extends React.Component {
                 case 'radio':
                     return (
                         <div onChange={this.handleChange} className="w3-padding w3-border" id={this.props.id}>
-                            {Object.keys(this.props.rubs[this.props.id].list).map(key =>
+                            {Object.keys(element.list).map(key =>
                                 <span key={key} className="w3-margin-right">
                                     <input className="w3-radio" type="radio"
-                                        checked={this.state.value == key}
-                                        disabled={this.props.fields[this.props.id].is_read_only}
+                                        checked={element.value == key}
+                                        disabled={element.is_read_only}
                                         name={this.props.id} value={key} id={key}
                                         onChange={this.handleChange}
                                         />
                                     <label htmlFor={key} className="w3-validate">
-                                        &nbsp;{this.props.rubs[this.props.id].list[key]}
+                                        &nbsp;{element.list[key]}
                                     </label>
                                 </span>
                             )}
@@ -760,15 +816,15 @@ class Field extends React.Component {
                 case 'select':
                     return (
                         <select className="w3-select w3-border"
-                            placeholder={this.props.rubs[this.props.id].placeholder}
+                            placeholder={element.placeholder}
                             onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only}
-                            value={this.state.value}
+                            disabled={element.is_read_only}
+                            value={element.value}
                             id={this.props.id}
                             >
-                            {Object.keys(this.props.rubs[this.props.id].list).map(key =>
+                            {Object.keys(element.list).map(key =>
                                 <option key={key} value={key}>
-                                    {this.props.rubs[this.props.id].list[key]}
+                                    {element.list[key]}
                                 </option>
                             )}
                         </select>
@@ -776,53 +832,57 @@ class Field extends React.Component {
                 case 'mail':
                     return (
                         <input className="w3-input w3-border" type="text"
-                            maxLength={this.props.rubs[this.props.id].maxlength}
-                            pattern={this.props.rubs[this.props.id].pattern}
-                            placeholder={this.props.rubs[this.props.id].placeholder}
+                            maxLength={element.maxlength}
+                            pattern={element.pattern}
+                            placeholder={element.placeholder}
                             onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only}
-                            value={this.state.value}
+                            disabled={element.is_read_only}
+                            value={element.value}
                             id={this.props.id}
                             />
                     )
                 case 'textarea':
                     return (
                         <textarea className="w3-input w3-border"
-                            maxLength={this.props.rubs[this.props.id].maxlength}
-                            pattern={this.props.rubs[this.props.id].pattern}
-                            placeholder={this.props.rubs[this.props.id].placeholder}
+                            maxLength={element.maxlength}
+                            pattern={element.pattern}
+                            placeholder={element.placeholder}
                             onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only || this.props.fields[this.props.id].is_protect}
-                            value={this.state.value}
+                            disabled={element.is_read_only || element.is_protect}
+                            value={element.value}
                             id={this.props.id}
                             />
                     )
                 case 'note':
                     return (
                         <div className="w3-panel w3-pale-yellow w3-leftbar w3-border-yellow">
-                            <p>{this.props.rubs[this.props.id].note}</p>
+                            <p>{element.note}</p>
                         </div>
                     )
                 case 'text':
-                    return (
-                        <input className="w3-input w3-border" type="text"
-                            maxLength={this.props.rubs[this.props.id].maxlength}
-                            pattern={this.props.rubs[this.props.id].pattern}
-                            placeholder={this.props.rubs[this.props.id].placeholder}
-                            onChange={this.handleChange}
-                            disabled={this.props.fields[this.props.id].is_read_only || this.props.fields[this.props.id].is_protect}
-                            value={this.state.value}
-                            id={this.props.id}
-                            onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }
-                            />
-                    )
+                    if ( (element.is_read_only || element.is_protect) && element.display ) {
+                        return (<span dangerouslySetInnerHTML={{__html: element.display(element.value)}}></span>)
+                    } else {
+                        return (
+                            <input className="w3-input w3-border" type="text"
+                                maxLength={element.maxlength}
+                                pattern={element.pattern}
+                                placeholder={element.placeholder}
+                                onChange={this.handleChange}
+                                disabled={element.is_read_only || element.is_protect}
+                                value={element.value}
+                                id={this.props.id}
+                                onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }
+                                />
+                        )
+                    }
                 default:
-                    return <div>{this.props.id}.type {this.props.rubs[this.props.id].type} not found</div>
+                    return <div>{this.props.id}.type {element.type} not found</div>
             }
         } else {
-            // Field hidden
+            // element hidden
             return (
-                <input type="text" name={this.props.id} value={this.state.value} style={{ display: 'none' }} />
+                <input type="text" name={this.props.id} value={element.value} style={{ display: 'none' }} />
             )
         }
     }
