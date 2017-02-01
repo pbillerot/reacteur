@@ -7,6 +7,7 @@ import validator from 'validator'
 import md5 from 'js-md5'
 import randomstring from 'randomstring'
 import moment from 'moment'
+const sprintf = require('sprintf-js').sprintf
 const Tools = {
     isRubTemporary(key) {
         return /^_/g.test(key)
@@ -25,6 +26,6 @@ const Tools = {
             }
         })
         return str
-    }
+    },
 }
 export { Tools }

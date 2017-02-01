@@ -1,19 +1,33 @@
 'use strict';
 
-const Express = require('express')
-const http = require('http')
-const https = require('https')
-const morgan = require('morgan')
-const bodyParser = require('body-parser')
-const helmet = require('helmet')
+import path from 'path';
+import https from 'https';
+//import http from 'http';
+import Express from 'express';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { match, RouterContext } from 'react-router';
+import routes from './routes';
+import PageNotFound from './components/PageNotFound';
+import morgan from 'morgan';
+import bodyParser from 'body-parser';
+import helmet from 'helmet';
+import fs from 'fs';
 
-const React = require('react')
-const { match, RouterContext } = require('react-router')
-const { renderToString } = require('react-dom/server')
-const routes = require('./routes')
-const PageNotFound = require('./components/PageNotFound')
-const path = require('path')
-const fs = require('fs')
+//const Express = require('express')
+//const http = require('http')
+//const https = require('https')
+//const morgan = require('morgan')
+//const bodyParser = require('body-parser')
+//const helmet = require('helmet')
+
+//const React = require('react')
+//const { match, RouterContext } = require('react-router')
+//const { renderToString } = require('react-dom/server')
+//const routes = require('./routes')
+//const PageNotFound = require('./components/PageNotFound')
+//const path = require('path')
+//const fs = require('fs')
 
 const { Reacteur } = require('./config/Reacteur')
 
@@ -84,7 +98,7 @@ app.use('/api', api);
 
 // universal routing and rendering
 app.get('*', (req, res) => {
-  //console.log(routes, req.url)
+  console.log("Server routing...", req.url)
   match(
     { routes, location: req.url },
     (err, redirectLocation, renderProps) => {
@@ -105,9 +119,9 @@ app.get('*', (req, res) => {
         markup = renderToString(<RouterContext {...renderProps} />);
       } else {
         // otherwise we can render a 404 page
-        // markup = renderToString(<PageNotFound />);
-        // res.status(404);
-        return res.status(404).send('Not found')
+        markup = renderToString(<PageNotFound />);
+        res.status(404);
+        //return res.status(404).send('Not found')
 
       }
 

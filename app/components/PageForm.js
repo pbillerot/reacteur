@@ -5,7 +5,7 @@ import 'whatwg-fetch';
 import { Link, browserHistory } from 'react-router';
 
 import Select from 'react-select';
-import {Checkbox, CheckboxGroup} from 'react-checkbox-group';
+import { Checkbox, CheckboxGroup } from 'react-checkbox-group';
 
 
 // W3
@@ -29,7 +29,6 @@ export default class PageForm extends React.Component {
             view: this.props.params.view,
             form: this.props.params.form,
             id: this.props.params.id,
-            formulaire: Dico.apps[this.props.params.app].tables[this.props.params.table].forms[this.props.params.form],
             MyForm: () => <Form {...this.state} />,
         }
     }
@@ -50,35 +49,46 @@ export default class PageForm extends React.Component {
                 view: nextProps.params.view,
                 form: nextProps.params.form,
                 id: nextProps.params.id,
-                formulaire: Dico.apps[nextProps.params.app].tables[nextProps.params.table].forms[nextProps.params.form],
                 MyForm: () => <Form {...this.state} />
             })
         }
     }
     render() {
-        let title = Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form].title
-        const MyForm = this.state.MyForm;
-        return (
-            <div>
-                <ContainerSidebar apex={this} {...this.props} />
-                <ContainerContent apex={this}>
-                    <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
-                        <a onClick={this.handleBack}>
-                            <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
-                                title="retour"
-                                ></i>
-                        </a>
-                        <span id="myIntro">{title}</span>
-                    </div>
-                    <Card >
-                        <MyForm />
-                    </Card>
-                    <Footer apex={this}>
-                        <p>{Dico.application.copyright}</p>
-                    </Footer>
-                </ContainerContent>
-            </div>
-        )
+        if (Dico.apps[this.state.app]
+            && Dico.apps[this.state.app].tables[this.state.table]
+            && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]
+            && Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form]) {
+            let title = Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form].title
+            const MyForm = this.state.MyForm;
+            return (
+                <div>
+                    <ContainerSidebar apex={this} {...this.props} />
+                    <ContainerContent apex={this}>
+                        <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
+                            <a onClick={this.handleBack}>
+                                <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
+                                    title="retour"
+                                    ></i>
+                            </a>
+                            <span id="myIntro">{title}</span>
+                        </div>
+                        <Card >
+                            <MyForm />
+                        </Card>
+                        <Footer apex={this}>
+                            <p>{Dico.application.copyright}</p>
+                        </Footer>
+                    </ContainerContent>
+                </div>
+            )
+        } else {
+            return (
+                <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
+                    <p>404 Page non trouvée</p>
+                </div>
+            )
+
+        }
     }
 }
 
@@ -149,8 +159,8 @@ class Form extends React.Component {
         //console.log('Form.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
             this.getData(nextProps.params.action, nextProps.params.app, nextProps.params.table
-            , nextProps.params.view, nextProps.params.form, nextProps.params.id, 
-            (result) => {
+                , nextProps.params.view, nextProps.params.form, nextProps.params.id,
+                (result) => {
                     //
                 })
         } else {
@@ -186,7 +196,7 @@ class Form extends React.Component {
             // read only
             if (this.state.is_read_only)
                 ctx.elements[key].is_read_only = true
-            
+
             // valeur par défaut
             if (ctx.elements[key].value == '') {
                 if (this.state.rubs[key].default) {
@@ -199,7 +209,7 @@ class Form extends React.Component {
             if (!ctx.elements[key].value) {
                 ctx.elements[key].value = ''
             }
-            
+
             // ctrl accès - ko le champ sera caché
             if (this.state.rubs[key].group) {
                 if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 3) {
@@ -209,7 +219,7 @@ class Form extends React.Component {
                     ctx.elements[key].is_hidden = true
                 }
             }
-            
+
             // Field valide ?
             if (ctx.elements[key].value && !ctx.elements[key].is_read_only && !ctx.elements[key].is_hidden) {
                 //console.log(key, this.state.rubs[key])
@@ -248,8 +258,8 @@ class Form extends React.Component {
             ctx.elements[key].is_valide = false
         })
         if (action == 'view' || action == 'edit' || action == 'delete') {
-            fetch('/api/form/' + app + '/'  + table + '/' + view + '/' + form + '/' + id, 
-            { credentials: 'same-origin' })
+            fetch('/api/form/' + app + '/' + table + '/' + view + '/' + form + '/' + id,
+                { credentials: 'same-origin' })
                 .then(response => {
                     response.json().then(json => {
                         if (response.ok == true) {
@@ -658,8 +668,8 @@ class Field extends React.Component {
     handleCheckGroup(obj) {
         console.log('Field.handleChangeGroup: ', this.props.id, obj.join(','), obj)
         this.setState({ value: obj.join(',') })
-        if ( ! ctx.elements[this.props.id].is_multiple ) {
-            if ( obj.length > 1 ) {
+        if (!ctx.elements[this.props.id].is_multiple) {
+            if (obj.length > 1) {
                 obj.shift()
             }
         }
@@ -727,16 +737,16 @@ class Field extends React.Component {
                         <span className="">
                             <CheckboxGroup className=""
                                 onChange={this.handleCheckGroup}
-                                value={element.value && element.value.length > 0 
+                                value={element.value && element.value.length > 0
                                     ? element.value.split(',')
                                     : []
                                 }
                                 name={this.props.id} id={this.props.id}
                                 >
                                 {
-                                    Object.keys(element.list).map(item => 
+                                    Object.keys(element.list).map(item =>
                                         <span key={item}>
-                                            <Checkbox className="w3-check" value={item}/>
+                                            <Checkbox className="w3-check" value={item} />
                                             <label htmlFor={this.props.id} className="w3-validate">
                                                 &nbsp;{element.list[item]}&nbsp;
                                             </label>
@@ -860,8 +870,8 @@ class Field extends React.Component {
                         </div>
                     )
                 case 'text':
-                    if ( (element.is_read_only || element.is_protect) && element.display ) {
-                        return (<span dangerouslySetInnerHTML={{__html: element.display(element.value)}}></span>)
+                    if ((element.is_read_only || element.is_protect) && element.display) {
+                        return (<span dangerouslySetInnerHTML={{ __html: element.display(element.value) }}></span>)
                     } else {
                         return (
                             <input className="w3-input w3-border" type="text"

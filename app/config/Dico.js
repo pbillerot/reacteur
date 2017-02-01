@@ -146,8 +146,8 @@ const Dico = {
                                 return true
                             },
                             compute() {
-                                ctx.elements.tok_redirect.value = ctx.session.host 
-                                    + "/form/edit/reacteur/actusers/vident/fchgpwd/" 
+                                ctx.elements.tok_redirect.value = ctx.session.host
+                                    + "/form/edit/reacteur/actusers/vident/fchgpwd/"
                                     + ctx.elements.tok_pseudo.value
                                 //
                             },
@@ -884,9 +884,9 @@ const Dico = {
                             title: "",
                             type: "text",
                             display: (val) => {
-                                return val && val == '1' 
-                                ? '<span class="fa fa-check w3-text-teal"></span>'
-                                : ''
+                                return val && val == '1'
+                                    ? '<span class="fa fa-check w3-text-teal"></span>'
+                                    : ''
                             },
                         },
                         choix_kk: {
@@ -895,9 +895,9 @@ const Dico = {
                             title: "",
                             type: "text",
                             display: (val) => {
-                                return val && val == '1' 
-                                ? '<span class="w3-text-orange w3-center">(<span class="fa fa-check"></span>)</span>'
-                                : ''
+                                return val && val == '1'
+                                    ? '<span class="w3-text-orange w3-center">(<span class="fa fa-check"></span>)</span>'
+                                    : ''
                             },
                         },
                         choix_ko: {
@@ -906,9 +906,9 @@ const Dico = {
                             title: "",
                             type: "text",
                             display: (val) => {
-                                return val && val == '1' 
-                                ? '<span class="w3-text-red w3-large"><b>&Oslash;</b></span>'
-                                : ''
+                                return val && val == '1'
+                                    ? '<span class="w3-text-red w3-large"><b>&Oslash;</b></span>'
+                                    : ''
                             },
                         },
                         choix_cg: {
@@ -917,7 +917,7 @@ const Dico = {
                             title: "",
                             type: "checkgroup",
                             is_multiple: false,
-                            list: { 
+                            list: {
                                 choix_ok: 'Oui',
                                 choix_kk: 'si nécessaire',
                                 choix_ko: 'Nom'
@@ -933,9 +933,9 @@ const Dico = {
                             title: "",
                             type: "text",
                             display: (val) => {
-                                return val && val == '1' 
-                                ? '<span class="w3-text-red w3-large"><b>&Oslash;</b></span>'
-                                : ''
+                                return val && val == '1'
+                                    ? '<span class="w3-text-red w3-large"><b>&Oslash;</b></span>'
+                                    : ''
                             },
                         },
                         choix_ceou_id: {
@@ -1016,7 +1016,7 @@ const Dico = {
                                 ctx.elements.choix_ok.value = '0'
                                 ctx.elements.choix_kk.value = '0'
                                 ctx.elements.choix_ko.value = '0'
-                                if ( ctx.elements.choix_cg.value && ctx.elements.choix_cg.value.length > 1 ) {
+                                if (ctx.elements.choix_cg.value && ctx.elements.choix_cg.value.length > 1) {
                                     ctx.elements[ctx.elements.choix_cg.value].value = '1'
                                 }
                             },
@@ -1040,7 +1040,7 @@ const Dico = {
                                 ctx.elements.choix_ok.value = '0'
                                 ctx.elements.choix_kk.value = '0'
                                 ctx.elements.choix_ko.value = '0'
-                                if ( ctx.elements.choix_cg.value && ctx.elements.choix_cg.value.length > 1 ) {
+                                if (ctx.elements.choix_cg.value && ctx.elements.choix_cg.value.length > 1) {
                                     ctx.elements[ctx.elements.choix_cg.value].value = '1'
                                 }
                             },

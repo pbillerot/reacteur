@@ -60,6 +60,7 @@ const Reacteur = {
         m4009: "postUpdate K0",
         m4010: "ctrl K0",
         m4101: "Rubrique [%s] non trouvée",
+        m4040: "Page [%s] non trouvée",
 
         m5001: "Erreur DATABASE sur le serveur",
         m5001: "Erreur %s non trouvée",

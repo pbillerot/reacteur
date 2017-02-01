@@ -23,8 +23,6 @@ export default class PageView extends React.Component {
             app: this.props.params.app,
             table: this.props.params.table,
             view: this.props.params.view,
-            rubs: Dico.apps[this.props.params.app].tables[this.props.params.table].rubs,
-            cols: Dico.apps[this.props.params.app].tables[this.props.params.table].views[this.props.params.view].cols,
             rows: [],
             rows_selected: [],
             is_error: false,
@@ -33,45 +31,10 @@ export default class PageView extends React.Component {
                 message: ''
             }
         }
-        ctx.elements = {}
-        Object.keys(this.state.cols).forEach(key => {
-            ctx.elements[key] = Object.assign({}, this.state.rubs[key], this.state.cols[key])
-        })
     }
     handlerCtx(obj) {
         this.setState(obj)
     }
-    setRows(app, table, view, rows) {
-        // let form_edit = Dico.apps[app].tables[table].views[view].form_edit
-        // let rubs = Dico.apps[app].tables[table].rubs
-        // let cols = Dico.apps[app].tables[table].views[view].cols
-        // let row_key = Dico.apps[app].tables[table].key
-
-        //console.log(JSON.stringify(rows))
-        var tableur = []
-        rows.forEach((row) => {
-            // insertion des colonnes des rubriques temporaires
-            let ligne = {}
-            let key_value = ''
-            Object.keys(ctx.elements).forEach(key => {
-                if (key == this.state.key_id) {
-                    key_value = row[key]
-                }
-                if (Tools.isRubTemporary(key)) {
-                    ligne[key] = key_value
-                } else {
-                    ligne[key] = row[key]
-                }
-            })
-            tableur.push(ligne)
-        })
-        //console.log(JSON.stringify(tableur))
-        this.setState({
-            rows_selected: [], 
-            rows: tableur
-        })
-    }
-
     selectionChanged(data) {
         this.props.ctx.handleState({ rows_selected: data, key_value: data[0] })
     }
@@ -87,53 +50,70 @@ export default class PageView extends React.Component {
         this.setState({ rows: rows });
     }
     getData(app, table, view) {
-        fetch('/api/view/' + app + '/' + table + '/' + view, { credentials: 'same-origin' })
-            .then(response => {
-                //console.log('response', response)
-                response.json().then(json => {
-                    //console.log('json', json)
-                    if (response.ok == true) {
-                        let row_key = Dico.apps[app].tables[table].key
-                        ctx.elements = {}
-                        Object.keys(Dico.apps[app].tables[table].views[view].cols).forEach(key => {
-                            ctx.elements[key] = Object.assign({}, 
-                            Dico.apps[app].tables[table].rubs[key], 
-                            Dico.apps[app].tables[table].views[view].cols[key])
-                        })
+        if (Dico.apps[this.state.app]
+            && Dico.apps[this.state.app].tables[this.state.table]
+            && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]) {
 
-                        //console.log(JSON.stringify(rows))
-                        var tableur = []
-                        JSON.parse(json).forEach((row) => {
-                            // insertion des colonnes des rubriques temporaires
-                            let ligne = {}
-                            let key_value = ''
-                            Object.keys(ctx.elements).forEach(key => {
-                                if (key == this.state.key_id) {
-                                    key_value = row[key]
-                                }
-                                if (Tools.isRubTemporary(key)) {
-                                    ligne[key] = key_value
-                                } else {
-                                    ligne[key] = row[key]
-                                }
+            let key_id = Dico.apps[app].tables[table].key
+
+            fetch('/api/view/' + app + '/' + table + '/' + view, { credentials: 'same-origin' })
+                .then(response => {
+                    //console.log('response', response)
+                    response.json().then(json => {
+                        //console.log('json', json)
+                        if (response.ok == true) {
+                            let row_key = Dico.apps[app].tables[table].key
+                            ctx.elements = {}
+                            Object.keys(Dico.apps[app].tables[table].views[view].cols).forEach(key => {
+                                ctx.elements[key] = Object.assign({},
+                                    Dico.apps[app].tables[table].rubs[key],
+                                    Dico.apps[app].tables[table].views[view].cols[key])
                             })
-                            tableur.push(ligne)
-                        })
-                        //console.log(JSON.stringify(tableur))
-                        this.setState({
-                            rows_selected: [], 
-                            rows: tableur,
-                            is_error: false
-                        })
-                    } else {
-                        this.state.error = {
-                            code: json.code,
-                            message: json.message
+
+                            //console.log(JSON.stringify(rows))
+                            var tableur = []
+                            JSON.parse(json).forEach((row) => {
+                                // insertion des colonnes des rubriques temporaires
+                                let ligne = {}
+                                let key_value = ''
+                                Object.keys(ctx.elements).forEach(key => {
+                                    if (key == key_id) {
+                                        key_value = row[key]
+                                        //console.log("key_value", key_value)
+                                    }
+                                    if (Tools.isRubTemporary(key)) {
+                                        //console.log("key", key_value)
+                                        ligne[key] = key_value
+                                    } else {
+                                        ligne[key] = row[key]
+                                    }
+                                })
+                                tableur.push(ligne)
+                            })
+                            //console.log(JSON.stringify(tableur))
+                            this.setState({
+                                rows_selected: [],
+                                rows: tableur,
+                                is_error: false,
+                                app: app,
+                                table: table,
+                                view: view,
+                            })
+                        } else {
+                            this.state.error = {
+                                code: json.code,
+                                message: json.message
+                            }
+                            this.setState({
+                                is_error: true,
+                                app: app,
+                                table: table,
+                                view: view,
+                            })
                         }
-                        this.setState({ is_error: true })
-                    }
+                    })
                 })
-            })
+        }
     }
     componentWillReceiveProps(nextProps) {
         //console.log('componentWillReceiveProps', nextProps.params)
@@ -151,52 +131,64 @@ export default class PageView extends React.Component {
                     //console.log('response', response, json)
                     ctx.session = json
                     this.getData(this.state.app, this.state.table, this.state.view)
-               })
+                })
             })
     }
 
     render() {
-        let app = this.state.app
-        let table = this.state.table
-        let view = this.state.view
-        let form_add = Dico.apps[app].tables[table].views[view].form_add
-        let form_view = Dico.apps[app].tables[table].views[view].form_view
-        let form_edit = Dico.apps[app].tables[table].views[view].form_edit
-        let form_delete = Dico.apps[app].tables[table].views[view].form_delete
-        let row_key = Dico.apps[app].tables[table].key
-        return (
-            <div>
-                <ContainerSidebar apex={this} {...this.props}/>
-                <ContainerContent apex={this}>
-                    <Header title={Dico.apps[app].tables[table].views[view].title} apex={this} />
-                    {this.state.is_error &&
-                        <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
-                            <p>{this.state.error.code} {this.state.error.message}</p>
-                        </div>
-                    }
+        if (Dico.apps[this.state.app]
+            && Dico.apps[this.state.app].tables[this.state.table]
+            && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]) {
 
-                    {(!this.state.is_error && form_add) &&
-                        <Link to={'/form/add/' + app + '/' + table + '/' + view + '/' + form_add + '/0'}>
-                            <span className="w3-btn-floating-large w3-theme-action"
-                                title={'Ajout ' + Dico.apps[app].tables[table].forms[form_add].title + '...'}
-                                style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
-                        </Link>
-                    }
-                    {!this.state.is_error &&
-                        <Card>
-                            <Table apex={this}
-                                app={app} table={table} view={view}
-                                form_view={form_view} form_edit={form_edit} form_delete={form_delete}
-                                row_key={row_key} rows={this.state.rows}
-                                />
-                        </Card>
-                    }
-                    <Footer apex={this}>
-                        <p>{Dico.application.copyright}</p>
-                    </Footer>
-                </ContainerContent>
-            </div>
-        )
+            let app = this.state.app
+            let table = this.state.table
+            let view = this.state.view
+            let form_add = Dico.apps[app].tables[table].views[view].form_add
+            let form_view = Dico.apps[app].tables[table].views[view].form_view
+            let form_edit = Dico.apps[app].tables[table].views[view].form_edit
+            let form_delete = Dico.apps[app].tables[table].views[view].form_delete
+            let row_key = Dico.apps[app].tables[table].key
+            return (
+                <div>
+                    <ContainerSidebar apex={this} {...this.props} />
+                    <ContainerContent apex={this}>
+                        <Header title={Dico.apps[app].tables[table].views[view].title} apex={this} />
+                        {this.state.is_error &&
+                            <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
+                                <p>{this.state.error.code} {this.state.error.message}</p>
+                            </div>
+                        }
+
+                        {(!this.state.is_error && form_add) &&
+                            <Link to={'/form/add/' + app + '/' + table + '/' + view + '/' + form_add + '/0'}>
+                                <span className="w3-btn-floating-large w3-theme-action"
+                                    title={'Ajout ' + Dico.apps[app].tables[table].forms[form_add].title + '...'}
+                                    style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
+                            </Link>
+                        }
+                        {!this.state.is_error &&
+                            <Card>
+                                <Table apex={this}
+                                    app={app} table={table} view={view}
+                                    form_view={form_view} form_edit={form_edit} form_delete={form_delete}
+                                    row_key={row_key} rows={this.state.rows}
+                                    />
+                            </Card>
+                        }
+                        <Footer apex={this}>
+                            <p>{Dico.application.copyright}</p>
+                        </Footer>
+                    </ContainerContent>
+                </div>
+            )
+        } else {
+            return (
+                <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
+                    <p>404 Page non trouvée</p>
+                </div>
+            )
+
+        }
     }
 }
 class Table extends React.Component {
@@ -222,7 +214,7 @@ class Table extends React.Component {
                         }
                         {
                             Object.keys(ctx.elements).map(key =>
-                                <TH key={key} id={key}/>
+                                <TH key={key} id={key} />
                             )
                         }
                         {form_delete &&
@@ -354,9 +346,9 @@ class Cell extends React.Component {
             case 'text':
                 //let element = React.createElement('<span>A</span>', {})
                 if (element.display) {
-                    return (<span dangerouslySetInnerHTML={{__html: element.display(val)}}></span>)
+                    return (<span dangerouslySetInnerHTML={{ __html: element.display(val) }}></span>)
                 } else {
-                    return <span>{val}</span> 
+                    return <span>{val}</span>
                 }
             default:
                 return (
