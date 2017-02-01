@@ -1,6 +1,6 @@
 # TODO
 
-- vérif exist app table view form
+x vérif exist app table view form
 
 
 ## MISE EN PRODUCTION
