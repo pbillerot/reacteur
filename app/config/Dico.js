@@ -1,5 +1,5 @@
 /**
- * Déclaration du dictionnaire des rubriques,fieldsulaires et vues de l'application
+ * Déclaration du dictionnaire des rubriques,elementsulaires et vues de l'application
  * 
  */
 // https://www.npmjs.com/package/validator
@@ -53,7 +53,7 @@ const Dico = {
                 acttokens: { // voir reacteur.sql
                     basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
                     key: 'tok_id',
-                    rubs: {
+                    elements: {
                         tok_id: {
                             label_long: "Token",
                             label_short: "Token",
@@ -110,14 +110,14 @@ const Dico = {
                                     subject: "J'ai perdu mon mot de passe", // Subject line
                                     template: 'tok_email.ejs'
                                 }
-                            }
+                            },
                         }
                     },
                     views: {
                         vall: {
                             title: 'Token...',
                             group: 'BIDON',
-                            cols: {
+                            elements: {
                                 tok_id: {},
                                 tok_pseudo: {},
                                 tok_email: {},
@@ -133,7 +133,7 @@ const Dico = {
                             return_route: '/',
                             group: null,
                             owner: true,
-                            fields: {
+                            elements: {
                                 tok_id: { is_hidden: true },
                                 tok_url: { is_hidden: true },
                                 tok_redirect: { is_hidden: true },
@@ -161,7 +161,7 @@ const Dico = {
                 actusers: { // voir reacteur.sql
                     basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
                     key: 'user_pseudo',
-                    rubs: {
+                    elements: {
                         user_pseudo: {
                             label_long: "Pseudo",
                             label_short: "Pseudo",
@@ -314,7 +314,7 @@ const Dico = {
                             form_delete: 'fall',
                             is_hidden: false,
                             group: 'ADMIN',
-                            cols: {
+                            elements: {
                                 user_pseudo: {},
                                 user_actif: {},
                                 user_email: {},
@@ -331,7 +331,7 @@ const Dico = {
                             form_delete: null,
                             is_hidden: true,
                             group: null,
-                            cols: {
+                            elements: {
                             }
                         },
                         vpwd: {
@@ -344,7 +344,7 @@ const Dico = {
                             form_delete: null,
                             is_hidden: true,
                             group: null,
-                            cols: {
+                            elements: {
                             }
                         }
                     },
@@ -352,7 +352,7 @@ const Dico = {
                         fall: {
                             title: 'USER',
                             group: 'ADMIN',
-                            fields: {
+                            elements: {
                                 user_pseudo: {},
                                 //user_pwd: {},
                                 user_email: {},
@@ -369,7 +369,7 @@ const Dico = {
                             action_title: 'Créer',
                             return_route: '/',
                             group: null,
-                            fields: {
+                            elements: {
                                 user_pseudo: {},
                                 user_email: {},
                                 _user_pwd_1: {},
@@ -398,7 +398,7 @@ const Dico = {
                             owner: true,
                             return_route: '/',
                             group: null,
-                            fields: {
+                            elements: {
                                 user_pseudo: {},
                                 user_email: {}
                             }
@@ -407,7 +407,7 @@ const Dico = {
                             title: 'CONNEXION',
                             action_title: 'Valider',
                             group: null,
-                            fields: {
+                            elements: {
                                 user_pseudo: {},
                                 user_pwd: {},
                                 _link_new_compte: {},
@@ -425,7 +425,7 @@ const Dico = {
                             return_route: '/',
                             group: '',
                             owner: true,
-                            fields: {
+                            elements: {
                                 user_pseudo: { is_read_only: true },
                                 user_email: {},
                             },
@@ -442,7 +442,7 @@ const Dico = {
                             return_route: '/',
                             group: null,
                             owner: true,
-                            fields: {
+                            elements: {
                                 user_pseudo: { is_read_only: true },
                                 user_email: { is_read_only: true },
                                 _user_pwd_1: {},
@@ -459,7 +459,7 @@ const Dico = {
                             return_route: '/',
                             group: null,
                             owner: true,
-                            fields: {
+                            elements: {
                                 user_pseudo: { is_read_only: true },
                                 user_email: { is_read_only: true },
                                 _link_chg_pwd: {},
@@ -480,7 +480,7 @@ const Dico = {
                 ceou_groupes: { // voir ceou.sql
                     basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
                     key: 'groupe_id',
-                    rubs: {
+                    elements: {
                         groupe_id: {
                             label_long: "Id",
                             label_short: "Id",
@@ -505,7 +505,7 @@ const Dico = {
                             form_add: 'fall',
                             form_edit: 'fall',
                             form_delete: 'fall',
-                            cols: {
+                            elements: {
                                 groupe_id: { is_hidden: true },
                                 groupe_nom: {},
                                 groupe_info: {},
@@ -516,7 +516,7 @@ const Dico = {
                         fall: {
                             title: "Groupes",
                             group: 'ADMIN',
-                            fields: {
+                            elements: {
                                 groupe_id: { is_protect: true },
                                 groupe_nom: {},
                                 groupe_info: {},
@@ -530,7 +530,7 @@ const Dico = {
                 ceou_users: { // voir ceou.sql
                     basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
                     key: 'user_id',
-                    rubs: {
+                    elements: {
                         user_id: {
                             label_long: "Id",
                             label_short: "Id",
@@ -597,7 +597,7 @@ const Dico = {
                             form_add: 'fall',
                             form_edit: 'fall',
                             form_delete: 'fall',
-                            cols: {
+                            elements: {
                                 user_id: { is_hidden: true },
                                 user_groupe_id: {},
                                 user_pseudo: {},
@@ -612,7 +612,7 @@ const Dico = {
                         fall: {
                             title: "Participants",
                             group: 'ADMIN',
-                            fields: {
+                            elements: {
                                 user_groupe_id: {},
                                 user_id: { is_hidden: true },
                                 user_pseudo: {},
@@ -630,7 +630,7 @@ const Dico = {
                 ceou_evt: { // voir ceou.sql
                     basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
                     key: 'evt_id',
-                    rubs: {
+                    elements: {
                         evt_id: {
                             label_long: "Id",
                             label_short: "Id",
@@ -681,7 +681,7 @@ const Dico = {
                             form_add: 'fall',
                             form_edit: 'fall',
                             form_delete: 'fall',
-                            cols: {
+                            elements: {
                                 evt_id: { is_hidden: true },
                                 evt_groupe_id: {},
                                 evt_nom: {},
@@ -694,7 +694,7 @@ const Dico = {
                         fall: {
                             title: "CEOU - Evénement",
                             group: 'ADMIN',
-                            fields: {
+                            elements: {
                                 evt_groupe_id: {},
                                 evt_id: { is_hidden: true },
                                 evt_nom: {},
@@ -710,7 +710,7 @@ const Dico = {
                 ceou: { // voir ceou.sql
                     basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
                     key: 'ceou_id',
-                    rubs: {
+                    elements: {
                         ceou_id: {
                             label_long: "Id",
                             label_short: "Id",
@@ -762,7 +762,7 @@ const Dico = {
                             form_add: 'fall',
                             form_edit: 'fall',
                             form_delete: 'fall',
-                            cols: {
+                            elements: {
                                 ceou_id: { is_hidden: true },
                                 ceou_evt_id: {},
                                 ceou_lieu: {},
@@ -776,7 +776,7 @@ const Dico = {
                         fall: {
                             title: "CEOU - Date et lieu de l'événement",
                             group: 'ADMIN',
-                            fields: {
+                            elements: {
                                 ceou_evt_id: {},
                                 ceou_id: { is_hidden: true },
                                 ceou_lieu: {},
@@ -793,7 +793,7 @@ const Dico = {
                 ceou_forum: { // voir ceou.sql
                     basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
                     key: 'forum_id',
-                    rubs: {
+                    elements: {
                         forum_id: {
                             label_long: "Id",
                             label_short: "Id",
@@ -842,7 +842,7 @@ const Dico = {
                             form_add: 'fall',
                             form_edit: 'fall',
                             form_delete: 'fall',
-                            cols: {
+                            elements: {
                                 forum_id: { is_hidden: true },
                                 forum_evt_id: {},
                                 forum_user_id: {},
@@ -855,7 +855,7 @@ const Dico = {
                         fall: {
                             title: "CEOU - Forum message",
                             group: 'ADMIN',
-                            fields: {
+                            elements: {
                                 forum_evt_id: {},
                                 forum_user_id: {},
                                 forum_id: { is_hidden: true },
@@ -871,7 +871,7 @@ const Dico = {
                 ceou_choix: { // voir ceou.sql
                     basename: '/home/billerot/conf/reacteur/reacteur.sqlite',
                     key: 'choix_id',
-                    rubs: {
+                    elements: {
                         choix_id: {
                             label_long: "Id",
                             label_short: "Id",
@@ -971,7 +971,7 @@ const Dico = {
                             form_edit: 'fall',
                             form_delete: 'fall',
                             order_by: "ceou_users.user_pseudo, ceou.ceou_lieu, ceou.ceou_date",
-                            cols: {
+                            elements: {
                                 choix_id: { is_hidden: true },
                                 choix_user_id: {},
                                 choix_ceou_id: {},
@@ -985,7 +985,7 @@ const Dico = {
                             group: 'ADMIN',
                             form_edit: 'ftcd',
                             order_by: "ceou_users.user_pseudo, ceou.ceou_lieu, ceou.ceou_date",
-                            cols: {
+                            elements: {
                                 choix_id: { is_hidden: true },
                                 choix_user_id: {},
                                 choix_ceou_id: {},
@@ -1000,7 +1000,7 @@ const Dico = {
                         fall: {
                             title: "CEOU - Choix",
                             group: 'ADMIN',
-                            fields: {
+                            elements: {
                                 choix_id: { is_hidden: true },
                                 choix_ceou_id: {},
                                 choix_user_id: {},
@@ -1024,7 +1024,7 @@ const Dico = {
                         ftcd: {
                             title: "CEOU - TCD",
                             group: 'ADMIN',
-                            fields: {
+                            elements: {
                                 choix_id: { is_hidden: true },
                                 choix_ceou_id: {},
                                 choix_user_id: {},

@@ -39,7 +39,7 @@ export default class PageApp extends React.Component {
                                 if (contentType && contentType.indexOf("application/json") !== -1) {
                                     response.json().then(json => {
                                         // traitement du JSON
-                                        //console.log('response: ', json)
+                                        console.log('PageApp SESSION: ', json)
                                         this.setState(json)
                                     })
                                 } else {

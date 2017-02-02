@@ -46,19 +46,21 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
     function (callback) {
       console.log('FORM_UPDATE...')
       ctx.req = req
-      ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
-      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
-      ctx.fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].fields
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
+      ctx.session.alert = null
+
+      let rubs = Dico.apps[req.params.app].tables[req.params.table].elements
+      let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
       ctx.elements = {}
-      Object.keys(ctx.fields).forEach(key => {
-          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.fields[key])
+      Object.keys(fields).forEach(key => {
+          ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
+
       callback(null, ctx)
     },
     Reacteur.api_check_session,
@@ -92,19 +94,20 @@ router.put('/:app/:table/:view/:form', function (req, res) {
     function (callback) {
       console.log('FORM_ADD...')
       ctx.req = req
-      ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
-      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
-      ctx.fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].fields
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
+
+      let rubs = Dico.apps[req.params.app].tables[req.params.table].elements
+      let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
       ctx.elements = {}
-      Object.keys(ctx.fields).forEach(key => {
-          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.fields[key])
+      Object.keys(fields).forEach(key => {
+          ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
+      console.log('CTXXXX', ctx.elements)
       callback(null, ctx)
     },
     Reacteur.api_check_session_forgetpwd,
@@ -118,8 +121,10 @@ router.put('/:app/:table/:view/:form', function (req, res) {
     Reacteur.api_post_update_fields,
     Reacteur.api_post_update_form,
     function (ctx, callback) {
-      console.log('END')
-      res.status(200).json(Reacteur.message(2006))
+      console.log('END', ctx)
+      let json = Reacteur.message(2006)
+      json.alert = ctx.alert
+      res.status(200).json(json)
     }
   ],
     function (err, result) {
@@ -137,19 +142,20 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
     function (callback) {
       console.log('FORM_DELETE...')
       ctx.req = req
-      ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
-      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
-      ctx.fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].fields
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
+
+      let rubs = Dico.apps[req.params.app].tables[req.params.table].elements
+      let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
       ctx.elements = {}
-      Object.keys(ctx.fields).forEach(key => {
-          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.fields[key])
+      Object.keys(fields).forEach(key => {
+          ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
+
       callback(null, ctx)
     },
     Reacteur.api_check_session,
@@ -183,19 +189,20 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
     function (callback) {
       console.log('FORM_READ...')
       ctx.req = req
-      ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
-      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
-      ctx.fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].fields
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
+
+      let rubs = Dico.apps[req.params.app].tables[req.params.table].elements
+      let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
       ctx.elements = {}
-      Object.keys(ctx.fields).forEach(key => {
-          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.fields[key])
+      Object.keys(fields).forEach(key => {
+          ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
+
       callback(null, ctx)
     },
     Reacteur.api_check_session,
@@ -221,18 +228,18 @@ router.get('/view/:app/:table/:view', function (req, res) {
     function (callback) {
       console.log('VIEW...')
       ctx.req = req
-      ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.vue = Dico.apps[req.params.app].tables[req.params.table].views[req.params.view]
-      ctx.cols = Dico.apps[req.params.app].tables[req.params.table].views[req.params.view].cols
-      ctx.rubs = Dico.apps[req.params.app].tables[req.params.table].rubs
       ctx.tableur = []
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
+
+      let cols = Dico.apps[req.params.app].tables[req.params.table].views[req.params.view].elements
+      let rubs = Dico.apps[req.params.app].tables[req.params.table].elements
       ctx.elements = {}
-      Object.keys(ctx.cols).forEach(key => {
-          ctx.elements[key] = Object.assign({}, ctx.rubs[key], ctx.cols[key])
+      Object.keys(cols).forEach(key => {
+          ctx.elements[key] = Object.assign({}, rubs[key], cols[key])
       })
 
       callback(null, ctx)
@@ -260,7 +267,6 @@ router.put('/cnx/ident', function (req, res) {
     function (callback) {
       console.log('IDENT...')
       ctx.req = req
-      ctx.res = res
       ctx.session = req.session
       callback(null, ctx)
     },
@@ -303,7 +309,6 @@ router.get('/toctoc/:token', function (req, res) {
     function (callback) {
       console.log('TOCTOC...')
       ctx.req = req
-      ctx.res = res
       ctx.session = req.session
       callback(null, ctx)
     },
@@ -326,7 +331,6 @@ router.get('/select/:app/:table/:rub/:input', function (req, res) {
     function (callback) {
       console.log('SELECT...')
       ctx.req = req
-      ctx.res = res
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table

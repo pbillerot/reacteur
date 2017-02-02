@@ -149,16 +149,16 @@ class IdentContainer extends React.Component {
     }
     componentWillReceiveProps(nextProps) {
         //console.log('IdentContainer.componentWillReceiveProps')
-        fetch('/api/session/', { credentials: 'same-origin' })
-            .then(response => {
-                response.json().then(json => {
-                    //console.log('session', json)
-                    ctx.session = json
-                    if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 0) {
-                        this.setState({ is_connected: true })
-                    }
-                })
-            })
+        // fetch('/api/session/', { credentials: 'same-origin' })
+        //     .then(response => {
+        //         response.json().then(json => {
+        //             //console.log('session', json)
+        //             ctx.session = json
+        //             if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 0) {
+        //                 this.setState({ is_connected: true })
+        //             }
+        //         })
+        //     })
     }
     render() {
         //console.log("IdentContainer", this.props)

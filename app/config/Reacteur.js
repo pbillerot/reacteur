@@ -156,7 +156,7 @@ const Reacteur = {
         if (error) {
             return callback(error, resultat);
         } else {
-            return callback(null, Reacteur.message(2009));
+            return callback(null, ctx);
         }
     },
     server_post_update: (ctx, callback) => {
@@ -217,6 +217,7 @@ const Reacteur = {
                 //console.log('mail',mail)
                 transport.sendMail(mail).then(function (info) {
                     console.log(info);
+                    ctx.alert = info.response
                     callback(null, { code: 2009, message: info.response })
                 }).catch(function (err) {
                     console.log(err, mail);
@@ -495,7 +496,7 @@ const Reacteur = {
         let sql = ''
         let joins = []
         let err = null
-        Object.keys(ctx.cols).forEach((key) => {
+        Object.keys(ctx.elements).forEach((key) => {
             if (!err) {
                 if (!Tools.isRubTemporary(key)) {
                     let table = ctx.table
@@ -535,7 +536,7 @@ const Reacteur = {
                             // insertion des colonnes des rubriques temporaires
                             let ligne = {}
                             let key_value = ''
-                            Object.keys(ctx.cols).forEach(key => {
+                            Object.keys(ctx.elements).forEach(key => {
                                 if (key == ctx.key_name) {
                                     key_value = row[key]
                                 }
@@ -826,7 +827,7 @@ const Reacteur = {
         let table = ctx.req.params.table
         let rub_id = ctx.req.params.rub
         let input = ctx.req.params.input
-        let rub = Dico.apps[ctx.app].tables[table].rubs[rub_id]
+        let rub = Dico.apps[ctx.app].tables[table].elements[rub_id]
 
         let sql = "select " + rub.jointure.value + " as 'value', "
             + rub.jointure.label + " as 'label' from " + rub.jointure.table

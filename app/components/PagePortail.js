@@ -29,6 +29,7 @@ export default class PagePortail extends React.Component {
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
+                    console.log('PagePortail SESSION: ', json)
                     ctx.session = json
                     this.setState({})
                 })

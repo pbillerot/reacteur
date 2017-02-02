@@ -1,6 +1,5 @@
 # TODO
 
-x vérif exist app table view form
-
 
 ## MISE EN PRODUCTION
+npm uninstall react-alert

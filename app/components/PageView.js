@@ -64,10 +64,10 @@ export default class PageView extends React.Component {
                         if (response.ok == true) {
                             let row_key = Dico.apps[app].tables[table].key
                             ctx.elements = {}
-                            Object.keys(Dico.apps[app].tables[table].views[view].cols).forEach(key => {
+                            Object.keys(Dico.apps[app].tables[table].views[view].elements).forEach(key => {
                                 ctx.elements[key] = Object.assign({},
-                                    Dico.apps[app].tables[table].rubs[key],
-                                    Dico.apps[app].tables[table].views[view].cols[key])
+                                    Dico.apps[app].tables[table].elements[key],
+                                    Dico.apps[app].tables[table].views[view].elements[key])
                             })
 
                             //console.log(JSON.stringify(rows))
@@ -128,7 +128,7 @@ export default class PageView extends React.Component {
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    //console.log('response', response, json)
+                    console.log('PageApp SESSION: ', json)
                     ctx.session = json
                     this.getData(this.state.app, this.state.table, this.state.view)
                 })

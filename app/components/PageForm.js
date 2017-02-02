@@ -7,7 +7,6 @@ import { Link, browserHistory } from 'react-router';
 import Select from 'react-select';
 import { Checkbox, CheckboxGroup } from 'react-checkbox-group';
 
-
 // W3
 const {Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
@@ -103,8 +102,6 @@ class Form extends React.Component {
             form: this.props.form,
             id: this.props.id,
             key_name: Dico.apps[this.props.app].tables[this.props.table].key,
-            rubs: Dico.apps[this.props.app].tables[this.props.table].rubs,
-            fields: Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form].fields,
             formulaire: Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form],
             is_form_valide: false,
             is_read_only: false,
@@ -114,11 +111,12 @@ class Form extends React.Component {
                 message: ''
             }
         }
+        let rubs = Dico.apps[this.props.app].tables[this.props.table].elements
+        let fields = Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form].elements
         ctx.element = {}
-        Object.keys(this.state.fields).forEach(key => {
-            ctx.elements[key] = Object.assign({}, this.state.rubs[key], this.state.fields[key])
+        Object.keys(fields).forEach(key => {
+            ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
         })
-
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.checkFormulaire = this.checkFormulaire.bind(this);
@@ -174,8 +172,8 @@ class Form extends React.Component {
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    //console.log('response', response, json)
                     ctx.session = json
+                    console.log('PageForm SESSION: ', json)
                     this.getData(this.state.action, this.state.app, this.state.table, this.state.view, this.state.form, this.state.id,
                         (result) => {
                         })
@@ -192,18 +190,18 @@ class Form extends React.Component {
             this.state.formulaire.compute()
         }
         Object.keys(ctx.elements).forEach(key => {
-            ctx.elements[key].is_valide = true
+            ctx.elements[key].b_valide = true
             // read only
             if (this.state.is_read_only)
                 ctx.elements[key].is_read_only = true
 
             // valeur par défaut
             if (ctx.elements[key].value == '') {
-                if (this.state.rubs[key].default) {
-                    if (typeof this.state.rubs[key].default === 'function')
-                        ctx.elements[key].value = this.state.rubs[key].default()
+                if (ctx.elements[key].default) {
+                    if (typeof ctx.elements[key].default === 'function')
+                        ctx.elements[key].value = ctx.elements[key].default()
                     else
-                        ctx.elements[key].value = this.state.rubs[key].default
+                        ctx.elements[key].value = ctx.elements[key].default
                 }
             }
             if (!ctx.elements[key].value) {
@@ -211,9 +209,9 @@ class Form extends React.Component {
             }
 
             // ctrl accès - ko le champ sera caché
-            if (this.state.rubs[key].group) {
+            if (ctx.elements[key].group) {
                 if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 3) {
-                    if (ctx.session.user_profil != this.state.rubs[key].group)
+                    if (ctx.session.user_profil != ctx.elements[key].group)
                         ctx.elements[key].is_hidden = true
                 } else {
                     ctx.elements[key].is_hidden = true
@@ -222,10 +220,10 @@ class Form extends React.Component {
 
             // Field valide ?
             if (ctx.elements[key].value && !ctx.elements[key].is_read_only && !ctx.elements[key].is_hidden) {
-                //console.log(key, this.state.rubs[key])
-                if (this.state.rubs[key].is_valide && !this.state.rubs[key].is_valide(ctx.elements[key].value)) {
+                //console.log(key, ctx.elements[key])
+                if (ctx.elements[key].is_valide && !ctx.elements[key].is_valide(ctx.elements[key].value)) {
                     //console.log('checkFormulaire', key, false, ctx.elements[key].value)
-                    ctx.elements[key].is_valide = false
+                    ctx.elements[key].b_valide = false
                     this.state.is_form_valide = false
                 }
             }
@@ -244,18 +242,17 @@ class Form extends React.Component {
         this.state.form = form
         this.state.id = id
         this.state.key_name = Dico.apps[app].tables[table].key
-        this.state.rubs = Dico.apps[app].tables[table].rubs
-        this.state.cols = Dico.apps[app].tables[table].views[view].cols
-        this.state.fields = Dico.apps[app].tables[table].forms[form].fields
         this.state.formulaire = Dico.apps[app].tables[table].forms[form]
         ctx.elements = {}
-        Object.keys(this.state.fields).forEach(key => {
-            ctx.elements[key] = Object.assign({}, this.state.rubs[key], this.state.fields[key])
+        Object.keys(Dico.apps[app].tables[table].forms[form].elements).forEach(key => {
+            ctx.elements[key] = Object.assign({},
+                Dico.apps[app].tables[table].elements[key],
+                Dico.apps[app].tables[table].forms[form].elements[key])
         })
 
         Object.keys(ctx.elements).forEach(key => {
             ctx.elements[key].value = ''
-            ctx.elements[key].is_valide = false
+            ctx.elements[key].b_valide = false
         })
         if (action == 'view' || action == 'edit' || action == 'delete') {
             fetch('/api/form/' + app + '/' + table + '/' + view + '/' + form + '/' + id,
@@ -434,7 +431,7 @@ class Form extends React.Component {
             //console.log('RESULT: ', response)
             response.json().then(json => {
                 if (response.ok == true) {
-                    //console.log('json', json)
+                    console.log('insertData json', json)
                     if (json.code < 4000) {
                         if (this.state.formulaire.return_route) {
                             browserHistory.push(this.state.formulaire.return_route)
@@ -584,7 +581,7 @@ class Error extends React.Component {
                 default:
                     return (
                         <div className="w3-label w3-text-red w3-small" >
-                            {!element.is_valide && element.error &&
+                            {!element.b_valide && element.error &&
                                 <span>{element.error}</span>}
                         </div>
                     )
