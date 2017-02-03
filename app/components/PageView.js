@@ -31,6 +31,7 @@ export default class PageView extends React.Component {
                 message: ''
             }
         }
+        ctx.elements = {}
     }
     handlerCtx(obj) {
         this.setState(obj)
@@ -128,7 +129,7 @@ export default class PageView extends React.Component {
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    console.log('PageApp SESSION: ', json)
+                    //console.log('PageApp SESSION: ', json)
                     ctx.session = json
                     this.getData(this.state.app, this.state.table, this.state.view)
                 })

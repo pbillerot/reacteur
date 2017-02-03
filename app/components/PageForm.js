@@ -30,6 +30,7 @@ export default class PageForm extends React.Component {
             id: this.props.params.id,
             MyForm: () => <Form {...this.state} />,
         }
+        ctx.elements = {}
     }
     handlerCtx(obj) {
         this.setState(obj)
@@ -173,7 +174,7 @@ class Form extends React.Component {
             .then(response => {
                 response.json().then(json => {
                     ctx.session = json
-                    console.log('PageForm SESSION: ', json)
+                    //console.log('PageForm SESSION: ', json)
                     this.getData(this.state.action, this.state.app, this.state.table, this.state.view, this.state.form, this.state.id,
                         (result) => {
                         })
@@ -431,7 +432,7 @@ class Form extends React.Component {
             //console.log('RESULT: ', response)
             response.json().then(json => {
                 if (response.ok == true) {
-                    console.log('insertData json', json)
+                    //console.log('insertData json', json)
                     if (json.code < 4000) {
                         if (this.state.formulaire.return_route) {
                             browserHistory.push(this.state.formulaire.return_route)

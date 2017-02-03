@@ -27,7 +27,7 @@ export default class PageApp extends React.Component {
         this.setState(obj)
     }
     componentDidMount() {
-        console.log('componentDidMount...')
+        //console.log('componentDidMount...')
         if (Dico.apps[this.state.app]) {
             fetch('/api/session', { credentials: 'same-origin' })
                 .then(response => {
@@ -39,7 +39,7 @@ export default class PageApp extends React.Component {
                                 if (contentType && contentType.indexOf("application/json") !== -1) {
                                     response.json().then(json => {
                                         // traitement du JSON
-                                        console.log('PageApp SESSION: ', json)
+                                        //console.log('PageApp SESSION: ', json)
                                         this.setState(json)
                                     })
                                 } else {
@@ -55,7 +55,7 @@ export default class PageApp extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        console.log('PageForm.componentWillReceiveProps', nextProps)
+        //console.log('PageForm.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
             this.setState({
                 app: nextProps.params.app,
