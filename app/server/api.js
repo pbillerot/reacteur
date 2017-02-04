@@ -45,6 +45,7 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_UPDATE...')
+      let ctx = Object.assign({}, ctx)
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -58,7 +59,7 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
       let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
       ctx.elements = {}
       Object.keys(fields).forEach(key => {
-          ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
+        ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
 
       callback(null, ctx)
@@ -93,6 +94,7 @@ router.put('/:app/:table/:view/:form', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_ADD...')
+      let ctx = Object.assign({}, ctx)
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -105,7 +107,7 @@ router.put('/:app/:table/:view/:form', function (req, res) {
       let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
       ctx.elements = {}
       Object.keys(fields).forEach(key => {
-          ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
+        ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
       console.log('CTXXXX', ctx.elements)
       callback(null, ctx)
@@ -141,6 +143,7 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_DELETE...')
+      let ctx = Object.assign({}, ctx)
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -153,7 +156,7 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
       let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
       ctx.elements = {}
       Object.keys(fields).forEach(key => {
-          ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
+        ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
 
       callback(null, ctx)
@@ -188,6 +191,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_READ...')
+      let ctx = Object.assign({}, ctx)
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -200,7 +204,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
       let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
       ctx.elements = {}
       Object.keys(fields).forEach(key => {
-          ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
+        ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
 
       callback(null, ctx)
@@ -227,6 +231,7 @@ router.get('/view/:app/:table/:view', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('VIEW...')
+      let ctx = Object.assign({}, ctx)
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -239,7 +244,7 @@ router.get('/view/:app/:table/:view', function (req, res) {
       let rubs = Dico.apps[req.params.app].tables[req.params.table].elements
       ctx.elements = {}
       Object.keys(cols).forEach(key => {
-          ctx.elements[key] = Object.assign({}, rubs[key], cols[key])
+        ctx.elements[key] = Object.assign({}, rubs[key], cols[key])
       })
 
       callback(null, ctx)
@@ -266,6 +271,7 @@ router.put('/cnx/ident', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('IDENT...')
+      let ctx = Object.assign({}, ctx)
       ctx.req = req
       ctx.session = req.session
       callback(null, ctx)
@@ -308,6 +314,7 @@ router.get('/toctoc/:token', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('TOCTOC...')
+      let ctx = Object.assign({}, ctx)
       ctx.req = req
       ctx.session = req.session
       callback(null, ctx)
@@ -330,13 +337,14 @@ router.get('/select/:app/:table/:rub/:input', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('SELECT...')
+      let ctx = Object.assign({}, ctx)
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.rub = req.params.rub
       ctx.input = req.params.input
-      ctx.result = [{value: '1', label: '1111'},{value: '2', label: '2222'}]
+      ctx.result = [{ value: '1', label: '1111' }, { value: '2', label: '2222' }]
       callback(null, ctx)
     },
     Reacteur.api_select,
