@@ -1,5 +1,9 @@
 # TODO
 
+- gestion popup furtiv alerte
+
+
+
 
 ## MISE EN PRODUCTION
 npm uninstall react-alert

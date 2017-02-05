@@ -3,7 +3,7 @@ const router = express.Router();
 const async = require('async')
 const fs = require('fs')
 
-const { Dico, ctx } = require('../config/Dico')
+const { Dico } = require('../config/Dico')
 const { Tools } = require('../config/Tools')
 const { Reacteur } = require('../config/Reacteur')
 
@@ -45,7 +45,7 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_UPDATE...')
-      let ctx = Object.assign({}, ctx)
+      let ctx = {}
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -94,7 +94,7 @@ router.put('/:app/:table/:view/:form', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_ADD...')
-      let ctx = Object.assign({}, ctx)
+      let ctx = {}
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -143,7 +143,7 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_DELETE...')
-      let ctx = Object.assign({}, ctx)
+      let ctx = {}
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -191,7 +191,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_READ...')
-      let ctx = Object.assign({}, ctx)
+      let ctx = {}
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -231,7 +231,7 @@ router.get('/view/:app/:table/:view', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('VIEW...')
-      let ctx = Object.assign({}, ctx)
+      let ctx = {}
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
@@ -271,7 +271,7 @@ router.put('/cnx/ident', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('IDENT...')
-      let ctx = Object.assign({}, ctx)
+      let ctx = {}
       ctx.req = req
       ctx.session = req.session
       callback(null, ctx)
@@ -314,7 +314,7 @@ router.get('/toctoc/:token', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('TOCTOC...')
-      let ctx = Object.assign({}, ctx)
+      let ctx = {}
       ctx.req = req
       ctx.session = req.session
       callback(null, ctx)
@@ -337,7 +337,7 @@ router.get('/select/:app/:table/:rub/:input', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('SELECT...')
-      let ctx = Object.assign({}, ctx)
+      let ctx = {}
       ctx.req = req
       ctx.session = req.session
       ctx.app = req.params.app
