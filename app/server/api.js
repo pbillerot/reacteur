@@ -123,7 +123,7 @@ router.put('/:app/:table/:view/:form', function (req, res) {
     Reacteur.api_post_update_fields,
     Reacteur.api_post_update_form,
     function (ctx, callback) {
-      console.log('END', ctx)
+      console.log('END')
       let json = Reacteur.message(2006)
       json.alert = ctx.alert
       res.status(200).json(json)

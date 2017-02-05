@@ -99,11 +99,11 @@ const Dico = {
                             label_long: "Votre email",
                             type: "mail",
                             group: '',
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return !validator.isEmpty(value) && validator.isEmail(value)
                             },
                             error: "Adresse email non valide",
-                            mail: () => { // voir https://github.com/nodemailer/nodemailer
+                            mail: (ctx) => { // voir https://github.com/nodemailer/nodemailer
                                 return {
                                     from: null, // sender address défini dans config
                                     to: ctx.elements.tok_email.value, // list of receivers
@@ -142,10 +142,10 @@ const Dico = {
                                 _note_new_pwd: {},
                                 tok_email: {}
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
-                            compute() {
+                            compute(ctx) {
                                 ctx.elements.tok_redirect.value = ctx.session.host
                                     + "/form/edit/reacteur/actusers/vident/fchgpwd/"
                                     + ctx.elements.tok_pseudo.value
@@ -172,7 +172,7 @@ const Dico = {
                             placeholder: "",
                             list: null, //val1,val2
                             help: "",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return value.length > 2 && validator.isAlphanumeric(value)
                             },
                             error: "Longueur minimum de 3 car. et n'accepte que les caractères alphanumériques"
@@ -186,7 +186,7 @@ const Dico = {
                             placeholder: "",
                             list: null, //val1,val2
                             help: "",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return !validator.isEmpty(value) && validator.isEmail(value)
                             },
                             error: "Adresse email non valide"
@@ -203,7 +203,7 @@ const Dico = {
                                 INVITE: "INVITE"
                             },
                             default: "INVITE",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return true
                             },
                             error: ""
@@ -213,7 +213,7 @@ const Dico = {
                             label_short: "Actif",
                             title: "",
                             type: "check",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return true
                             },
                             error: ""
@@ -225,7 +225,7 @@ const Dico = {
                             required: false,
                             maxlength: 50,
                             pattern: "[A-Z,a-z,0-9,_\-]*",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return value.length > 7
                             },
                             error: "Obligatoire",
@@ -247,7 +247,7 @@ const Dico = {
                             required: false,
                             maxlength: 50,
                             pattern: "[A-Z,a-z,0-9,_\-]*",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return validator.isByteLength(value, { min: 8 })
                             },
                             error: "Obligatoire, d'une longueur minimum de 8 caractères, n'accepte que les caractères A-Z a-z 0-9 _-",
@@ -259,7 +259,7 @@ const Dico = {
                             required: false,
                             maxlength: 50,
                             pattern: "[A-Z,a-z,0-9,_\-]*",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return value == ctx.elements._user_pwd_1.value ? true : false
                             },
                             error: "Les mots de passe ne sont pas identiques",
@@ -359,7 +359,7 @@ const Dico = {
                                 user_profil: {},
                                 user_actif: {}
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
                             error: "Formulaire non correct"
@@ -378,10 +378,10 @@ const Dico = {
                                 user_actif: { is_hidden: true },
                                 user_profil: { is_hidden: true }
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
-                            compute() {
+                            compute(ctx) {
                                 ctx.elements.user_pwd.value = ctx.elements._user_pwd_1.value
                                 ctx.elements.user_actif.value = '1'
                                 ctx.elements.user_profil.value = 'INVITE'
@@ -413,11 +413,6 @@ const Dico = {
                                 _link_new_compte: {},
                                 _link_forget_pwd: {}
                             },
-                            server_check: {
-                                existsPseudo: {
-                                    pseudo: ctx.elements.user_pseudo
-                                }
-                            }
                         },
                         fchgemail: {
                             title: "Changer mon adresse email",
@@ -449,7 +444,7 @@ const Dico = {
                                 _user_pwd_2: {},
                                 user_pwd: { is_hidden: true }
                             },
-                            compute() {
+                            compute(ctx) {
                                 ctx.elements.user_pwd.value = ctx.elements._user_pwd_1.value
                             }
                         },
@@ -521,7 +516,7 @@ const Dico = {
                                 groupe_nom: {},
                                 groupe_info: {},
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
                         }
@@ -563,7 +558,7 @@ const Dico = {
                             label_short: "Actif",
                             title: "",
                             type: "check",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return true
                             },
                             error: ""
@@ -621,7 +616,7 @@ const Dico = {
                                 user_actif: {},
                                 user_info: {},
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
                         }
@@ -647,7 +642,7 @@ const Dico = {
                             label_short: "Ouvert",
                             title: "",
                             type: "check",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return true
                             },
                             error: ""
@@ -701,7 +696,7 @@ const Dico = {
                                 evt_etat: {},
                                 evt_info: {},
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
                         }
@@ -732,7 +727,7 @@ const Dico = {
                             label_short: "Ouvert",
                             title: "",
                             type: "check",
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return true
                             },
                             error: ""
@@ -784,7 +779,7 @@ const Dico = {
                                 ceou_etat: {},
                                 ceou_info: {},
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
                         }
@@ -862,7 +857,7 @@ const Dico = {
                                 forum_date: {},
                                 forum_info: {},
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
                         }
@@ -883,7 +878,7 @@ const Dico = {
                             label_short: "Oui",
                             title: "",
                             type: "text",
-                            display: (val) => {
+                            display: (val, ctx) => {
                                 return val && val == '1'
                                     ? '<span class="fa fa-check w3-text-teal"></span>'
                                     : ''
@@ -894,7 +889,7 @@ const Dico = {
                             label_short: "Si nécessaire",
                             title: "",
                             type: "text",
-                            display: (val) => {
+                            display: (val, ctx) => {
                                 return val && val == '1'
                                     ? '<span class="w3-text-orange w3-center">(<span class="fa fa-check"></span>)</span>'
                                     : ''
@@ -905,7 +900,7 @@ const Dico = {
                             label_short: "Non",
                             title: "",
                             type: "text",
-                            display: (val) => {
+                            display: (val, ctx) => {
                                 return val && val == '1'
                                     ? '<span class="w3-text-red w3-large"><b>&Oslash;</b></span>'
                                     : ''
@@ -920,9 +915,9 @@ const Dico = {
                             list: {
                                 choix_ok: 'Oui',
                                 choix_kk: 'si nécessaire',
-                                choix_ko: 'Nom'
+                                choix_ko: 'Non'
                             },
-                            is_valide(value) {
+                            is_valide(value, ctx) {
                                 return true
                             },
                             error: ""
@@ -932,7 +927,7 @@ const Dico = {
                             label_short: "Choix",
                             title: "",
                             type: "text",
-                            display: (val) => {
+                            display: (val, ctx) => {
                                 return val && val == '1'
                                     ? '<span class="w3-text-red w3-large"><b>&Oslash;</b></span>'
                                     : ''
@@ -1009,10 +1004,10 @@ const Dico = {
                                 choix_ko: { is_hidden: true },
                                 choix_cg: {},
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
-                            compute() {
+                            compute(ctx) {
                                 ctx.elements.choix_ok.value = '0'
                                 ctx.elements.choix_kk.value = '0'
                                 ctx.elements.choix_ko.value = '0'
@@ -1033,10 +1028,10 @@ const Dico = {
                                 choix_ko: { is_hidden: true },
                                 choix_cg: {},
                             },
-                            is_valide() {
+                            is_valide(ctx) {
                                 return true
                             },
-                            compute() {
+                            compute(ctx) {
                                 ctx.elements.choix_ok.value = '0'
                                 ctx.elements.choix_kk.value = '0'
                                 ctx.elements.choix_ko.value = '0'

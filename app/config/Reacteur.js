@@ -198,7 +198,7 @@ const Reacteur = {
     sendMail(key, ctx, callback) {
         //console.log('sendMail', key, ctx)
         let transport = nodemailer.createTransport(Reacteur.config.smtpConfig)
-        let mail = ctx.elements[key].mail()
+        let mail = ctx.elements[key].mail(ctx)
 
         if (!mail.from)
             mail.from = Reacteur.config.from
@@ -759,7 +759,7 @@ const Reacteur = {
         console.log('COMPUTE_FORM...')
         // calcul du formulaire
         if (ctx.formulaire.compute) {
-            ctx.formulaire.compute()
+            ctx.formulaire.compute(ctx)
         }
         callback(null, ctx)
     },
@@ -771,7 +771,7 @@ const Reacteur = {
         let errors = []
         Object.keys(ctx.elements).forEach((key) => {
             if (ctx.elements[key].is_valide) {
-                if (!ctx.elements[key].is_valide(ctx.elements[key].value)) {
+                if (!ctx.elements[key].is_valide(ctx.elements[key].value, ctx)) {
                     bret = false
                     errors.push(ctx.elements[key].error)
                 }

@@ -188,7 +188,7 @@ class Form extends React.Component {
             this.state.is_read_only = true
 
         if (this.state.formulaire.compute) {
-            this.state.formulaire.compute()
+            this.state.formulaire.compute(ctx)
         }
         Object.keys(ctx.elements).forEach(key => {
             ctx.elements[key].b_valide = true
@@ -222,7 +222,7 @@ class Form extends React.Component {
             // Field valide ?
             if (ctx.elements[key].value && !ctx.elements[key].is_read_only && !ctx.elements[key].is_hidden) {
                 //console.log(key, ctx.elements[key])
-                if (ctx.elements[key].is_valide && !ctx.elements[key].is_valide(ctx.elements[key].value)) {
+                if (ctx.elements[key].is_valide && !ctx.elements[key].is_valide(ctx.elements[key].value, ctx)) {
                     //console.log('checkFormulaire', key, false, ctx.elements[key].value)
                     ctx.elements[key].b_valide = false
                     this.state.is_form_valide = false
@@ -752,9 +752,6 @@ class Field extends React.Component {
                                     )
                                 }
                             </CheckboxGroup>
-                            <label htmlFor={this.props.id} className="w3-validate">
-                                &nbsp;{element.label_long}
-                            </label>
                         </span>
                     )
                 case 'email':
@@ -869,7 +866,7 @@ class Field extends React.Component {
                     )
                 case 'text':
                     if ((element.is_read_only || element.is_protect) && element.display) {
-                        return (<span dangerouslySetInnerHTML={{ __html: element.display(element.value) }}></span>)
+                        return (<span dangerouslySetInnerHTML={{ __html: element.display(element.value, ctx) }}></span>)
                     } else {
                         return (
                             <input className="w3-input w3-border" type="text"
