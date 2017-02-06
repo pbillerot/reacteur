@@ -4,8 +4,9 @@ import React from 'react';
 import 'whatwg-fetch'
 import { Link, browserHistory } from 'react-router';
 const Markdown = require('react-remarkable')
+
 // W3
-const {Button, Card, Content, Footer, Header, IconButton
+const {Alerter, Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
 
 import ContainerSidebar from './ContainerSidebar';
@@ -13,6 +14,7 @@ import ContainerContent from './ContainerContent';
 
 import { ctx, Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
+import { ToolsUI } from '../config/ToolsUI'
 
 export default class PageApp extends React.Component {
     constructor(props) {
@@ -40,12 +42,14 @@ export default class PageApp extends React.Component {
                                     response.json().then(json => {
                                         // traitement du JSON
                                         //console.log('PageApp SESSION: ', json)
+                                        ToolsUI.showAlert(ctx.session.alerts)
                                         this.setState(json)
                                     })
                                 } else {
                                     response.text().then(text => {
                                         // traitement du JSON
                                         //console.log('response: ', text)
+                                        ToolsUI.showAlert(ctx.session.alerts)
                                         this.setState({ markdown: text })
                                     })
                                 }
@@ -78,6 +82,7 @@ export default class PageApp extends React.Component {
                             <p>{Dico.application.copyright}</p>
                         </Footer>
                     </ContainerContent>
+                    <Alerter />
                 </div>
             )
         } else {
@@ -89,6 +94,3 @@ export default class PageApp extends React.Component {
         }
     }
 }
-// <Card style={{ width: '100%', margin: 'auto' }}>
-//     {<Markdown source={this.state.markdown} />}
-// </Card>

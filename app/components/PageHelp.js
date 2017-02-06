@@ -5,12 +5,15 @@ import ReactDOM from 'react-dom'
 import 'whatwg-fetch'
 import { Link } from 'react-router'
 const Markdown = require('react-remarkable')
+import Alert from 'react-s-alert';
+
 // W3
 const {Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
 
 import { ctx, Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
+import { ToolsUI } from '../config/ToolsUI'
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 //const fs = require('fs')
@@ -39,6 +42,7 @@ export default class PageHelp extends React.Component {
                         <p>{Dico.application.copyright}</p>
                     </Footer>
                 </ContainerContent>
+                <Alert />
             </div>
         )
     }

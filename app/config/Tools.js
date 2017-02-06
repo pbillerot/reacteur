@@ -27,5 +27,12 @@ const Tools = {
         })
         return str
     },
+    showAlert(messages) {
+        if (messages) {
+            messages.forEach(message => {
+                console.log("MESSAGE", message)
+            })
+        }
+    }
 }
 export { Tools }

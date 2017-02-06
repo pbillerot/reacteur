@@ -53,7 +53,6 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
-      ctx.session.alert = null
 
       let rubs = Dico.apps[req.params.app].tables[req.params.table].elements
       let fields = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form].elements
@@ -124,9 +123,7 @@ router.put('/:app/:table/:view/:form', function (req, res) {
     Reacteur.api_post_update_form,
     function (ctx, callback) {
       console.log('END')
-      let json = Reacteur.message(2006)
-      json.alert = ctx.alert
-      res.status(200).json(json)
+      res.status(200).json(Reacteur.message(2006))
     }
   ],
     function (err, result) {
@@ -174,7 +171,8 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
             console.log('ERROR', err)
         })
       }
-      res.status(200).json(Reacteur.message(2006))
+      Reacteur.addAlert(ctx, "success", 2004)
+      res.status(200).json(Reacteur.message(2004))
     }
   ],
     function (err, result) {
@@ -302,8 +300,13 @@ router.put('/cnx/close', function (req, res) {
 })
 
 router.get('/session', function (req, res) {
+  //console.log("SESSION", req.session)
   res.status(200).json(req.session) // OK
-  //console.log(req.session.user_pseudo, req.session.id, req.session.count)
+})
+
+router.get('/alerter_raz', function (req, res) {
+  req.session.alerts = []
+  res.status(200).json(req.session) // OK
 })
 
 /**

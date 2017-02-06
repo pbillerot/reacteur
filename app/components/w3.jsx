@@ -1,5 +1,31 @@
 const React = require('react')
 const ReactDOM = require('react-dom')
+import Alert from 'react-s-alert';
+
+export class Alerter extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleOnClose = this.handleOnClose.bind(this);
+    }
+    handleOnClose(e) {
+        //e.preventDefault();
+        fetch('/api/alerter_raz', { credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    // raf
+                })
+            })
+
+    }
+    render() {
+        return (
+            <Alert stack={{ limit: 3, spacing: 10 }}
+                offset={70}
+                onClose={this.handleOnClose}
+                />
+        )
+    }
+}
 
 export class IconButton extends React.Component {
     constructor(props) {

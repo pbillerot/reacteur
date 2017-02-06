@@ -6,7 +6,7 @@ import { renderToString } from 'react-dom/server'
 import 'whatwg-fetch'
 import { Link } from 'react-router'
 // W3
-const {Button, Card, Content, Footer, Header, IconButton
+const {Alerter, Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
 
 import ContainerSidebar from './ContainerSidebar';
@@ -14,6 +14,7 @@ import ContainerContent from './ContainerContent';
 
 import { ctx, Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
+import { ToolsUI } from '../config/ToolsUI'
 
 export default class PageView extends React.Component {
     constructor(props) {
@@ -131,6 +132,7 @@ export default class PageView extends React.Component {
                 response.json().then(json => {
                     //console.log('PageApp SESSION: ', json)
                     ctx.session = json
+                    ToolsUI.showAlert(ctx.session.alerts)
                     this.getData(this.state.app, this.state.table, this.state.view)
                 })
             })
@@ -180,6 +182,7 @@ export default class PageView extends React.Component {
                             <p>{Dico.application.copyright}</p>
                         </Footer>
                     </ContainerContent>
+                    <Alerter />
                 </div>
             )
         } else {

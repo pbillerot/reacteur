@@ -14,21 +14,6 @@ import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import fs from 'fs';
 
-//const Express = require('express')
-//const http = require('http')
-//const https = require('https')
-//const morgan = require('morgan')
-//const bodyParser = require('body-parser')
-//const helmet = require('helmet')
-
-//const React = require('react')
-//const { match, RouterContext } = require('react-router')
-//const { renderToString } = require('react-dom/server')
-//const routes = require('./routes')
-//const PageNotFound = require('./components/PageNotFound')
-//const path = require('path')
-//const fs = require('fs')
-
 const { Reacteur } = require('./config/Reacteur')
 
 // initialize the server and configure support for ejs templates
@@ -41,11 +26,11 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.set('trust proxy', 1) // trust first proxy
-morgan.token('id', function(req, res) {
-  return req.session ? req.session.user_pseudo 
-  ? req.session.id.substring(26) + '/' + req.session.user_pseudo 
-  : req.session.id.substring(26) + '/anonymous' 
-  : 'no-session';
+morgan.token('id', function (req, res) {
+  return req.session ? req.session.user_pseudo
+    ? req.session.id.substring(26) + '/' + req.session.user_pseudo
+    : req.session.id.substring(26) + '/anonymous'
+    : 'no-session';
 });
 app.use(morgan(morgan.short + ' [:id]'))
 app.use(helmet())
@@ -73,11 +58,14 @@ app.use(session({
   }
 }))
 app.use(function (req, res, next) {
-  //console.log('fullUrl', req.protocol + '://' + req.get('host') + req.originalUrl)
+  console.log("SERVER", req.session)
   //res.setHeader('Access-Control-Allow-Credentials', 'true')
   var sess = req.session
+  if ( ! req.session.alerts ) {
+    req.session.alerts = []
+  }
   req.session.host = req.protocol + '://' + req.get('host')
-  if ( sess.count ) {
+  if (sess.count) {
     sess.count += 1
     //console.log(sess.id, sess.count)
   } else {

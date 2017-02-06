@@ -41,7 +41,11 @@ const Reacteur = {
     message: (code, ...params) => {
         return { code: code, message: sprintf(Reacteur.messages['m' + code], params) }
     },
+    addAlert: (ctx, type, code, ...params) => {
+        ctx.session.alerts.push({type: type, message: sprintf(Reacteur.messages['m' + code], params)})
+    },
     messages: {
+        m2000: "%s",  // message banalisé
         m2002: "Le mot de passe a été enregistré",
         m2003: "Mot de passe correct",
         m2004: "Suppression réalisée avec succès",
@@ -217,7 +221,7 @@ const Reacteur = {
                 //console.log('mail',mail)
                 transport.sendMail(mail).then(function (info) {
                     console.log(info);
-                    ctx.alert = info.response
+                    Reacteur.addAlert(ctx, "info", 2000, info.response)
                     callback(null, { code: 2009, message: info.response })
                 }).catch(function (err) {
                     console.log(err, mail);

@@ -8,7 +8,7 @@ import Select from 'react-select';
 import { Checkbox, CheckboxGroup } from 'react-checkbox-group';
 
 // W3
-const {Card, Content, Footer, Header, IconButton
+const {Alerter, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
 
 import ContainerSidebar from './ContainerSidebar';
@@ -16,6 +16,7 @@ import ContainerContent from './ContainerContent';
 
 import { ctx, Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
+import { ToolsUI } from '../config/ToolsUI'
 
 export default class PageForm extends React.Component {
     constructor(props) {
@@ -54,6 +55,7 @@ export default class PageForm extends React.Component {
         }
     }
     render() {
+        //console.log("PageForm", this.state)
         if (Dico.apps[this.state.app]
             && Dico.apps[this.state.app].tables[this.state.table]
             && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]
@@ -79,6 +81,7 @@ export default class PageForm extends React.Component {
                             <p>{Dico.application.copyright}</p>
                         </Footer>
                     </ContainerContent>
+                    <Alerter />
                 </div>
             )
         } else {
@@ -156,17 +159,25 @@ class Form extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         //console.log('Form.componentWillReceiveProps', nextProps)
-        if (nextProps.params) {
-            this.getData(nextProps.params.action, nextProps.params.app, nextProps.params.table
-                , nextProps.params.view, nextProps.params.form, nextProps.params.id,
-                (result) => {
-                    //
+        fetch('/api/session', { credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    ctx.session = json
+                    ToolsUI.showAlert(ctx.session.alerts)
+                    //console.log('PageForm SESSION: ', json)
+                    if (nextProps.params) {
+                        this.getData(nextProps.params.action, nextProps.params.app, nextProps.params.table
+                            , nextProps.params.view, nextProps.params.form, nextProps.params.id,
+                            (result) => {
+                                //
+                            })
+                    } else {
+                        this.getData(nextProps.action, nextProps.app, nextProps.table, nextProps.view, nextProps.form, nextProps.id,
+                            (result) => {
+                            })
+                    }
                 })
-        } else {
-            this.getData(nextProps.action, nextProps.app, nextProps.table, nextProps.view, nextProps.form, nextProps.id,
-                (result) => {
-                })
-        }
+            })
     }
     componentDidMount() {
         //console.log('Form.componentDidMount...')
@@ -174,6 +185,7 @@ class Form extends React.Component {
             .then(response => {
                 response.json().then(json => {
                     ctx.session = json
+                    ToolsUI.showAlert(ctx.session.alerts)
                     //console.log('PageForm SESSION: ', json)
                     this.getData(this.state.action, this.state.app, this.state.table, this.state.view, this.state.form, this.state.id,
                         (result) => {
@@ -467,9 +479,10 @@ class Form extends React.Component {
             if (is_ok)
                 list_fields.push(key)
         })
+        //console.log('PageForm session', ctx.session)
         let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
             && ctx.session.host && ctx.session.host.length > 3
-        //console.log('session', ctx.session)
+        //console.log('PageForm', display_form)
         return (
             <form>
                 {this.state.is_error &&

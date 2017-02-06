@@ -4,8 +4,9 @@ import React from 'react';
 import 'whatwg-fetch'
 import { Link } from 'react-router';
 const Markdown = require('react-remarkable')
+
 // W3
-const {Button, Card, Content, Footer, Header, IconButton
+const {Alerter, Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
 
 import ContainerSidebar from './ContainerSidebar';
@@ -13,6 +14,7 @@ import ContainerContent from './ContainerContent';
 
 import { ctx, Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
+import { ToolsUI } from '../config/ToolsUI'
 
 export default class PagePortail extends React.Component {
     constructor(props) {
@@ -29,8 +31,8 @@ export default class PagePortail extends React.Component {
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    //console.log('PagePortail SESSION: ', json)
                     ctx.session = json
+                    ToolsUI.showAlert(ctx.session.alerts)
                     this.setState({})
                 })
             })
@@ -42,8 +44,8 @@ export default class PagePortail extends React.Component {
     render() {
         let apps = []
         Object.keys(Dico.apps).map(app => {
-            if ( Dico.apps[app].group && Dico.apps[app].group.length > 0 ) {
-                if ( ctx.session.user_profil == Dico.apps[app].group ) {
+            if (Dico.apps[app].group && Dico.apps[app].group.length > 0) {
+                if (ctx.session.user_profil == Dico.apps[app].group) {
                     apps.push(app)
                 }
             } else {
@@ -53,12 +55,12 @@ export default class PagePortail extends React.Component {
         //console.log("PagePortail", apps)
         return (
             <div>
-                <ContainerSidebar apex={this} {...this.props}/>
+                <ContainerSidebar apex={this} {...this.props} />
                 <ContainerContent apex={this}>
                     <Header title={Dico.application.desc} apex={this} />
                     <div className="w3-row-padding">
                         {apps.sort().map(app =>
-                            <Link style={{textDecoration: 'none'}} className="w3-col m6 l4 w3-margin-top" to={'/app/' + app} key={app}>
+                            <Link style={{ textDecoration: 'none' }} className="w3-col m6 l4 w3-margin-top" to={'/app/' + app} key={app}>
                                 <div className="w3-card" >
                                     <header className="w3-container w3-theme-dark">
                                         <h3>{Dico.apps[app].title}</h3>
@@ -68,7 +70,7 @@ export default class PagePortail extends React.Component {
                                         <p>{Dico.apps[app].desc}</p>
                                     </div>
 
-                                    <footer className="w3-container w3-dark-grey">                                        
+                                    <footer className="w3-container w3-dark-grey">
                                     </footer>
                                 </div>
                             </Link>
@@ -78,6 +80,7 @@ export default class PagePortail extends React.Component {
                         <p>{Dico.application.copyright}</p>
                     </Footer>
                 </ContainerContent>
+                <Alerter />
             </div>
         )
     }
