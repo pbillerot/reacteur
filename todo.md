@@ -1,8 +1,5 @@
 # TODO
 
-- gestion popup furtiv alerte
-
-
 
 
 ## MISE EN PRODUCTION

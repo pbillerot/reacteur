@@ -1,6 +1,6 @@
 {
   "name": "reacteur",
-  "version": "1.2.3",
+  "version": "1.2.6",
   "description": "Experimental Web application with NodeJS, Express, HTTPS, React, Sqlite",
   "main": "index.js",
   "scripts": {
