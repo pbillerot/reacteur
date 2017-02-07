@@ -33,13 +33,15 @@ const Reacteur = {
             cert: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/cert.pem'),
             ca: fs.readFileSync('/home/billerot/conf/letsencrypt/live/pbillerot.freeboxos.fr/chain.pem'),
         }
-
     },
     /**
      * Messages retour du serveur
      */
-    message: (code, ...params) => {
-        return { code: code, message: sprintf(Reacteur.messages['m' + code], params) }
+    message: (ctx, code, ...params) => {
+        return { code: code, 
+            message: sprintf(Reacteur.messages['m' + code], params),
+            alerts: ctx.session.alerts 
+        }
     },
     addAlert: (ctx, type, code, ...params) => {
         ctx.session.alerts.push({type: type, message: sprintf(Reacteur.messages['m' + code], params)})
@@ -104,7 +106,7 @@ const Reacteur = {
                     count++
                     if (err) {
                         if (!isCallback) {
-                            callback(500, Reacteur.message(5001))
+                            callback(500, Reacteur.message(ctx, ctx, 5001))
                             isCallback = true
                         }
                     } else {
@@ -181,7 +183,7 @@ const Reacteur = {
                     if (!isCallback) {
                         if (err) {
                             isCallback = true
-                            callback(500, Reacteur.message(5001))
+                            callback(500, Reacteur.message(ctx, 5001))
                         } else {
                             if (count >= countMax) {
                                 isCallback = true
@@ -193,7 +195,7 @@ const Reacteur = {
 
             })
         }
-        return callback(null, Reacteur.message(2009));
+        return callback(null, Reacteur.message(ctx, 2009));
     },
     /**
      * Envoi de mails
@@ -215,13 +217,14 @@ const Reacteur = {
         let md = ejs.renderFile(__dirname + '/../config/' + fileMail, data, {}, function (err, str) {
             //console.log('ejs', err, str)
             if (err) {
-                callback(Reacteur.message(5001))
+                callback(Reacteur.message(ctx, 5001))
             } else {
                 mail.html = str
                 //console.log('mail',mail)
                 transport.sendMail(mail).then(function (info) {
                     console.log(info);
                     Reacteur.addAlert(ctx, "info", 2000, info.response)
+                    console.log(ctx.session);
                     callback(null, { code: 2009, message: info.response })
                 }).catch(function (err) {
                     console.log(err, mail);
@@ -292,7 +295,7 @@ const Reacteur = {
             db.run(sql, args, function (err) {
                 if (err) {
                     console.error(err, 'SQL: ' + sql, 'PARAMS: ' + JSON.stringify(args))
-                    return callback(500, Reacteur.message(5001))
+                    return callback(500, Reacteur.message(ctx, 5001))
                 } else {
                     console.log('sql_update:', this, JSON.stringify(args))
                     return callback(null, { lastID: this.lastID, changes: this.changes })
@@ -315,7 +318,7 @@ const Reacteur = {
                 //console.log('<<<', err, rows)
                 if (err) {
                     console.log('sql_select', err, sql, args)
-                    callback(500, Reacteur.message(5001))
+                    callback(500, Reacteur.message(ctx, 5001))
                 } else {
                     // On récupère la 1ère cellule
                     let value = ''
@@ -338,7 +341,7 @@ const Reacteur = {
         console.log('CHECK_SESSION...')
         // Ctrl session
         if (!ctx.session || !ctx.session.user_pseudo || ctx.session.user_pseudo.length < 3) {
-            callback(400, Reacteur.message(9901))
+            callback(400, Reacteur.message(ctx, 9901))
         } else {
             callback(null, ctx)
         }
@@ -348,7 +351,7 @@ const Reacteur = {
         // Ctrl session
         if (!ctx.session || !ctx.session.user_pseudo || ctx.session.user_pseudo.length < 3) {
             if (ctx.req.params.form != 'forgetpwd' && ctx.req.params.form != 'fnew' && ctx.table != 'actusers') {
-                ctx.res.status(400).json(Reacteur.message(9901))
+                ctx.res.status(400).json(Reacteur.message(ctx, 9901))
             } else {
                 callback(null, ctx)
             }
@@ -507,7 +510,7 @@ const Reacteur = {
                     let col_id = key
                     if (!ctx.elements[key]) {
                         err = 400
-                        return callback(400, Reacteur.message(4101, key))
+                        return callback(400, Reacteur.message(ctx, 4101, key))
                     }
                     if (ctx.elements[key].type == 'jointure_select') {
                         table = ctx.elements[key].jointure.table
@@ -588,16 +591,16 @@ const Reacteur = {
                         user_profil = row.user_profil
                     })
                     if (md5(user_pwd) != pwdmd5) {
-                        callback(400, Reacteur.message(4002))
+                        callback(400, Reacteur.message(ctx, 4002))
                     } else {
                         // User OK
                         ctx.session.user_pseudo = user_pseudo
                         ctx.session.user_email = user_email
                         ctx.session.user_profil = user_profil
-                        callback(200, Reacteur.message(2003))
+                        callback(200, Reacteur.message(ctx, 2003))
                     }
                 } else {
-                    callback(400, Reacteur.message(4004))
+                    callback(400, Reacteur.message(ctx, 4004))
                 }
             }
         })
@@ -637,19 +640,19 @@ const Reacteur = {
                                     callback(null, ctx)
                                 } else {
                                     // le pseudo n'existe plus
-                                    console.log(token.tok_pseudo, token.tok_email, Reacteur.message(9906))
-                                    callback(400, Reacteur.message(9906))
+                                    console.log(token.tok_pseudo, token.tok_email, Reacteur.message(ctx, 9906))
+                                    callback(400, Reacteur.message(ctx, 9906))
                                 }
                             }
                         })
                     } else {
                         // le jeton est expiré
-                        console.log(Reacteur.message(9908))
-                        callback(400, Reacteur.message(9908))
+                        console.log(Reacteur.message(ctx, 9908))
+                        callback(400, Reacteur.message(ctx, 9908))
                     }
                 } else {
-                    console.log(Reacteur.message(9905))
-                    callback(400, Reacteur.message(9905))
+                    console.log(Reacteur.message(ctx, 9905))
+                    callback(400, Reacteur.message(ctx, 9905))
                 }
             }
         })
@@ -667,7 +670,7 @@ const Reacteur = {
             })
             if (!ok) {
                 bret = false
-                callback(400, Reacteur.message(9903))
+                callback(400, Reacteur.message(ctx, 9903))
             }
         }
         if (bret) {
@@ -675,7 +678,7 @@ const Reacteur = {
             if (ctx.formulaire.owner) {
                 if (ctx.req.params.id != ctx.session.user_pseudo) {
                     bret = false
-                    callback(400, Reacteur.message(9907))
+                    callback(400, Reacteur.message(ctx, 9907))
                 }
             }
         }
@@ -696,7 +699,7 @@ const Reacteur = {
             })
             if (!ok) {
                 bret = false
-                callback(400, Reacteur.message(9902))
+                callback(400, Reacteur.message(ctx, 9902))
             }
         }
         if (bret) {
@@ -740,7 +743,7 @@ const Reacteur = {
                         if (err) {
                             if (!isCallback) {
                                 isCallback = true
-                                callback(500, Reacteur.message(5001))
+                                callback(500, Reacteur.message(ctx, 5001))
                             }
                         } else {
                             ctx.elements[key].value = result.value
@@ -782,7 +785,7 @@ const Reacteur = {
             }
         })
         if (!bret) {
-            let result = Reacteur.message(4005)
+            let result = Reacteur.message(ctx, 4005)
             result.message = errors.join()
             callback(400, result)
         } else {

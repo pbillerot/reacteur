@@ -75,7 +75,7 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
     Reacteur.api_post_update_form,
     function (ctx, callback) {
       console.log('END')
-      res.status(200).json(Reacteur.message(2005))
+      res.status(200).json(Reacteur.message(ctx, 2005))
     }
   ],
     function (err, result) {
@@ -123,7 +123,8 @@ router.put('/:app/:table/:view/:form', function (req, res) {
     Reacteur.api_post_update_form,
     function (ctx, callback) {
       console.log('END')
-      res.status(200).json(Reacteur.message(2006))
+      console.log("APRES", ctx.session)
+      res.status(200).json(Reacteur.message(ctx, 2006))
     }
   ],
     function (err, result) {
@@ -172,7 +173,7 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
         })
       }
       Reacteur.addAlert(ctx, "success", 2004)
-      res.status(200).json(Reacteur.message(2004))
+      res.status(200).json(Reacteur.message(ctx, 2004))
     }
   ],
     function (err, result) {
@@ -277,7 +278,7 @@ router.put('/cnx/ident', function (req, res) {
     Reacteur.api_connect,
     function (ctx, callback) {
       console.log('END')
-      res.status(200).json(Reacteur.message(2003))
+      res.status(200).json(Reacteur.message(ctx, 2003))
     }
   ],
     function (err, result) {
@@ -296,7 +297,7 @@ router.put('/cnx/close', function (req, res) {
     if (err)
       console.log('ERROR', err)
   })
-  res.status(200).json(Reacteur.message(2007))
+  res.status(200).json(Reacteur.message(ctx, 2007))
 })
 
 router.get('/session', function (req, res) {

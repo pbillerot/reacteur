@@ -63,6 +63,7 @@ export default class PageView extends React.Component {
                     //console.log('response', response)
                     response.json().then(json => {
                         //console.log('json', json)
+                        if ( json.alerts ) ToolsUI.showAlert(json.alerts)
                         if (response.ok == true) {
                             let row_key = Dico.apps[app].tables[table].key
                             ctx.elements = {}
