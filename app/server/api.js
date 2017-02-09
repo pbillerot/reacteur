@@ -292,6 +292,9 @@ router.put('/cnx/ident', function (req, res) {
  * Connexion Fermeture
  */
 router.put('/cnx/close', function (req, res) {
+  let ctx = {}
+  ctx.req = req
+  ctx.session = req.session
   req.session.destroy(function (err) {
     // will have a new session here
     if (err)

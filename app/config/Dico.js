@@ -40,7 +40,7 @@ const Dico = {
             title: 'TAROT',
             desc: "TAROT - Compter les points au tarot de 3 à 5 joueurs",
             image: "http://www.w3schools.com/w3css/img_lights.jpg",
-            group: null,
+            group: "INVITE",
             tables: {
             }
         },

@@ -31,5 +31,9 @@ const ToolsUI = {
             })
         }
     },
+    saveAlert(alerts) {
+        console.log("saveAlerts", alerts)
+        window.localStorage.setItem("alerts", alerts);
+    },
 }
 export { ToolsUI }

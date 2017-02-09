@@ -272,7 +272,7 @@ class Form extends React.Component {
                 { credentials: 'same-origin' })
                 .then(response => {
                     response.json().then(json => {
-                        if ( json.alerts ) ToolsUI.showAlert(json.alerts)
+                        //if ( json.alerts ) ToolsUI.showAlert(json.alerts)
                         if (response.ok == true) {
                             let row = JSON.parse(json)
                             //console.log("json", json)
@@ -318,7 +318,7 @@ class Form extends React.Component {
         }).then(response => {
             //console.log('RESULT: ', response)
             response.json().then(json => {
-                if ( json.alerts ) ToolsUI.showAlert(json.alerts)
+                //if ( json.alerts ) ToolsUI.showAlert(json.alerts)
                 if (response.ok == true) {
                     if (json.code < 4000) {
                         browserHistory.push('/');
@@ -358,7 +358,7 @@ class Form extends React.Component {
             //console.log('RESULT: ', response)
             response.json().then(json => {
                 //console.log('json', json)
-                if ( json.alerts ) ToolsUI.showAlert(json.alerts)
+                //if ( json.alerts ) ToolsUI.showAlert(json.alerts)
                 if (response.ok == true) {
                     if (json.code < 4000) {
                         if (this.state.formulaire.return_route) {
@@ -403,7 +403,7 @@ class Form extends React.Component {
         }).then(response => {
             //console.log('RESULT: ', response)
             response.json().then(json => {
-                if ( json.alerts ) ToolsUI.showAlert(json.alerts)
+                //if ( json.alerts ) ToolsUI.showAlert(json.alerts)
                 if (response.ok == true) {
                     if (json.code < 4000) {
                         if (this.state.formulaire.return_route) {
@@ -448,8 +448,7 @@ class Form extends React.Component {
             //console.log('RESULT: ', response)
             response.json().then(json => {
                 if (response.ok == true) {
-                    console.log('insertData json', json)
-                    if ( json.alerts ) ToolsUI.showAlert(json.alerts)
+                    //if ( json.alerts ) ToolsUI.saveAlert(json.alerts)
                     if (json.code < 4000) {
                         if (this.state.formulaire.return_route) {
                             browserHistory.push(this.state.formulaire.return_route)

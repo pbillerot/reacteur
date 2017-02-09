@@ -12,6 +12,7 @@ const randomstring = require('randomstring')
 const moment = require('moment')
 const ejs = require('ejs')
 const sprintf = require('sprintf-js').sprintf
+const async = require('async')
 
 const { Dico } = require('./Dico')
 const { Tools } = require('./Tools')
@@ -38,13 +39,14 @@ const Reacteur = {
      * Messages retour du serveur
      */
     message: (ctx, code, ...params) => {
-        return { code: code, 
+        return {
+            code: code,
             message: sprintf(Reacteur.messages['m' + code], params),
-            alerts: ctx.session.alerts 
+            alerts: ctx.session.alerts
         }
     },
     addAlert: (ctx, type, code, ...params) => {
-        ctx.session.alerts.push({type: type, message: sprintf(Reacteur.messages['m' + code], params)})
+        ctx.session.alerts.push({ type: type, message: sprintf(Reacteur.messages['m' + code], params) })
     },
     messages: {
         m2000: "%s",  // message banalisé
@@ -142,28 +144,48 @@ const Reacteur = {
      * server_post_update
      */
     server_post_update_fields: (ctx, callback) => {
-        // post_update des champs
-        let error = null
-        let resultat = null
-        Object.keys(ctx.elements).forEach(key => {
-            //console.log(field)
-            if (error) return
-            switch (ctx.elements[key].type) {
-                case 'mail':
-                    Reacteur.sendMail(key, ctx, (err, result) => {
-                        error = err
-                        resultat = result
-                    })
-                    break
-                default:
-                    break
-            }
+        async.every(Object.keys(ctx.elements), (key, nextCallback) => {
+                // same execution for each item in the array 
+                switch (ctx.elements[key].type) {
+                    case 'mail':
+                        Reacteur.sendMail(key, ctx, (err, result) => {
+                            if (err) {
+                                nextCallback(err, result)
+                            } else {
+                                nextCallback(null, ctx)
+                            }
+                        })
+                        break
+                    default:
+                        nextCallback(null, ctx)
+                        break
+                }
+        }, function (err, result) {
+            // final callback 
+            return callback(err, result);
         })
-        if (error) {
-            return callback(error, resultat);
-        } else {
-            return callback(null, ctx);
-        }
+        // // post_update des champs
+        // let error = null
+        // let resultat = null
+        // Object.keys(ctx.elements).forEach(key => {
+        //     //console.log(field)
+        //     if (error) return
+        //     switch (ctx.elements[key].type) {
+        //         case 'mail':
+        //             Reacteur.sendMail(key, ctx, (err, result) => {
+        //                 error = err
+        //                 resultat = result
+        //             })
+        //             break
+        //         default:
+        //             break
+        //     }
+        // })
+        // if (error) {
+        //     return callback(error, resultat);
+        // } else {
+        //     return callback(null, ctx);
+        // }
     },
     server_post_update: (ctx, callback) => {
         // poste_update du formulaire
@@ -217,15 +239,14 @@ const Reacteur = {
         let md = ejs.renderFile(__dirname + '/../config/' + fileMail, data, {}, function (err, str) {
             //console.log('ejs', err, str)
             if (err) {
-                callback(Reacteur.message(ctx, 5001))
+                callback(5001, Reacteur.message(ctx, 5001))
             } else {
                 mail.html = str
                 //console.log('mail',mail)
                 transport.sendMail(mail).then(function (info) {
                     console.log(info);
                     Reacteur.addAlert(ctx, "info", 2000, info.response)
-                    console.log(ctx.session);
-                    callback(null, { code: 2009, message: info.response })
+                    callback(null, ctx)
                 }).catch(function (err) {
                     console.log(err, mail);
                     callback(500, { code: 5001, message: err.response })
