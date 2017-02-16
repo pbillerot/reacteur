@@ -24,22 +24,25 @@ const { Tools } = require('./Tools')
  * que le client vers le serveur
  */
 const ctx = {
-    elements: {},
-    user: {}, // id email profil
-    session: {} // host (https://server:port)
+    elements: {}, // list of form fields or view cols
+    session: { // set by your login
+        host: 'https://server:port',
+        user_pseudo: 'yourpseudo',
+        user_email: 'youremail@csp.com',
+        user_profil: 'INVITE',
+    } 
 }
 const Dico = {
     application: {
         title: 'REACTEUR',
         desc: "REACTEUR - Le Portail",
         url: 'https://github.com/pbillerot/reacteur',
-        copyright: 'build with REACTEUR 2016 - version 1.2.6',
+        copyright: 'build with REACTEUR 2016 - version 1.2.16',
     },
     apps: {
         tarot: {
             title: 'TAROT',
             desc: "TAROT - Compter les points au tarot de 3 à 5 joueurs",
-            image: "http://www.w3schools.com/w3css/img_lights.jpg",
             group: "INVITE",
             tables: {
             }
@@ -47,7 +50,6 @@ const Dico = {
         reacteur: {
             title: 'REACTEUR Studio',
             desc: "Le framework de développement des applications REACTEUR",
-            image: "http://www.w3schools.com/w3css/img_london.jpg",
             group: "ADMIN",
             tables: {
                 acttokens: { // voir reacteur.sql
