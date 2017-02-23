@@ -37,15 +37,24 @@ export default class PageView extends React.Component {
         }
         ctx.elements = {}
         this.handleSkipPage = this.handleSkipPage.bind(this);
+        this.handleFilterChanged = this.handleFilterChanged.bind(this);
+        this.handleFilterSubmit = this.handleFilterSubmit.bind(this);
     }
     handleSkipPage(page) {
         //console.log("handleSkipPage", page)
         this.state.page_current = page
         this.getData(this.state.app, this.state.table, this.state.view)
     }
-    handlerCtx(obj) {
-        this.setState(obj)
+    handleFilterChanged(e) {
+        //console.log("handleFilterChanged", e.target.value)
+        this.setState({ filter: e.target.value})
     }
+    handleFilterSubmit() {
+        //console.log("handleFilterSubmit")
+        sessionStorage.setItem(this.state.app + '_' + this.state.table + '_' + this.state.view, this.state.filter);
+        this.getData(this.state.app, this.state.table, this.state.view)
+    }
+
     selectionChanged(data) {
         this.props.ctx.handleState({ rows_selected: data, key_value: data[0] })
     }
@@ -151,13 +160,14 @@ export default class PageView extends React.Component {
         }
     }
     componentDidMount() {
-        console.log('componentDidMount...')
+        //console.log('componentDidMount...')
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
                     //console.log('PageApp SESSION: ', json)
                     ctx.session = json
                     ToolsUI.showAlert(ctx.session.alerts)
+                    this.state.filter = sessionStorage.getItem(this.state.app + '_' + this.state.table + '_' + this.state.view)
                     this.getData(this.state.app, this.state.table, this.state.view)
                 })
             })
@@ -171,6 +181,8 @@ export default class PageView extends React.Component {
             let app = this.state.app
             let table = this.state.table
             let view = this.state.view
+            let filter = this.state.filter
+            let page_current = this.state.page_current
             let form_add = Dico.apps[app].tables[table].views[view].form_add
             let form_view = Dico.apps[app].tables[table].views[view].form_view
             let form_edit = Dico.apps[app].tables[table].views[view].form_edit
@@ -196,7 +208,11 @@ export default class PageView extends React.Component {
                         }
                         {!this.state.is_error &&
                             <Card>
-                                <Table apex={this}
+                                <Table apex={this} filter={filter}
+                                    handleFilterChanged={this.handleFilterChanged}
+                                    handleFilterSubmit={this.handleFilterSubmit}
+                                    page_current={page_current}
+                                    handleSkipPage={this.handleSkipPage}
                                     app={app} table={table} view={view}
                                     form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                                     row_key={row_key} rows={this.state.rows}
@@ -248,7 +264,11 @@ class Table extends React.Component {
                         <tr className="w3-theme-l4">
                             <td colSpan={icol}><div className="w3-row">
                                 <div className="w3-col s4">
-                                    <Search apex={this.props.apex} />
+                                    <Search apex={this.props.apex}
+                                        filter={this.props.filter}
+                                        handleFilterChanged={this.props.handleFilterChanged}
+                                        handleFilterSubmit={this.props.handleFilterSubmit}
+                                    />
                                 </div>
                                 <div className="w3-col s8 w3-bar">
                                     <Pager key={view} className="w3-right"
@@ -416,28 +436,6 @@ class Cell extends React.Component {
 }
 
 class Search extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            filter: ''
-        }
-        this.filterChanged = this.filterChanged.bind(this);
-        this.filterSubmit = this.filterSubmit.bind(this);
-    }
-    componentDidMount() {
-        //console.log('Search.componentDidMount')
-    }
-    componentWillReceiveProps(nextProps) {
-        //console.log('Search.componentDidMount')
-    }
-    filterChanged(e) {
-        this.setState({ filter: e.target.value })
-        this.props.apex.state.filter = e.target.value
-    }
-    filterSubmit() {
-        sessionStorage.setItem(this.props.apex.state.app + '_' + this.props.apex.state.table + '_' + this.props.apex.state.view, this.state.filter)
-        this.props.apex.getData(this.props.apex.state.app, this.props.apex.state.table, this.props.apex.state.view)
-    }
 
     render() {
         //console.log("Search", this.props)
@@ -445,15 +443,15 @@ class Search extends React.Component {
             <div className="w3-row">
                 <span className="w3-col s9">
                     <input className="w3-input w3-border w3-small" name="filter" type="text" placeholder="recherche"
-                        onChange={this.filterChanged}
-                        value={this.props.apex.state.filter}
+                        onChange={this.props.handleFilterChanged}
+                        value={this.props.filter}
                         id="filter"
-                        onKeyPress={(e) => { (e.key == 'Enter' ? this.filterSubmit() : null) }}
+                        onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleFilterSubmit() : null) }}
                     />
                 </span>
                 <span className="w3-col s3 w3-padding-8">
                     <span className="w3-margin-left" style={{ height: '100%' }}
-                        onClick={this.filterSubmit} >
+                        onClick={this.props.handleFilterSubmit} >
                         <i className="w3-large fa fa-search"></i>
                     </span>
                 </span>
