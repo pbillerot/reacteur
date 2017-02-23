@@ -230,6 +230,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
  * Lecture d'une vue
  */
 router.put('/view/:app/:table/:view', function (req, res) {
+  console.log("params:", req.body)
   async.waterfall([
     function (callback) {
       console.log('VIEW...')
@@ -239,7 +240,9 @@ router.put('/view/:app/:table/:view', function (req, res) {
       ctx.app = req.params.app
       ctx.table = req.params.table
       ctx.view = req.params.view
-      ctx.filter = ctx.req.body.filter
+      ctx.filter = req.body.filter
+      ctx.page_current = req.body.page_current
+      ctx.page_total = 0
       ctx.vue = Dico.apps[req.params.app].tables[req.params.table].views[req.params.view]
       ctx.tableur = []
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
@@ -250,7 +253,6 @@ router.put('/view/:app/:table/:view', function (req, res) {
       Object.keys(cols).forEach(key => {
         ctx.elements[key] = Object.assign({}, rubs[key], cols[key])
       })
-
       callback(null, ctx)
     },
     //Reacteur.api_check_session,
@@ -258,7 +260,8 @@ router.put('/view/:app/:table/:view', function (req, res) {
     Reacteur.api_read_view,
     function (ctx, callback) {
       console.log('END')
-      res.status(200).json(JSON.stringify(ctx.tableur))
+      //res.status(200).json(JSON.stringify(ctx.tableur))
+      res.status(200).json({rows: ctx.tableur, page_total: ctx.page_total})
     }
   ],
     function (err, result) {

@@ -25,6 +25,8 @@ export default class PageView extends React.Component {
             table: this.props.params.table,
             view: this.props.params.view,
             filter: '',
+            page_total: 0,
+            page_current: 0,
             rows: [],
             rows_selected: [],
             is_error: false,
@@ -34,6 +36,12 @@ export default class PageView extends React.Component {
             }
         }
         ctx.elements = {}
+        this.handleSkipPage = this.handleSkipPage.bind(this);
+    }
+    handleSkipPage(page) {
+        //console.log("handleSkipPage", page)
+        this.state.page_current = page
+        this.getData(this.state.app, this.state.table, this.state.view)
     }
     handlerCtx(obj) {
         this.setState(obj)
@@ -63,6 +71,7 @@ export default class PageView extends React.Component {
             let filter = sessionStorage.getItem(app + '_' + table + '_' + view);
             if (!filter) filter = ''
             let data = 'filter=' + encodeURIComponent(filter)
+            data += '&page_current=' + encodeURIComponent(this.state.page_current)
 
             fetch('/api/view/' + app + '/' + table + '/' + view, {
                 method: "PUT",
@@ -89,7 +98,7 @@ export default class PageView extends React.Component {
 
                             //console.log(JSON.stringify(rows))
                             var tableur = []
-                            JSON.parse(json).forEach((row) => {
+                            json.rows.forEach((row) => {
                                 // insertion des colonnes des rubriques temporaires
                                 let ligne = {}
                                 let key_value = ''
@@ -115,6 +124,7 @@ export default class PageView extends React.Component {
                                 app: app,
                                 table: table,
                                 view: view,
+                                page_total: json.page_total
                             })
                         } else {
                             this.state.error = {
@@ -133,7 +143,7 @@ export default class PageView extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        console.log('componentWillReceiveProps', nextProps.params)
+        //console.log('componentWillReceiveProps', nextProps.params)
         if (nextProps.params) {
             this.getData(nextProps.params.app, nextProps.params.table, nextProps.params.view)
         } else {
@@ -236,15 +246,20 @@ class Table extends React.Component {
                 <thead>
                     {Dico.apps[app].tables[table].views[view].with_filter &&
                         <tr className="w3-theme-l4">
-                            <th colSpan={icol}><div className="w3-row">
+                            <td colSpan={icol}><div className="w3-row">
                                 <div className="w3-col s4">
                                     <Search apex={this.props.apex} />
                                 </div>
-                                <div className="w3-col s8">
-                                    <Pager key={view} apex={this.props.apex} className="w3-right" total={10} current={5} />
+                                <div className="w3-col s8 w3-bar">
+                                    <Pager key={view} className="w3-right"
+                                        total={this.props.apex.state.page_total}
+                                        current={this.props.apex.state.page_current}
+                                        onSkipTo={this.props.apex.handleSkipPage}
+                                    />
+                                    <span className="w3-padding-8 w3-margin-right w3-right">Page: </span>
                                 </div>
                             </div>
-                            </th>
+                            </td>
                         </tr>
                     }
                     <tr className="w3-theme">

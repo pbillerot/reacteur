@@ -621,6 +621,8 @@ const Reacteur = {
         // construction de l'ordre sql et des paramètres
         let params = {}
         let sql = ''
+        let sql_count = ''
+        let page_total = 1
         let joins = []
         let err = null
         Object.keys(ctx.elements).forEach((key) => {
@@ -648,8 +650,10 @@ const Reacteur = {
         if (!err) {
             if (sql.length > 0) {
                 sql = 'SELECT ' + sql + ' FROM ' + ctx.table
+                sql_count = "SELECT COUNT(*) as 'COUNT' FROM " + ctx.table
                 if (joins.length > 0) {
                     sql += joins.join(' ')
+                    sql_count += joins.join(' ')
                 }
                 if (ctx.vue.order_by) {
                     sql += " order by " + ctx.vue.order_by
@@ -683,41 +687,59 @@ const Reacteur = {
                     })
                     where += ")"
                 }
-                if ( where.length > 0 ) sql += where
-
-                // LIMIT
-                let limit = "50"
-                if (Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].limit) {
-                    limit = Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].limit
-                } else if (Dico.apps[ctx.app].tables[ctx.table].limit) {
-                    limit = Dico.apps[ctx.app].tables[ctx.table].limit
-                } else if (Dico.apps[ctx.app].limit) {
-                    limit = Dico.apps[ctx.app].limit
+                if (where.length > 0) {
+                    sql += where
+                    sql_count += where
                 }
-                sql += " LIMIT " + limit //+ " OFFSET 50"
-
                 params['$' + ctx.key_name] = ctx.id
-                Reacteur.sql_select(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
+                Reacteur.sql_select(Dico.apps[ctx.app].tables[ctx.table].basename, sql_count, params, (err, result) => {
                     if (err) {
                         callback(err, result)
                     } else {
+                        let row_count = 0
                         result.rows.forEach((row) => {
-                            // insertion des colonnes des rubriques temporaires
-                            let ligne = {}
-                            let key_value = ''
-                            Object.keys(ctx.elements).forEach(key => {
-                                if (key == ctx.key_name) {
-                                    key_value = row[key]
-                                }
-                                if (Tools.isRubTemporary(key)) {
-                                    ligne[key] = key_value
-                                } else {
-                                    ligne[key] = row[key]
-                                }
-                            })
-                            ctx.tableur.push(ligne)
+                            row_count = parseInt(row.COUNT)
                         })
-                        callback(null, ctx)
+                        // LIMIT
+                        let limit = 50
+                        if (Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].limit) {
+                            limit = parseInt(Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].limit)
+                        } else if (Dico.apps[ctx.app].tables[ctx.table].limit) {
+                            limit = parseInt(Dico.apps[ctx.app].tables[ctx.table].limit)
+                        } else if (Dico.apps[ctx.app].limit) {
+                            limit = parseInt(Dico.apps[ctx.app].limit)
+                        }
+                        // NBRE DE PAGES
+                        let pages = parseInt(row_count / limit) + 1
+                        ctx.page_total = pages
+                        // OFFSET
+                        let offset = (ctx.page_current) * limit
+                        console.log("row_count", row_count, "Pages:", pages, "page_current:", ctx.page_current, "Offset:", offset)
+                        sql += " LIMIT " + limit.toString() + " OFFSET " + offset.toString()
+
+                        Reacteur.sql_select(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
+                            if (err) {
+                                callback(err, result)
+                            } else {
+                                result.rows.forEach((row) => {
+                                    // insertion des colonnes des rubriques temporaires
+                                    let ligne = {}
+                                    let key_value = ''
+                                    Object.keys(ctx.elements).forEach(key => {
+                                        if (key == ctx.key_name) {
+                                            key_value = row[key]
+                                        }
+                                        if (Tools.isRubTemporary(key)) {
+                                            ligne[key] = key_value
+                                        } else {
+                                            ligne[key] = row[key]
+                                        }
+                                    })
+                                    ctx.tableur.push(ligne)
+                                })
+                                callback(null, ctx)
+                            }
+                        })
                     }
                 })
             } else {
