@@ -36,7 +36,7 @@ export default class ContainerSidebar extends React.Component {
     componentWillReceiveProps(nextProps) {
         //console.log('ContainerSidebar.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
-            this.setState({app: nextProps.params.app})
+            this.setState({ app: nextProps.params.app })
         }
     }
     render() {
@@ -113,7 +113,7 @@ class NavView extends React.Component {
                         }
                             key={this.props.table + '_' + view}
                             activeClassName="w3-theme-l1"
-                            >
+                        >
                             {Dico.apps[this.props.app].tables[this.props.table].views[view].title}
                         </Link>
                     )
@@ -179,4 +179,3 @@ class IdentContainer extends React.Component {
         )
     }
 }
-

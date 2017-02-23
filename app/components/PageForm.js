@@ -70,7 +70,7 @@ export default class PageForm extends React.Component {
                             <a onClick={this.handleBack}>
                                 <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
                                     title="retour"
-                                    ></i>
+                                ></i>
                             </a>
                             <span id="myIntro">{title}</span>
                         </div>
@@ -346,7 +346,7 @@ class Form extends React.Component {
             let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
             data += data.length > 0 ? '&' + param : param
         })
-        fetch('/api/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+        fetch('/api/rec/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
             method: "POST",
             credentials: 'same-origin',
             headers: {
@@ -392,7 +392,7 @@ class Form extends React.Component {
                 data += data.length > 0 ? '&' + param : param
             }
         })
-        fetch('/api/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
+        fetch('/api/rec/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
             method: "DELETE",
             credentials: 'same-origin',
             headers: {
@@ -436,7 +436,7 @@ class Form extends React.Component {
             let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
             data += data.length > 0 ? '&' + param : param
         })
-        fetch('/api/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form, {
+        fetch('/api/rec/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form, {
             method: "PUT",
             credentials: 'same-origin',
             headers: {
@@ -505,7 +505,7 @@ class Form extends React.Component {
                                     value={ctx.elements[key].value}
                                     onEditRow={this.onEditRow}
                                     handleSubmit={this.handleSubmit}
-                                    />
+                                />
                                 <Error {...this.state} id={key} />
                                 <Help {...this.state} id={key} />
                             </div>
@@ -648,7 +648,6 @@ class Field extends React.Component {
         this.handleCheckGroup = this.handleCheckGroup.bind(this);
         this.handleButton = this.handleButton.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
-        this.getOptions = this.getOptions.bind(this);
     }
     handleButton(e) {
         e.preventDefault();
@@ -699,24 +698,19 @@ class Field extends React.Component {
     }
     componentDidMount() {
         //console.log('Field.componentDidMount...', this.state, this.props)
-        if (ctx.elements[this.props.id].type == 'jointure_select') {
-            fetch('/api/select/' + this.props.app + '/' + this.props.table + '/' + this.props.id + '/0', { credentials: 'same-origin' })
-                .then(response => {
-                    response.json().then(json => {
-                        //console.log(json)
-                        this.setState({ options: json })
+        if (ctx.elements[this.props.id].type == "select") {
+            if (ctx.elements[this.props.id].jointure) {
+                fetch('/api/select/' + this.props.app + '/' + this.props.table + '/' + this.props.id + '/0', { credentials: 'same-origin' })
+                    .then(response => {
+                        response.json().then(json => {
+                            //console.log(json)
+                            this.setState({ options: json })
+                        })
                     })
-                })
+            } else {
+                this.setState({ options: ctx.elements[this.props.id].list })
+            }
         }
-    }
-    getOptions(input) {
-        return fetch('/api/select/' + this.props.app + '/' + this.props.table + '/' + this.props.id + '/' + input, { credentials: 'same-origin' })
-            .then((response) => {
-                console.log('select', response)
-                return response.json();
-            }).then((json) => {
-                return { options: json };
-            });
     }
     render() {
         //console.log('render', this.state)
@@ -728,7 +722,7 @@ class Field extends React.Component {
                         <button to={element.action_url} className="w3-btn w3-teal"
                             title={element.title}
                             onClick={this.handleButton}
-                            >
+                        >
                             {element.label_long}
                         </button>
                     )
@@ -741,7 +735,7 @@ class Field extends React.Component {
                                 value={element.value == '1' ? true : false}
                                 checked={element.value == '1' ? true : false}
                                 name={this.props.id} id={this.props.id}
-                                />
+                            />
                             <label htmlFor={this.props.id} className="w3-validate">
                                 &nbsp;{element.label_long}
                             </label>
@@ -757,7 +751,7 @@ class Field extends React.Component {
                                     : []
                                 }
                                 name={this.props.id} id={this.props.id}
-                                >
+                            >
                                 {
                                     Object.keys(element.list).map(item =>
                                         <span key={item}>
@@ -781,18 +775,7 @@ class Field extends React.Component {
                             disabled={element.is_read_only}
                             value={element.value}
                             id={this.props.id}
-                            />
-                    )
-                case 'jointure_select':
-                    // https://github.com/JedWatson/react-select
-                    return (
-                        <Select
-                            name={this.props.id}
-                            value={element.value}
-                            //loadOptions={this.getOptions}
-                            options={this.state.options}
-                            onChange={this.handleSelectChange}
-                            />
+                        />
                     )
                 case 'link':
                     let uri = Tools.replaceParams(element.action_url,
@@ -800,7 +783,7 @@ class Field extends React.Component {
                     return (
                         <Link to={uri} className="w3-text-teal"
                             title={element.title}
-                            >
+                        >
                             {element.label_long}
                         </Link>
                     )
@@ -814,8 +797,8 @@ class Field extends React.Component {
                             disabled={element.is_read_only}
                             value={element.value}
                             id={this.props.id}
-                            onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }
-                            />
+                            onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) }}
+                        />
                     )
                 case 'radio':
                     return (
@@ -827,7 +810,7 @@ class Field extends React.Component {
                                         disabled={element.is_read_only}
                                         name={this.props.id} value={key} id={key}
                                         onChange={this.handleChange}
-                                        />
+                                    />
                                     <label htmlFor={key} className="w3-validate">
                                         &nbsp;{element.list[key]}
                                     </label>
@@ -836,20 +819,15 @@ class Field extends React.Component {
                         </div>
                     )
                 case 'select':
+                    // https://github.com/JedWatson/react-select
                     return (
-                        <select className="w3-select w3-border"
-                            placeholder={element.placeholder}
-                            onChange={this.handleChange}
-                            disabled={element.is_read_only}
+                        <Select 
+                            name={this.props.id}
                             value={element.value}
-                            id={this.props.id}
-                            >
-                            {Object.keys(element.list).map(key =>
-                                <option key={key} value={key}>
-                                    {element.list[key]}
-                                </option>
-                            )}
-                        </select>
+                            disabled={element.is_read_only}
+                            options={this.state.options}
+                            onChange={this.handleSelectChange}
+                        />
                     )
                 case 'mail':
                     return (
@@ -861,7 +839,7 @@ class Field extends React.Component {
                             disabled={element.is_read_only}
                             value={element.value}
                             id={this.props.id}
-                            />
+                        />
                     )
                 case 'textarea':
                     return (
@@ -870,10 +848,10 @@ class Field extends React.Component {
                             pattern={element.pattern}
                             placeholder={element.placeholder}
                             onChange={this.handleChange}
-                            disabled={element.is_read_only || element.is_protect}
+                            disabled={element.is_read_only || element.is_protected}
                             value={element.value}
                             id={this.props.id}
-                            />
+                        />
                     )
                 case 'note':
                     return (
@@ -882,7 +860,7 @@ class Field extends React.Component {
                         </div>
                     )
                 case 'text':
-                    if ((element.is_read_only || element.is_protect) && element.display) {
+                    if ((element.is_read_only || element.is_protected) && element.display) {
                         return (<span dangerouslySetInnerHTML={{ __html: element.display(element.value, ctx) }}></span>)
                     } else {
                         return (
@@ -891,11 +869,11 @@ class Field extends React.Component {
                                 pattern={element.pattern}
                                 placeholder={element.placeholder}
                                 onChange={this.handleChange}
-                                disabled={element.is_read_only || element.is_protect}
+                                disabled={element.is_read_only || element.is_protected}
                                 value={element.value}
                                 id={this.props.id}
-                                onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) } }
-                                />
+                                onKeyPress={(e) => { (e.key == 'Enter' ? this.props.handleSubmit() : null) }}
+                            />
                         )
                     }
                 default:

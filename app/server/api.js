@@ -40,7 +40,7 @@ router.get('/help/:app', function (req, res) {
 /**
  * Mise à jour d'un enregistreemnt
  */
-router.post('/:app/:table/:view/:form/:id', function (req, res) {
+router.post('/rec/:app/:table/:view/:form/:id', function (req, res) {
   //console.log(req.url)
   async.waterfall([
     function (callback) {
@@ -50,6 +50,7 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
+      ctx.view = req.params.view
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
@@ -63,7 +64,7 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
 
       callback(null, ctx)
     },
-    Reacteur.api_check_session,
+    //Reacteur.api_check_session,
     Reacteur.api_check_group_form,
     Reacteur.api_load_fields,
     Reacteur.api_compute_fields,
@@ -89,7 +90,7 @@ router.post('/:app/:table/:view/:form/:id', function (req, res) {
 /**
  * Création d'un enregistreement
  */
-router.put('/:app/:table/:view/:form', function (req, res) {
+router.put('/rec/:app/:table/:view/:form', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_ADD...')
@@ -98,6 +99,7 @@ router.put('/:app/:table/:view/:form', function (req, res) {
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
+      ctx.view = req.params.view
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
@@ -111,7 +113,7 @@ router.put('/:app/:table/:view/:form', function (req, res) {
       console.log('CTXXXX', ctx.elements)
       callback(null, ctx)
     },
-    Reacteur.api_check_session_forgetpwd,
+    //Reacteur.api_check_session_forgetpwd,
     Reacteur.api_check_group_form,
     Reacteur.api_load_fields,
     Reacteur.api_compute_fields,
@@ -123,7 +125,6 @@ router.put('/:app/:table/:view/:form', function (req, res) {
     Reacteur.api_post_update_form,
     function (ctx, callback) {
       console.log('END')
-      console.log("APRES", ctx.session)
       res.status(200).json(Reacteur.message(ctx, 2006))
     }
   ],
@@ -137,7 +138,7 @@ router.put('/:app/:table/:view/:form', function (req, res) {
 /**
  * Suppression d'un enregistrement
  */
-router.delete('/:app/:table/:view/:form/:id', function (req, res) {
+router.delete('/rec/:app/:table/:view/:form/:id', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('FORM_DELETE...')
@@ -146,6 +147,7 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
+      ctx.view = req.params.view
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
@@ -159,7 +161,7 @@ router.delete('/:app/:table/:view/:form/:id', function (req, res) {
 
       callback(null, ctx)
     },
-    Reacteur.api_check_session,
+    //Reacteur.api_check_session,
     Reacteur.api_check_group_form,
     Reacteur.api_delete_record,
     Reacteur.api_post_update_form,
@@ -195,6 +197,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
+      ctx.view = req.params.view
       ctx.formulaire = Dico.apps[req.params.app].tables[req.params.table].forms[req.params.form]
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
       ctx.id = req.params.id
@@ -208,7 +211,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
 
       callback(null, ctx)
     },
-    Reacteur.api_check_session,
+    //Reacteur.api_check_session,
     Reacteur.api_check_group_form,
     Reacteur.api_read_record,
     function (ctx, callback) {
@@ -226,7 +229,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
 /**
  * Lecture d'une vue
  */
-router.get('/view/:app/:table/:view', function (req, res) {
+router.put('/view/:app/:table/:view', function (req, res) {
   async.waterfall([
     function (callback) {
       console.log('VIEW...')
@@ -235,6 +238,8 @@ router.get('/view/:app/:table/:view', function (req, res) {
       ctx.session = req.session
       ctx.app = req.params.app
       ctx.table = req.params.table
+      ctx.view = req.params.view
+      ctx.filter = ctx.req.body.filter
       ctx.vue = Dico.apps[req.params.app].tables[req.params.table].views[req.params.view]
       ctx.tableur = []
       ctx.key_name = Dico.apps[req.params.app].tables[req.params.table].key
@@ -248,7 +253,7 @@ router.get('/view/:app/:table/:view', function (req, res) {
 
       callback(null, ctx)
     },
-    Reacteur.api_check_session,
+    //Reacteur.api_check_session,
     Reacteur.api_check_group_view,
     Reacteur.api_read_view,
     function (ctx, callback) {

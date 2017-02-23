@@ -145,21 +145,21 @@ const Reacteur = {
      */
     server_post_update_fields: (ctx, callback) => {
         async.every(Object.keys(ctx.elements), (key, nextCallback) => {
-                // same execution for each item in the array 
-                switch (ctx.elements[key].type) {
-                    case 'mail':
-                        Reacteur.sendMail(key, ctx, (err, result) => {
-                            if (err) {
-                                nextCallback(err, result)
-                            } else {
-                                nextCallback(null, ctx)
-                            }
-                        })
-                        break
-                    default:
-                        nextCallback(null, ctx)
-                        break
-                }
+            // same execution for each item in the array 
+            switch (ctx.elements[key].type) {
+                case 'mail':
+                    Reacteur.sendMail(key, ctx, (err, result) => {
+                        if (err) {
+                            nextCallback(err, result)
+                        } else {
+                            nextCallback(null, ctx)
+                        }
+                    })
+                    break
+                default:
+                    nextCallback(null, ctx)
+                    break
+            }
         }, function (err, result) {
             // final callback 
             return callback(err, result);
@@ -380,14 +380,113 @@ const Reacteur = {
             callback(null, ctx)
         }
     },
+    api_check_group_form: (ctx, callback) => {
+        console.log('CHECK_GROUP_FORM...')
+        // Ctrl accès au formulaire
+        if (ctx.formulaire.group) {
+            Reacteur.api_check_session(ctx, (err, result) => {
+                if (err) {
+                    callback(err, result)
+                } else {
+                    let groups = ctx.session.user_profil.split(',')
+                    let ok = false
+                    groups.forEach(group => {
+                        if (group == ctx.formulaire.group)
+                            ok = true
+                    })
+                    if (!ok) {
+                        bret = false
+                        callback(400, Reacteur.message(ctx, 9903))
+                    } else {
+                        if (ctx.formulaire.owner) {
+                            if (ctx.req.params.id != ctx.session.user_pseudo) {
+                                bret = false
+                                callback(400, Reacteur.message(ctx, 9907))
+                            } else {
+                                callback(null, ctx)
+                            }
+                        } else {
+                            callback(null, ctx)
+                        }
+                    }
+                }
+            })
+        } else {
+            callback(null, ctx)
+        }
+
+    },
+    api_check_group_view: (ctx, callback) => {
+        console.log('CHECK_GROUP_VIEW...')
+        // Ctrl accès à la vue
+        if (ctx.vue.group) {
+            Reacteur.api_check_session(ctx, (err, result) => {
+                if (err) {
+                    callback(err, result)
+                } else {
+                    let groups = ctx.session.user_profil.split(',')
+                    let ok = false
+                    groups.forEach(group => {
+                        if (group == ctx.vue.group)
+                            ok = true
+                    })
+                    if (!ok) {
+                        bret = false
+                        callback(400, Reacteur.message(ctx, 9902))
+                    } else {
+                        callback(null, ctx)
+                    }
+                }
+            })
+        } else {
+            callback(null, ctx)
+        }
+    },
+    api_check_fields: (ctx, callback) => {
+        console.log('CHECK_FIELDS...')
+
+        // Ctrl intrinséque des champs
+        let bret = true
+        let errors = []
+        Object.keys(ctx.elements).forEach((key) => {
+            if (ctx.elements[key].is_valide) {
+                if (!ctx.elements[key].is_valide(ctx.elements[key].value, ctx)) {
+                    bret = false
+                    errors.push(ctx.elements[key].error)
+                }
+            }
+        })
+        if (!bret) {
+            let result = Reacteur.message(ctx, 4005)
+            result.message = errors.join()
+            callback(400, result)
+        } else {
+            callback(null, ctx)
+        }
+    },
+    api_check_form: (ctx, callback) => {
+        console.log('CHECK_FORM...')
+        // Controle sur le serveur
+        if (ctx.formulaire.server_check) {
+            Reacteur.server_check(ctx, (err, result) => {
+                if (err) {
+                    callback(err, result)
+                } else {
+                    callback(null, ctx)
+                }
+            })
+        } else {
+            callback(null, ctx)
+        }
+    },
     api_update_record: (ctx, callback) => {
         console.log('UPDATE_RECORD...')
         // Transformation des values en record
         Object.keys(ctx.elements).forEach((key) => {
             if (!Tools.isRubTemporary(key) && ctx.elements[key].is_read_only == false) {
                 ctx.elements[key].record_value = ctx.elements[key].value // par défaut record_value = value
-                if (ctx.elements[key].srv_record)
-                    ctx.elements[key].record_value = ctx.elements[key].srv_record(ctx.elements[key].value)
+                if (ctx.elements[key].server_record)
+                    ctx.elements[key].record_value = ctx.elements[key].server_record(ctx.elements[key].value)
             }
         })
 
@@ -424,8 +523,8 @@ const Reacteur = {
         Object.keys(ctx.elements).forEach((key) => {
             if (!Tools.isRubTemporary(key) && ctx.elements[key].is_read_only == false) {
                 ctx.elements[key].record_value = ctx.elements[key].value // par défaut record_value = value
-                if (ctx.elements[key].srv_record)
-                    ctx.elements[key].record_value = ctx.elements[key].srv_record(ctx.elements[key].value)
+                if (ctx.elements[key].server_record)
+                    ctx.elements[key].record_value = ctx.elements[key].server_record(ctx.elements[key].value)
             }
         })
 
@@ -533,7 +632,7 @@ const Reacteur = {
                         err = 400
                         return callback(400, Reacteur.message(ctx, 4101, key))
                     }
-                    if (ctx.elements[key].type == 'jointure_select') {
+                    if (ctx.elements[key].jointure) {
                         table = ctx.elements[key].jointure.table
                         col_id = ctx.elements[key].jointure.label
                         let index_id = ctx.elements[key].jointure.value
@@ -555,6 +654,48 @@ const Reacteur = {
                 if (ctx.vue.order_by) {
                     sql += " order by " + ctx.vue.order_by
                 }
+
+                // WHERE
+                let where = ''
+                if (Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].where) {
+                    where = " WHERE " + Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].where
+                }
+
+                // FILTER
+                if (ctx.filter && ctx.filter.length > 0) {
+                    console.log("filter", ctx.filter)
+                    params['$_filter'] = "%" + ctx.filter + "%"
+                    where += where.length > 0 ? " AND (" : " WHERE ("
+                    let start = true
+                    Object.keys(ctx.elements).forEach((key) => {
+                        if (!Tools.isRubTemporary(key)) {
+                            let table = ctx.table
+                            let col_id = key
+                            if (ctx.elements[key].jointure) {
+                                table = ctx.elements[key].jointure.table
+                                col_id = ctx.elements[key].jointure.label
+                            }
+                            where += start
+                                ? "" + table + "." + col_id + " like $_filter"
+                                : " OR " + table + "." + col_id + " like $_filter"
+                            start = false
+                        }
+                    })
+                    where += ")"
+                }
+                if ( where.length > 0 ) sql += where
+
+                // LIMIT
+                let limit = "50"
+                if (Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].limit) {
+                    limit = Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].limit
+                } else if (Dico.apps[ctx.app].tables[ctx.table].limit) {
+                    limit = Dico.apps[ctx.app].tables[ctx.table].limit
+                } else if (Dico.apps[ctx.app].limit) {
+                    limit = Dico.apps[ctx.app].limit
+                }
+                sql += " LIMIT " + limit //+ " OFFSET 50"
+
                 params['$' + ctx.key_name] = ctx.id
                 Reacteur.sql_select(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {
                     if (err) {
@@ -678,55 +819,6 @@ const Reacteur = {
             }
         })
     },
-    api_check_group_form: (ctx, callback) => {
-        console.log('CHECK_GROUP_FORM...')
-        // Ctrl accès au formulaire
-        let bret = true
-        if (ctx.formulaire.group) {
-            let groups = ctx.session.user_profil.split(',')
-            let ok = false
-            groups.forEach(group => {
-                if (group == ctx.formulaire.group)
-                    ok = true
-            })
-            if (!ok) {
-                bret = false
-                callback(400, Reacteur.message(ctx, 9903))
-            }
-        }
-        if (bret) {
-            // Ctrl owner
-            if (ctx.formulaire.owner) {
-                if (ctx.req.params.id != ctx.session.user_pseudo) {
-                    bret = false
-                    callback(400, Reacteur.message(ctx, 9907))
-                }
-            }
-        }
-        if (bret) {
-            callback(null, ctx)
-        }
-    },
-    api_check_group_view: (ctx, callback) => {
-        console.log('CHECK_GROUP_VIEW...')
-        // Ctrl accès à la vue
-        let bret = true
-        if (ctx.vue.group) {
-            let groups = ctx.session.user_profil.split(',')
-            let ok = false
-            groups.forEach(group => {
-                if (group == ctx.vue.group)
-                    ok = true
-            })
-            if (!ok) {
-                bret = false
-                callback(400, Reacteur.message(ctx, 9902))
-            }
-        }
-        if (bret) {
-            callback(null, ctx)
-        }
-    },
     api_load_fields: (ctx, callback) => {
         console.log('LOAD_FIELDS...')
         // Recup des valeurs transmises
@@ -748,7 +840,7 @@ const Reacteur = {
         let countMax = 0
         let params = {}
         Object.keys(ctx.elements).forEach((key) => {
-            if (ctx.elements[key].server_compute && ctx.elements[key].server_compute.length > 0) {
+            if (ctx.elements[key].server_select && ctx.elements[key].server_select.length > 0) {
                 countMax++
             }
             params['$' + key] = ctx.elements[key].value
@@ -758,8 +850,8 @@ const Reacteur = {
         let basename = Dico.apps[ctx.app].tables[ctx.table].basename
         if (countMax > 0) {
             Object.keys(ctx.elements).forEach((key) => {
-                if (ctx.elements[key].server_compute && ctx.elements[key].server_compute.length > 0) {
-                    Reacteur.sql_select(basename, ctx.elements[key].server_compute, params, (err, result) => {
+                if (ctx.elements[key].server_select && ctx.elements[key].server_select.length > 0) {
+                    Reacteur.sql_select(basename, ctx.elements[key].server_select, params, (err, result) => {
                         count++
                         if (err) {
                             if (!isCallback) {
@@ -790,43 +882,6 @@ const Reacteur = {
             ctx.formulaire.compute(ctx)
         }
         callback(null, ctx)
-    },
-    api_check_fields: (ctx, callback) => {
-        console.log('CHECK_FIELDS...')
-
-        // Ctrl intrinséque des champs
-        let bret = true
-        let errors = []
-        Object.keys(ctx.elements).forEach((key) => {
-            if (ctx.elements[key].is_valide) {
-                if (!ctx.elements[key].is_valide(ctx.elements[key].value, ctx)) {
-                    bret = false
-                    errors.push(ctx.elements[key].error)
-                }
-            }
-        })
-        if (!bret) {
-            let result = Reacteur.message(ctx, 4005)
-            result.message = errors.join()
-            callback(400, result)
-        } else {
-            callback(null, ctx)
-        }
-    },
-    api_check_form: (ctx, callback) => {
-        console.log('CHECK_FORM...')
-        // Controle sur le serveur
-        if (ctx.formulaire.server_check) {
-            Reacteur.server_check(ctx, (err, result) => {
-                if (err) {
-                    callback(err, result)
-                } else {
-                    callback(null, ctx)
-                }
-            })
-        } else {
-            callback(null, ctx)
-        }
     },
     api_post_update_fields: (ctx, callback) => {
         console.log('POST_UPDATE_FIELDS...')

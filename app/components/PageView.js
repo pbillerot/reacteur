@@ -2,9 +2,9 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { renderToString } from 'react-dom/server'
 import 'whatwg-fetch'
 import { Link } from 'react-router'
+import Pager from './Pager'
 // W3
 const {Alerter, Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
@@ -24,6 +24,7 @@ export default class PageView extends React.Component {
             app: this.props.params.app,
             table: this.props.params.table,
             view: this.props.params.view,
+            filter: '',
             rows: [],
             rows_selected: [],
             is_error: false,
@@ -58,7 +59,20 @@ export default class PageView extends React.Component {
 
             let key_id = Dico.apps[app].tables[table].key
 
-            fetch('/api/view/' + app + '/' + table + '/' + view, { credentials: 'same-origin' })
+            // recup du filtre dans la session du navigateur
+            let filter = sessionStorage.getItem(app + '_' + table + '_' + view);
+            if (!filter) filter = ''
+            let data = 'filter=' + encodeURIComponent(filter)
+
+            fetch('/api/view/' + app + '/' + table + '/' + view, {
+                method: "PUT",
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                },
+                body: data
+            })
                 .then(response => {
                     //console.log('response', response)
                     response.json().then(json => {
@@ -119,7 +133,7 @@ export default class PageView extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        //console.log('componentWillReceiveProps', nextProps.params)
+        console.log('componentWillReceiveProps', nextProps.params)
         if (nextProps.params) {
             this.getData(nextProps.params.app, nextProps.params.table, nextProps.params.view)
         } else {
@@ -127,7 +141,7 @@ export default class PageView extends React.Component {
         }
     }
     componentDidMount() {
-        //console.log('componentDidMount...')
+        console.log('componentDidMount...')
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
@@ -176,7 +190,7 @@ export default class PageView extends React.Component {
                                     app={app} table={table} view={view}
                                     form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                                     row_key={row_key} rows={this.state.rows}
-                                    />
+                                />
                             </Card>
                         }
                         <Footer apex={this}>
@@ -206,10 +220,33 @@ class Table extends React.Component {
         let form_delete = this.props.form_delete
         let row_key = this.props.row_key
         let irow = 0
+        let icol = 0
+        Object.keys(ctx.elements).forEach(key => {
+            if (!ctx.elements[key].is_hidden) {
+                icol++
+            }
+        })
+        if (form_view) icol++
+        if (form_edit) icol++
+        if (form_delete) icol++
+
         //console.log('Table: ', this.props.rows)
         return (
             <table className="w3-table-all w3-hoverable w3-medium w3-card-3">
                 <thead>
+                    {Dico.apps[app].tables[table].views[view].with_filter &&
+                        <tr className="w3-theme-l4">
+                            <th colSpan={icol}><div className="w3-row">
+                                <div className="w3-col s4">
+                                    <Search apex={this.props.apex} />
+                                </div>
+                                <div className="w3-col s8">
+                                    <Pager key={view} apex={this.props.apex} className="w3-right" total={10} current={5} />
+                                </div>
+                            </div>
+                            </th>
+                        </tr>
+                    }
                     <tr className="w3-theme">
                         {form_view &&
                             <th>&nbsp;</th>
@@ -281,7 +318,7 @@ class Row extends React.Component {
                     <td style={{ width: '30px' }}>
                         <Link to={'/form/edit/' + app + '/' + table + '/' + view + '/' + form_edit + '/' + key_val}
                             title={'Modifier ' + Dico.apps[app].tables[table].forms[form_edit].title + '...'}
-                            ><i className="material-icons w3-text-teal">edit</i>
+                        ><i className="material-icons w3-text-teal">edit</i>
                         </Link>
                     </td>
                 }
@@ -296,7 +333,7 @@ class Row extends React.Component {
                     <td style={{ width: '30px' }}>
                         <Link to={'/form/delete/' + app + '/' + table + '/' + view + '/' + form_delete + '/' + key_val}
                             title={'Supprimer ' + Dico.apps[app].tables[table].forms[form_delete].title + '...'}
-                            ><i className="material-icons w3-text-orange">delete</i>
+                        ><i className="material-icons w3-text-orange">delete</i>
                         </Link>
                     </td>
                 }
@@ -315,7 +352,7 @@ class TD extends React.Component {
                     <Cell row_key={this.props.row_key} id={this.props.id}
                         table={this.props.table} view={this.props.view}
                         row={this.props.row}
-                        />
+                    />
                 </td>
             )
         }
@@ -342,7 +379,7 @@ class Cell extends React.Component {
                 return (
                     <input className="w3-check" type="checkbox" disabled
                         checked={val == '1' ? true : false}
-                        />
+                    />
                 )
             case 'radio':
                 return (
@@ -360,5 +397,52 @@ class Cell extends React.Component {
                     <span>{val}</span>
                 )
         }
+    }
+}
+
+class Search extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            filter: ''
+        }
+        this.filterChanged = this.filterChanged.bind(this);
+        this.filterSubmit = this.filterSubmit.bind(this);
+    }
+    componentDidMount() {
+        //console.log('Search.componentDidMount')
+    }
+    componentWillReceiveProps(nextProps) {
+        //console.log('Search.componentDidMount')
+    }
+    filterChanged(e) {
+        this.setState({ filter: e.target.value })
+        this.props.apex.state.filter = e.target.value
+    }
+    filterSubmit() {
+        sessionStorage.setItem(this.props.apex.state.app + '_' + this.props.apex.state.table + '_' + this.props.apex.state.view, this.state.filter)
+        this.props.apex.getData(this.props.apex.state.app, this.props.apex.state.table, this.props.apex.state.view)
+    }
+
+    render() {
+        //console.log("Search", this.props)
+        return (
+            <div className="w3-row">
+                <span className="w3-col s9">
+                    <input className="w3-input w3-border w3-small" name="filter" type="text" placeholder="recherche"
+                        onChange={this.filterChanged}
+                        value={this.props.apex.state.filter}
+                        id="filter"
+                        onKeyPress={(e) => { (e.key == 'Enter' ? this.filterSubmit() : null) }}
+                    />
+                </span>
+                <span className="w3-col s3 w3-padding-8">
+                    <span className="w3-margin-left" style={{ height: '100%' }}
+                        onClick={this.filterSubmit} >
+                        <i className="w3-large fa fa-search"></i>
+                    </span>
+                </span>
+            </div>
+        )
     }
 }
