@@ -1385,6 +1385,7 @@ const Dico = {
                             form_add: 'fmaj',
                             form_edit: 'fmaj',
                             form_delete: 'fmaj',
+                            with_filter: true,
                             elements: {
                                 ArtistId: {},
                                 AlbumId: {},

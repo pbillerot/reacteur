@@ -152,10 +152,14 @@ export default class PageView extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        //console.log('componentWillReceiveProps', nextProps.params)
+        console.log('componentWillReceiveProps', nextProps.params)
         if (nextProps.params) {
+            this.state.filter = 
+                sessionStorage.getItem(nextProps.params.app + '_' + nextProps.params.table + '_' + nextProps.params.view)
             this.getData(nextProps.params.app, nextProps.params.table, nextProps.params.view)
         } else {
+            this.state.filter = 
+                sessionStorage.getItem(nextProps.app + '_' + nextProps.table + '_' + nextProps.view)
             this.getData(nextProps.app, nextProps.table, nextProps.view)
         }
     }
