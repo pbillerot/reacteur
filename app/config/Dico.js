@@ -1355,7 +1355,7 @@ const Dico = {
                             label_long: "Album Id",
                             label_short: "Album Id",
                             type: "text",
-                            //is_read_only: true,
+                            is_read_only: true,
                         },
                         Title: {
                             label_long: "Title",
