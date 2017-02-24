@@ -20,12 +20,12 @@ router.get('/portail', function (req, res) {
 /**
  * Appel de l'aide
  */
-router.get('/help', function (req, res) {
-  var session = req.session
-  let path = __dirname + '/../views/help.md';
-  let file = fs.readFileSync(path, 'utf8');
-  res.send((file.toString()));
-})
+// router.get('/help/:app', function (req, res) {
+//   var session = req.session
+//   let path = __dirname + '/../config/help.md';
+//   let file = fs.readFileSync(path, 'utf8');
+//   res.send((file.toString()));
+// })
 
 /**
  * Appel de l'aide

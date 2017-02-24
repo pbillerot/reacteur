@@ -60,7 +60,7 @@ export default class ContainerSidebar extends React.Component {
                         )
                     }
                     <hr />
-                    <Link to={'/help'} activeClassName="w3-theme-l1">Aide</Link>
+                    <Link to={'/app/' + this.state.app} activeClassName="w3-theme-l1">Aide</Link>
                     <Link to={'/about'} activeClassName="w3-theme-l1">Info</Link>
                 </nav >
                 {/* Permet de fermer le sidebar en cliquant dans le Content si small screen*/}

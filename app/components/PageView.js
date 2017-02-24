@@ -152,7 +152,7 @@ export default class PageView extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        console.log('componentWillReceiveProps', nextProps.params)
+        //console.log('componentWillReceiveProps', nextProps.params)
         if (nextProps.params) {
             this.state.filter = 
                 sessionStorage.getItem(nextProps.params.app + '_' + nextProps.params.table + '_' + nextProps.params.view)
@@ -267,20 +267,20 @@ class Table extends React.Component {
                     {Dico.apps[app].tables[table].views[view].with_filter &&
                         <tr className="w3-theme-l4">
                             <td colSpan={icol}><div className="w3-row">
-                                <div className="w3-col s4">
+                                <div className="w3-col s3">
                                     <Search apex={this.props.apex}
                                         filter={this.props.filter}
                                         handleFilterChanged={this.props.handleFilterChanged}
                                         handleFilterSubmit={this.props.handleFilterSubmit}
                                     />
                                 </div>
-                                <div className="w3-col s8 w3-bar">
+                                <div className="w3-col s9 w3-bar">
                                     <Pager key={view} className="w3-right"
                                         total={this.props.apex.state.page_total}
                                         current={this.props.apex.state.page_current}
                                         onSkipTo={this.props.apex.handleSkipPage}
                                     />
-                                    <span className="w3-padding-8 w3-margin-right w3-right">Page: </span>
+                                    <span className="w3-padding-8 w3-right" style={{marginRight: '8px'}} >Page: </span>
                                 </div>
                             </div>
                             </td>
@@ -454,7 +454,7 @@ class Search extends React.Component {
                     />
                 </span>
                 <span className="w3-col s3 w3-padding-8">
-                    <span className="w3-margin-left" style={{ height: '100%' }}
+                    <span className="" style={{ marginLeft: '8px', height: '100%' }}
                         onClick={this.props.handleFilterSubmit} >
                         <i className="w3-large fa fa-search"></i>
                     </span>
