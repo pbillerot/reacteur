@@ -1320,6 +1320,15 @@ const Dico = {
                             },
                             error: "Required with 2 caracters minimum",
                         },
+                        _albums: {
+                            label_long: "Albums",
+                            label_short: "Albums",
+                            type: "view",
+                            view: {
+                                table: "Album",
+                                view: "vall",
+                            }
+                        },
                     },
                     views: {
                         vall: {
@@ -1338,11 +1347,12 @@ const Dico = {
                     },
                     forms: {
                         fmaj: {
-                            title: "MISE A JOUR",
+                            title: "ARTIST",
                             group: null,
                             elements: {
                                 ArtistId: {},
                                 Name: {},
+                                //_albums: {},
                             },
                         }
                     }
@@ -1400,6 +1410,238 @@ const Dico = {
                                 ArtistId: {},
                                 AlbumId: {},
                                 Title: {},
+                            },
+                        }
+                    }
+                },
+                MediaType: {
+                    basename: '/home/billerot/conf/reacteur/Chinook_Sqlite.sqlite',
+                    key: 'MediaTypeId',
+                    elements: {
+                        MediaTypeId: {
+                            label_long: "MediaType Id",
+                            label_short: "MediaType Id",
+                            type: "text",
+                            is_read_only: true,
+                        },
+                        Name: {
+                            label_long: "Media Type",
+                            label_short: "Media Type",
+                            type: "text",
+                            placeholder: "name",
+                            maxlength: 50,
+                            is_valide(value, ctx) {
+                                return !validator.isEmpty(value) && value.length > 1
+                            },
+                            error: "Required with 2 caracters minimum",
+                        },
+                    },
+                    views: {
+                        vall: {
+                            title: 'MEDIA TYPE',
+                            group: null,
+                            form_add: 'fmaj',
+                            form_edit: 'fmaj',
+                            form_delete: 'fmaj',
+                            //where: "name like '%ac%'",
+                            with_filter: true,
+                            elements: {
+                                MediaTypeId: {},
+                                Name: {},
+                            },
+                        }
+                    },
+                    forms: {
+                        fmaj: {
+                            title: "MEDIA TYPE",
+                            group: null,
+                            elements: {
+                                MediaTypeId: {},
+                                Name: {},
+                            },
+                        }
+                    }
+                },
+                Genre: {
+                    basename: '/home/billerot/conf/reacteur/Chinook_Sqlite.sqlite',
+                    key: 'GenreId',
+                    elements: {
+                        GenreId: {
+                            label_long: "Genre",
+                            label_short: "Genre",
+                            type: "text",
+                            is_read_only: true,
+                        },
+                        Name: {
+                            label_long: "Genre",
+                            label_short: "Genre",
+                            type: "text",
+                            placeholder: "name",
+                            maxlength: 50,
+                            is_valide(value, ctx) {
+                                return !validator.isEmpty(value) && value.length > 1
+                            },
+                            error: "Required with 2 caracters minimum",
+                        },
+                    },
+                    views: {
+                        vall: {
+                            title: 'GENRES',
+                            group: null,
+                            form_add: 'fmaj',
+                            form_edit: 'fmaj',
+                            form_delete: 'fmaj',
+                            //where: "name like '%ac%'",
+                            with_filter: true,
+                            elements: {
+                                GenreId: {},
+                                Name: {},
+                            },
+                        }
+                    },
+                    forms: {
+                        fmaj: {
+                            title: "GENRES",
+                            group: null,
+                            elements: {
+                                GenreId: {},
+                                Name: {},
+                            },
+                        }
+                    }
+                },
+                Track: {
+                    basename: '/home/billerot/conf/reacteur/Chinook_Sqlite.sqlite',
+                    key: 'TrackId',
+                    elements: {
+                        TrackId: {
+                            label_long: "Genre",
+                            label_short: "Genre",
+                            type: "text",
+                            is_read_only: true,
+                        },
+                        Name: {
+                            label_long: "Track",
+                            label_short: "Track",
+                            type: "text",
+                            placeholder: "track",
+                            maxlength: 50,
+                            is_valide(value, ctx) {
+                                return !validator.isEmpty(value) && value.length > 1
+                            },
+                            error: "Required with 2 caracters minimum",
+                        },
+                        AlbumId: {
+                            label_long: "Album Id",
+                            label_short: "Album Id",
+                            type: "select",
+                            jointure: {
+                                table: "Album",
+                                value: "AlbumId",
+                                label: "Title"
+                            }
+                        },
+                        MediaTypeId: {
+                            label_long: "Media Id",
+                            label_short: "Media Id",
+                            type: "select",
+                            jointure: {
+                                table: "MediaType",
+                                value: "MediaTypeId",
+                                label: "Name"
+                            },
+                        },
+                        GenreId: {
+                            label_long: "Genre Id",
+                            label_short: "Genre Id",
+                            type: "select",
+                            jointure: {
+                                table: "Genre",
+                                value: "GenreId",
+                                label: "Name"
+                            },
+                        },
+                        Composer: {
+                            label_long: "Composer",
+                            label_short: "Composer",
+                            type: "text",
+                            placeholder: "composer",
+                            maxlength: 100,
+                            // is_valide(value, ctx) {
+                            //     return !validator.isEmpty(value) && value.length > 1
+                            // },
+                            // error: "Required with 2 caracters minimum",
+                        },
+                        Milliseconds: {
+                            label_long: "Milliseconds",
+                            label_short: "Milliseconds",
+                            type: "text",
+                            placeholder: "milliseconds",
+                            maxlength: 10,
+                            // is_valide(value, ctx) {
+                            //     return !validator.isEmpty(value) && value.length > 1
+                            // },
+                            // error: "Required with 2 caracters minimum",
+                        },
+                        Bytes: {
+                            label_long: "Bytes",
+                            label_short: "Bytes",
+                            type: "text",
+                            placeholder: "bytes",
+                            maxlength: 10,
+                            // is_valide(value, ctx) {
+                            //     return !validator.isEmpty(value) && value.length > 1
+                            // },
+                            // error: "Required with 2 caracters minimum",
+                        },
+                        UnitPrice: {
+                            label_long: "Unit Price",
+                            label_short: "Unit Price",
+                            type: "text",
+                            placeholder: "unit price",
+                            maxlength: 10,
+                            // is_valide(value, ctx) {
+                            //     return !validator.isEmpty(value) && value.length > 1
+                            // },
+                            // error: "Required with 2 caracters minimum",
+                        },
+                    },
+                    views: {
+                        vall: {
+                            title: 'TRACKS',
+                            group: null,
+                            form_add: 'fmaj',
+                            form_edit: 'fmaj',
+                            form_delete: 'fmaj',
+                            //where: "name like '%ac%'",
+                            with_filter: true,
+                            elements: {
+                                AlbumId: {},
+                                TrackId: {},
+                                Name: {},
+                                MediaTypeId: {},
+                                GenreId: {},
+                                Composer: {},
+                                Milliseconds: {},
+                                Bytes: {},
+                                UnitPrice: {},
+                            },
+                        }
+                    },
+                    forms: {
+                        fmaj: {
+                            title: "TRACK",
+                            group: null,
+                            elements: {
+                                AlbumId: {},
+                                TrackId: {},
+                                Name: {},
+                                MediaTypeId: {},
+                                GenreId: {},
+                                Composer: {},
+                                Milliseconds: {},
+                                Bytes: {},
+                                UnitPrice: {},
                             },
                         }
                     }

@@ -36,9 +36,9 @@ export default class PageHelp extends React.Component {
             <div>
                 <ContainerSidebar apex={this} {...this.props} />
                 <ContainerContent apex={this} >
-                    <Header title="Aide" apex={this} />
+                    <Header title="Aide" />
                     <RestAPI />
-                    <Footer apex={this}>
+                    <Footer>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
                 </ContainerContent>

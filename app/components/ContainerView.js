@@ -10,7 +10,7 @@ const {Alerter, Button, Card, Content, Footer, Header, IconButton
 
 import ContainerPager from './ContainerPager'
 
-import { ctx, Dico } from '../config/Dico'
+import { Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
 import { ToolsUI } from '../config/ToolsUI'
 
@@ -30,9 +30,14 @@ export default class ContainerView extends React.Component {
             error: {
                 code: '',
                 message: ''
+            },
+            ctx: {
+                elements: {},
+                session: {},
             }
         }
-        ctx.elements = {}
+        this.state.ctx.element = {}
+
         this.handleSkipPage = this.handleSkipPage.bind(this);
         this.handleFilterChanged = this.handleFilterChanged.bind(this);
         this.handleFilterSubmit = this.handleFilterSubmit.bind(this);
@@ -99,9 +104,9 @@ export default class ContainerView extends React.Component {
                         //if ( json.alerts ) ToolsUI.showAlert(json.alerts)
                         if (response.ok == true) {
                             let row_key = Dico.apps[app].tables[table].key
-                            ctx.elements = {}
+                            this.state.ctx.elements = {}
                             Object.keys(Dico.apps[app].tables[table].views[view].elements).forEach(key => {
-                                ctx.elements[key] = Object.assign({},
+                                this.state.ctx.elements[key] = Object.assign({},
                                     Dico.apps[app].tables[table].elements[key],
                                     Dico.apps[app].tables[table].views[view].elements[key])
                             })
@@ -112,7 +117,7 @@ export default class ContainerView extends React.Component {
                                 // insertion des colonnes des rubriques temporaires
                                 let ligne = {}
                                 let key_value = ''
-                                Object.keys(ctx.elements).forEach(key => {
+                                Object.keys(this.state.ctx.elements).forEach(key => {
                                     if (key == key_id) {
                                         key_value = row[key]
                                         //console.log("key_value", key_value)
@@ -157,7 +162,6 @@ export default class ContainerView extends React.Component {
         let app = this.state.app
         let table = this.state.table
         let view = this.state.view
-        let filter = this.state.filter
         let page_current = this.state.page_current
         let form_add = Dico.apps[app].tables[table].views[view].form_add
         let form_view = Dico.apps[app].tables[table].views[view].form_view
@@ -167,8 +171,8 @@ export default class ContainerView extends React.Component {
 
         let irow = 0
         let icol = 0
-        Object.keys(ctx.elements).forEach(key => {
-            if (!ctx.elements[key].is_hidden) {
+        Object.keys(this.state.ctx.elements).forEach(key => {
+            if (!this.state.ctx.elements[key].is_hidden) {
                 icol++
             }
         })
@@ -191,14 +195,14 @@ export default class ContainerView extends React.Component {
                             <tr className="w3-theme-l4">
                                 <td colSpan={icol}><div className="w3-row">
                                     <div className="w3-col s3">
-                                        <Search
+                                        <Search {...this.props}
                                             filter={this.state.filter}
                                             handleFilterChanged={this.handleFilterChanged}
                                             handleFilterSubmit={this.handleFilterSubmit}
                                         />
                                     </div>
                                     <div className="w3-col s9 w3-bar">
-                                        <ContainerPager key={view} className="w3-right"
+                                        <ContainerPager {...this.props} key={view} className="w3-right"
                                             total={this.state.page_total}
                                             current={this.state.page_current}
                                             onSkipTo={this.handleSkipPage}
@@ -217,8 +221,8 @@ export default class ContainerView extends React.Component {
                                 <th>&nbsp;</th>
                             }
                             {
-                                Object.keys(ctx.elements).map(key =>
-                                    <TH key={key} id={key} />
+                                Object.keys(this.state.ctx.elements).map(key =>
+                                    <TH key={key} id={key} ctx={this.state.ctx} />
                                 )
                             }
                             {form_delete &&
@@ -229,7 +233,7 @@ export default class ContainerView extends React.Component {
                     <tbody>
                         {
                             this.state.rows.map(row =>
-                                <Row key={irow++} row_key={row_key}
+                                <Row key={irow++} row_key={row_key} ctx={this.state.ctx}
                                     app={app} table={table} view={view}
                                     form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                                     row={row} />
@@ -244,11 +248,11 @@ export default class ContainerView extends React.Component {
 
 class TH extends React.Component {
     render() {
-        if (ctx.elements[this.props.id].is_hidden) {
+        if (this.props.ctx.elements[this.props.id].is_hidden) {
             return null
         } else {
             return (
-                <th>{ctx.elements[this.props.id].label_short}</th>
+                <th>{this.props.ctx.elements[this.props.id].label_short}</th>
             )
         }
     }
@@ -287,7 +291,7 @@ class Row extends React.Component {
                 }
                 {
                     Object.keys(row).map(key =>
-                        <TD key={icol++} row_key={row_key} id={key}
+                        <TD key={icol++} ctx={this.props.ctx} row_key={row_key} id={key}
                             table={table} view={view}
                             row={row} />
                     )
@@ -307,12 +311,12 @@ class Row extends React.Component {
 
 class TD extends React.Component {
     render() {
-        if (ctx.elements[this.props.id].is_hidden) {
+        if (this.props.ctx.elements[this.props.id].is_hidden) {
             return null
         } else {
             return (
                 <td>
-                    <Cell row_key={this.props.row_key} id={this.props.id}
+                    <Cell ctx={this.props.ctx} row_key={this.props.row_key} id={this.props.id}
                         table={this.props.table} view={this.props.view}
                         row={this.props.row}
                     />
@@ -332,7 +336,7 @@ class Cell extends React.Component {
         let key_val = row[row_key]
         let id = this.props.id
         let val = row[id]
-        let element = ctx.elements[id]
+        let element = this.props.ctx.elements[id]
         let table = element.table ? element.table : this.props.table
         let view = element.view ? element.view : this.props.view
         let form = element.form ? element.form : this.props.form_edit
@@ -364,6 +368,13 @@ class Cell extends React.Component {
 }
 
 class Search extends React.Component {
+    constructor(props) {
+        super(props);
+        state: {
+            filter: ''
+        }
+    }
+
     render() {
         //console.log("Search", this.props)
         return (

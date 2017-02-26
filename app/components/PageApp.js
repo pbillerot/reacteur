@@ -72,13 +72,13 @@ export default class PageApp extends React.Component {
         if (Dico.apps[this.state.app]) {
             return (
                 <div>
-                    <ContainerSidebar apex={this} {...this.props} />
-                    <ContainerContent apex={this}>
-                        <Header title={Dico.apps[this.state.app].desc} apex={this} />
+                    <ContainerSidebar {...this.props} />
+                    <ContainerContent>
+                        <Header title={Dico.apps[this.state.app].desc} {...this.props} />
                         <Card style={{ width: '100%', margin: 'auto' }}>
                             {<Markdown source={this.state.markdown} />}
                         </Card>
-                        <Footer apex={this}>
+                        <Footer>
                             <p>{Dico.application.copyright}</p>
                         </Footer>
                     </ContainerContent>

@@ -13,8 +13,9 @@ const {Alerter, Card, Content, Footer, Header, IconButton
 
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
+import ContainerView from './ContainerView';
 
-import { ctx, Dico } from '../config/Dico'
+import { Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
 import { ToolsUI } from '../config/ToolsUI'
 
@@ -30,8 +31,11 @@ export default class PageForm extends React.Component {
             form: this.props.params.form,
             id: this.props.params.id,
             MyForm: () => <Form {...this.state} />,
+            ctx: {
+                elements: {},
+                session: {},
+            }
         }
-        ctx.elements = {}
     }
     handlerCtx(obj) {
         this.setState(obj)
@@ -40,6 +44,18 @@ export default class PageForm extends React.Component {
         e.preventDefault()
         browserHistory.goBack()
     }
+    componentDidMount() {
+        //console.log('PageForm.componentDidMount...')
+        fetch('/api/session', { credentials: 'same-origin' })
+            .then(response => {
+                response.json().then(json => {
+                    this.state.ctx.session = json
+                    this.setState({ })
+                    ToolsUI.showAlert(this.state.ctx.session.alerts)
+                })
+            })
+    }
+
     componentWillReceiveProps(nextProps) {
         //console.log('PageForm.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
@@ -59,13 +75,14 @@ export default class PageForm extends React.Component {
         if (Dico.apps[this.state.app]
             && Dico.apps[this.state.app].tables[this.state.table]
             && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]
-            && Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form]) {
+            && Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form]
+            && this.state.ctx.session.host && this.state.ctx.session.host.length > 3) {
             let title = Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form].title
             const MyForm = this.state.MyForm;
             return (
                 <div>
-                    <ContainerSidebar apex={this} {...this.props} />
-                    <ContainerContent apex={this}>
+                    <ContainerSidebar {...this.state} {...this.props} />
+                    <ContainerContent {...this.props}>
                         <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
                             <a onClick={this.handleBack}>
                                 <i className="fa fa-arrow-left w3-opennav w3-xlarge w3-margin-right"
@@ -75,9 +92,9 @@ export default class PageForm extends React.Component {
                             <span id="myIntro">{title}</span>
                         </div>
                         <Card >
-                            <MyForm />
+                            <MyForm {...this.state} />
                         </Card>
-                        <Footer apex={this}>
+                        <Footer>
                             <p>{Dico.application.copyright}</p>
                         </Footer>
                     </ContainerContent>
@@ -86,8 +103,8 @@ export default class PageForm extends React.Component {
             )
         } else {
             return (
-                <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
-                    <p>404 Page non trouvée</p>
+                <div className="w3-margin w3-panel w3-leftbar">
+                    <p>Wait...</p>
                 </div>
             )
 
@@ -113,13 +130,16 @@ class Form extends React.Component {
             error: {
                 code: '',
                 message: ''
+            },
+            ctx: {
+                elements: {},
+                session: this.props.ctx.session,
             }
         }
         let rubs = Dico.apps[this.props.app].tables[this.props.table].elements
         let fields = Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form].elements
-        ctx.element = {}
         Object.keys(fields).forEach(key => {
-            ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
+            this.state.ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
         })
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -128,7 +148,7 @@ class Form extends React.Component {
 
     onEditRow(key, value) {
         //console.log('onEditRow', key, value)
-        ctx.elements[key].value = value
+        this.state.ctx.elements[key].value = value
         this.checkFormulaire()
     }
 
@@ -162,8 +182,8 @@ class Form extends React.Component {
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    ctx.session = json
-                    ToolsUI.showAlert(ctx.session.alerts)
+                    this.state.ctx.session = json
+                    ToolsUI.showAlert(this.state.ctx.session.alerts)
                     //console.log('PageForm SESSION: ', json)
                     if (nextProps.params) {
                         this.getData(nextProps.params.action, nextProps.params.app, nextProps.params.table
@@ -181,16 +201,8 @@ class Form extends React.Component {
     }
     componentDidMount() {
         //console.log('Form.componentDidMount...')
-        fetch('/api/session', { credentials: 'same-origin' })
-            .then(response => {
-                response.json().then(json => {
-                    ctx.session = json
-                    ToolsUI.showAlert(ctx.session.alerts)
-                    //console.log('PageForm SESSION: ', json)
-                    this.getData(this.state.action, this.state.app, this.state.table, this.state.view, this.state.form, this.state.id,
-                        (result) => {
-                        })
-                })
+        this.getData(this.state.action, this.state.app, this.state.table, this.state.view, this.state.form, this.state.id,
+            (result) => {
             })
     }
 
@@ -200,54 +212,54 @@ class Form extends React.Component {
             this.state.is_read_only = true
 
         if (this.state.formulaire.compute) {
-            this.state.formulaire.compute(ctx)
+            this.state.formulaire.compute(this.state.ctx)
         }
-        Object.keys(ctx.elements).forEach(key => {
-            ctx.elements[key].b_valide = true
+        Object.keys(this.state.ctx.elements).forEach(key => {
+            this.state.ctx.elements[key].b_valide = true
             // read only
             if (this.state.is_read_only)
-                ctx.elements[key].is_read_only = true
+                this.state.ctx.elements[key].is_read_only = true
 
             // valeur par défaut
-            if (ctx.elements[key].value == '') {
-                if (ctx.elements[key].default) {
-                    if (typeof ctx.elements[key].default === 'function')
-                        ctx.elements[key].value = ctx.elements[key].default()
+            if (this.state.ctx.elements[key].value == '') {
+                if (this.state.ctx.elements[key].default) {
+                    if (typeof this.state.ctx.elements[key].default === 'function')
+                        this.state.ctx.elements[key].value = this.state.ctx.elements[key].default()
                     else
-                        ctx.elements[key].value = ctx.elements[key].default
+                        this.state.ctx.elements[key].value = this.state.ctx.elements[key].default
                 }
             }
-            if (!ctx.elements[key].value) {
-                ctx.elements[key].value = ''
+            if (!this.state.ctx.elements[key].value) {
+                this.state.ctx.elements[key].value = ''
             }
 
             // ctrl accès - ko le champ sera caché
-            if (ctx.elements[key].group) {
-                if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 3) {
-                    if (ctx.session.user_profil != ctx.elements[key].group)
-                        ctx.elements[key].is_hidden = true
+            if (this.state.ctx.elements[key].group) {
+                if (this.state.ctx.session.user_pseudo && this.state.ctx.session.user_pseudo.length > 3) {
+                    if (this.state.ctx.session.user_profil != this.state.ctx.elements[key].group)
+                        this.state.ctx.elements[key].is_hidden = true
                 } else {
-                    ctx.elements[key].is_hidden = true
+                    this.state.ctx.elements[key].is_hidden = true
                 }
             }
 
             // Field valide ?
-            if (ctx.elements[key].value && !ctx.elements[key].is_read_only && !ctx.elements[key].is_hidden) {
-                //console.log(key, ctx.elements[key])
-                if (ctx.elements[key].is_valide && !ctx.elements[key].is_valide(ctx.elements[key].value, ctx)) {
-                    //console.log('checkFormulaire', key, false, ctx.elements[key].value)
-                    ctx.elements[key].b_valide = false
+            if (this.state.ctx.elements[key].value && !this.state.ctx.elements[key].is_read_only && !this.state.ctx.elements[key].is_hidden) {
+                //console.log(key, this.state.ctx.elements[key])
+                if (this.state.ctx.elements[key].is_valide && !this.state.ctx.elements[key].is_valide(this.state.ctx.elements[key].value, this.state.ctx)) {
+                    //console.log('checkFormulaire', key, false, this.state.ctx.elements[key].value)
+                    this.state.ctx.elements[key].b_valide = false
                     this.state.is_form_valide = false
                 }
             }
-            //console.log('checkFormulaire', key, ctx.elements[key])
+            //console.log('checkFormulaire', key, this.state.ctx.elements[key])
         })
         //console.log('checkFormulaire', this.state.is_form_valide)
         this.setState({})
     }
 
     getData(action, app, table, view, form, id, callback) {
-        //console.log('Form.getData: ', action, app, table, view, form, id, ctx.elements)
+        //console.log('Form.getData: ', action, app, table, view, form, id, this.state.ctx.elements)
         this.state.action = action
         this.state.app = app
         this.state.table = table
@@ -256,16 +268,16 @@ class Form extends React.Component {
         this.state.id = id
         this.state.key_name = Dico.apps[app].tables[table].key
         this.state.formulaire = Dico.apps[app].tables[table].forms[form]
-        ctx.elements = {}
+        this.state.ctx.elements = {}
         Object.keys(Dico.apps[app].tables[table].forms[form].elements).forEach(key => {
-            ctx.elements[key] = Object.assign({},
+            this.state.ctx.elements[key] = Object.assign({},
                 Dico.apps[app].tables[table].elements[key],
                 Dico.apps[app].tables[table].forms[form].elements[key])
         })
 
-        Object.keys(ctx.elements).forEach(key => {
-            ctx.elements[key].value = ''
-            ctx.elements[key].b_valide = false
+        Object.keys(this.state.ctx.elements).forEach(key => {
+            this.state.ctx.elements[key].value = ''
+            this.state.ctx.elements[key].b_valide = false
         })
         if (action == 'view' || action == 'edit' || action == 'delete') {
             fetch('/api/form/' + app + '/' + table + '/' + view + '/' + form + '/' + id,
@@ -278,8 +290,9 @@ class Form extends React.Component {
                             //console.log("json", json)
                             Object.keys(row).forEach(key => {
                                 //console.log('Form.response: ', key, row[key].value)
-                                ctx.elements[key].value = row[key] ? row[key] : ''
+                                this.state.ctx.elements[key].value = row[key] ? row[key] : ''
                             })
+                            //console.log("elements:", this.state.ctx.elements)
                             this.checkFormulaire()
                             return callback({ ok: true })
                         } else {
@@ -301,9 +314,9 @@ class Form extends React.Component {
 
     identData() {
         let data = ''
-        Object.keys(ctx.elements).forEach(key => {
+        Object.keys(this.state.ctx.elements).forEach(key => {
             if (!Tools.isRubTemporary(key)) {
-                let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
+                let param = key + '=' + encodeURIComponent(this.state.ctx.elements[key].value)
                 data += data.length > 0 ? '&' + param : param
             }
         })
@@ -342,8 +355,8 @@ class Form extends React.Component {
 
     updateData() {
         let data = ''
-        Object.keys(ctx.elements).forEach(key => {
-            let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
+        Object.keys(this.state.ctx.elements).forEach(key => {
+            let param = key + '=' + encodeURIComponent(this.state.ctx.elements[key].value)
             data += data.length > 0 ? '&' + param : param
         })
         fetch('/api/rec/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form + '/' + this.state.id, {
@@ -386,9 +399,9 @@ class Form extends React.Component {
 
     deleteData() {
         let data = ''
-        Object.keys(ctx.elements).forEach(key => {
+        Object.keys(this.state.ctx.elements).forEach(key => {
             if (!Tools.isRubTemporary(key)) {
-                let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
+                let param = key + '=' + encodeURIComponent(this.state.ctx.elements[key].value)
                 data += data.length > 0 ? '&' + param : param
             }
         })
@@ -432,8 +445,8 @@ class Form extends React.Component {
 
     insertData() {
         let data = ''
-        Object.keys(ctx.elements).forEach(key => {
-            let param = key + '=' + encodeURIComponent(ctx.elements[key].value)
+        Object.keys(this.state.ctx.elements).forEach(key => {
+            let param = key + '=' + encodeURIComponent(this.state.ctx.elements[key].value)
             data += data.length > 0 ? '&' + param : param
         })
         fetch('/api/rec/' + this.state.app + '/' + this.state.table + '/' + this.state.view + '/' + this.state.form, {
@@ -476,16 +489,15 @@ class Form extends React.Component {
 
     render() {
         let list_fields = []
-        Object.keys(ctx.elements).forEach(key => {
+        Object.keys(this.state.ctx.elements).forEach(key => {
             let is_ok = true
-            // if (ctx.elements[key].is_hidden)
+            // if (this.state.ctx.elements[key].is_hidden)
             //     is_ok = false
             if (is_ok)
                 list_fields.push(key)
         })
-        //console.log('PageForm session', ctx.session)
-        let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
-            && ctx.session.host && ctx.session.host.length > 3
+        //console.log('PageForm session', this.state.ctx.session)
+        let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))            
         //console.log('PageForm', display_form)
         return (
             <form>
@@ -496,13 +508,13 @@ class Form extends React.Component {
                 }
                 {display_form &&
                     list_fields.map(key =>
-                        <div className={ctx.elements[key].is_hidden
+                        <div className={this.state.ctx.elements[key].is_hidden
                             ? 'w3-row-padding w3-margin-top w3-hide' : 'w3-row-padding w3-margin-top'}
                             key={key}>
-                            <Label {...this.state} id={key} />
+                            <Label ctx={this.state.ctx} id={key} />
                             <div className="w3-threequarter">
-                                <Field {...this.state} id={key}
-                                    value={ctx.elements[key].value}
+                                <Field ctx={this.state.ctx} id={key}
+                                    value={this.state.ctx.elements[key].value}
                                     onEditRow={this.onEditRow}
                                     handleSubmit={this.handleSubmit}
                                 />
@@ -557,7 +569,7 @@ class Form extends React.Component {
 class Label extends React.Component {
     render() {
         //console.log('render', this.props)
-        let element = ctx.elements[this.props.id]
+        let element = this.props.ctx.elements[this.props.id]
         if (!element.is_hidden) {
             switch (element.type) {
                 case 'button':
@@ -593,7 +605,7 @@ class Label extends React.Component {
 class Error extends React.Component {
     render() {
         //console.log('render', this.state)
-        let element = ctx.elements[this.props.id]
+        let element = this.props.ctx.elements[this.props.id]
         if (!element.is_hidden) {
             switch (element.type) {
                 default:
@@ -614,7 +626,7 @@ class Error extends React.Component {
 }
 class Help extends React.Component {
     render() {
-        let element = ctx.elements[this.props.id]
+        let element = this.props.ctx.elements[this.props.id]
         //console.log('render', this.state)
         if (!element.is_hidden) {
             switch (element.type) {
@@ -652,8 +664,8 @@ class Field extends React.Component {
     handleButton(e) {
         e.preventDefault();
         //console.log('handleButton', element.action_url)
-        fetch(ctx.elements[this.props.id].on_click.action,
-            { method: ctx.elements[this.props.id].on_click.method, credentials: 'same-origin' })
+        fetch(this.props.ctx.elements[this.props.id].on_click.action,
+            { method: this.props.ctx.elements[this.props.id].on_click.method, credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
                     //console.log(json)
@@ -682,7 +694,7 @@ class Field extends React.Component {
     handleCheckGroup(obj) {
         console.log('Field.handleChangeGroup: ', this.props.id, obj.join(','), obj)
         this.setState({ value: obj.join(',') })
-        if (!ctx.elements[this.props.id].is_multiple) {
+        if (!this.props.ctx.elements[this.props.id].is_multiple) {
             if (obj.length > 1) {
                 obj.shift()
             }
@@ -698,8 +710,8 @@ class Field extends React.Component {
     }
     componentDidMount() {
         //console.log('Field.componentDidMount...', this.state, this.props)
-        if (ctx.elements[this.props.id].type == "select") {
-            if (ctx.elements[this.props.id].jointure) {
+        if (this.props.ctx.elements[this.props.id] && this.props.ctx.elements[this.props.id].type == "select") {
+            if (this.props.ctx.elements[this.props.id].jointure) {
                 fetch('/api/select/' + this.props.app + '/' + this.props.table + '/' + this.props.id + '/0', { credentials: 'same-origin' })
                     .then(response => {
                         response.json().then(json => {
@@ -708,13 +720,13 @@ class Field extends React.Component {
                         })
                     })
             } else {
-                this.setState({ options: ctx.elements[this.props.id].list })
+                this.setState({ options: this.props.ctx.elements[this.props.id].list })
             }
         }
     }
     render() {
         //console.log('render', this.state)
-        let element = ctx.elements[this.props.id]
+        let element = this.props.ctx.elements[this.props.id]
         if (!element.is_hidden) {
             switch (element.type) {
                 case 'button':
@@ -779,7 +791,7 @@ class Field extends React.Component {
                     )
                 case 'link':
                     let uri = Tools.replaceParams(element.action_url,
-                        ctx.elements)
+                        this.props.ctx.elements)
                     return (
                         <Link to={uri} className="w3-text-teal"
                             title={element.title}
@@ -821,7 +833,7 @@ class Field extends React.Component {
                 case 'select':
                     // https://github.com/JedWatson/react-select
                     return (
-                        <Select 
+                        <Select
                             name={this.props.id}
                             value={element.value}
                             disabled={element.is_read_only}
@@ -861,7 +873,7 @@ class Field extends React.Component {
                     )
                 case 'text':
                     if ((element.is_read_only || element.is_protected) && element.display) {
-                        return (<span dangerouslySetInnerHTML={{ __html: element.display(element.value, ctx) }}></span>)
+                        return (<span dangerouslySetInnerHTML={{ __html: element.display(element.value, this.props.ctx) }}></span>)
                     } else {
                         return (
                             <input className="w3-input w3-border" type="text"
@@ -876,6 +888,13 @@ class Field extends React.Component {
                             />
                         )
                     }
+                case 'view':
+                    return (
+                        <ContainerView app={this.props.app}
+                            table={element.view.table} view={element.view.view}
+                            complement={element.view}
+                        />
+                    )
                 default:
                     return <div>{this.props.id}.type {element.type} not found</div>
             }

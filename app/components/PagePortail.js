@@ -55,9 +55,9 @@ export default class PagePortail extends React.Component {
         //console.log("PagePortail", apps)
         return (
             <div>
-                <ContainerSidebar apex={this} {...this.props} />
-                <ContainerContent apex={this}>
-                    <Header title={Dico.application.desc} apex={this} />
+                <ContainerSidebar {...this.props} />
+                <ContainerContent>
+                    <Header title={Dico.application.desc} />
                     <div className="w3-row-padding">
                         {apps.sort().map(app =>
                             <Link style={{ textDecoration: 'none' }} className="w3-col m6 l4 w3-margin-top" to={'/app/' + app} key={app}>
@@ -76,7 +76,7 @@ export default class PagePortail extends React.Component {
                             </Link>
                         )}
                     </div>
-                    <Footer apex={this}>
+                    <Footer>
                         <p>{Dico.application.copyright}</p>
                     </Footer>
                 </ContainerContent>

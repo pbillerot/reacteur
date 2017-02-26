@@ -12,7 +12,7 @@ import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
 import ContainerView from './ContainerView';
 
-import { ctx, Dico } from '../config/Dico'
+import { Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
 import { ToolsUI } from '../config/ToolsUI'
 
@@ -28,13 +28,16 @@ export default class PageView extends React.Component {
             error: {
                 code: '',
                 message: ''
+            },
+            ctx: {
+                elements: {},
+                session: {},
             }
         }
-        ctx.elements = {}
     }
 
     componentWillReceiveProps(nextProps) {
-        console.log('PageView.componentWillReceiveProps', nextProps)
+        //console.log('PageView.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
             this.setState({
                 app: nextProps.params.app,
@@ -55,8 +58,8 @@ export default class PageView extends React.Component {
             .then(response => {
                 response.json().then(json => {
                     //console.log('PageApp SESSION: ', json)
-                    ctx.session = json
-                    ToolsUI.showAlert(ctx.session.alerts)
+                    this.state.ctx.session = json
+                    ToolsUI.showAlert(this.state.ctx.session.alerts)
                 })
             })
     }
@@ -72,20 +75,20 @@ export default class PageView extends React.Component {
             let view = this.state.view
             return (
                 <div>
-                    <ContainerSidebar apex={this} {...this.props} />
-                    <ContainerContent apex={this}>
-                        <Header title={Dico.apps[app].tables[table].views[view].title} apex={this} />
+                    <ContainerSidebar {...this.state} {...this.props} />
+                    <ContainerContent>
+                        <Header title={Dico.apps[app].tables[table].views[view].title} />
                         {this.state.is_error &&
                             <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
                                 <p>{this.state.error.code} {this.state.error.message}</p>
                             </div>
                         }
                         {!this.state.is_error &&
-                            <ContainerView
+                            <ContainerView {...this.props}
                                 app={app} table={table} view={view}
                             />
                         }
-                        <Footer apex={this}>
+                        <Footer>
                             <p>{Dico.application.copyright}</p>
                         </Footer>
                     </ContainerContent>
