@@ -1352,7 +1352,7 @@ const Dico = {
                             elements: {
                                 ArtistId: {},
                                 Name: {},
-                                //_albums: {},
+                                _albums: {},
                             },
                         }
                     }

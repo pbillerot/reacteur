@@ -116,6 +116,7 @@ class Form extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            is_data_recepted: false,
             action: this.props.action,
             app: this.props.app,
             table: this.props.table,
@@ -285,6 +286,7 @@ class Form extends React.Component {
                 .then(response => {
                     response.json().then(json => {
                         //if ( json.alerts ) ToolsUI.showAlert(json.alerts)
+                        this.state.is_data_recepted = true
                         if (response.ok == true) {
                             let row = JSON.parse(json)
                             //console.log("json", json)
@@ -497,7 +499,8 @@ class Form extends React.Component {
                 list_fields.push(key)
         })
         //console.log('PageForm session', this.state.ctx.session)
-        let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))            
+        let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
+            && this.state.is_data_recepted == true            
         //console.log('PageForm', display_form)
         return (
             <form>
@@ -513,7 +516,7 @@ class Form extends React.Component {
                             key={key}>
                             <Label ctx={this.state.ctx} id={key} />
                             <div className="w3-threequarter">
-                                <Field ctx={this.state.ctx} id={key}
+                                <Field {...this.state} ctx={this.state.ctx} id={key}
                                     value={this.state.ctx.elements[key].value}
                                     onEditRow={this.onEditRow}
                                     handleSubmit={this.handleSubmit}
@@ -725,7 +728,7 @@ class Field extends React.Component {
         }
     }
     render() {
-        //console.log('render', this.state)
+        //console.log('render', this.props)
         let element = this.props.ctx.elements[this.props.id]
         if (!element.is_hidden) {
             switch (element.type) {
