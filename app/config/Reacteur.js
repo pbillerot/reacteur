@@ -617,7 +617,7 @@ const Reacteur = {
         }
     },
     api_read_view: (ctx, callback) => {
-        console.log('READ_VIEW...')
+        console.log('READ_VIEW...', ctx.app, ctx.table, ctx.view)
         // construction de l'ordre sql et des paramètres
         let params = {}
         let sql = ''
@@ -644,6 +644,7 @@ const Reacteur = {
                     sql += sql.length > 0
                         ? ", " + table + "." + col_id + " as '" + key + "'"
                         : table + "." + col_id + " as '" + key + "'"
+                    params['$' + key] = ctx.elements[key].record_value
                 }
             }
         })
@@ -661,8 +662,12 @@ const Reacteur = {
 
                 // WHERE
                 let where = ''
-                if (Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].where) {
-                    where = " WHERE " + Dico.apps[ctx.app].tables[ctx.table].views[ctx.view].where
+                console.log("view", ctx.vue)
+                if (ctx.vue.where) {
+                    where = " WHERE " + ctx.vue.where
+                }
+                if (ctx.where) {
+                    where = " WHERE " + ctx.where
                 }
 
                 // FILTER
@@ -714,7 +719,7 @@ const Reacteur = {
                         ctx.page_total = pages
                         // OFFSET
                         let offset = (ctx.page_current) * limit
-                        console.log("row_count", row_count, "Pages:", pages, "page_current:", ctx.page_current, "Offset:", offset)
+                        //console.log("row_count", row_count, "Pages:", pages, "page_current:", ctx.page_current, "Offset:", offset)
                         sql += " LIMIT " + limit.toString() + " OFFSET " + offset.toString()
 
                         Reacteur.sql_select(Dico.apps[ctx.app].tables[ctx.table].basename, sql, params, (err, result) => {

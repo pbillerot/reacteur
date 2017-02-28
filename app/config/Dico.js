@@ -1326,7 +1326,8 @@ const Dico = {
                             type: "view",
                             view: {
                                 table: "Album",
-                                view: "vall",
+                                view: "vartist",
+                                where: "Album.ArtistId = $ArtistId"
                             }
                         },
                     },
@@ -1401,7 +1402,18 @@ const Dico = {
                                 AlbumId: {},
                                 Title: {},
                             }
+                        },
+                        vartist: {
+                            title: 'ALBUMS',
+                            form_add: 'fmaj',
+                            form_edit: 'fmaj',
+                            form_delete: 'fmaj',
+                            //with_filter: true,
+                            elements: {
+                                Title: {},
+                            }
                         }
+
                     },
                     forms: {
                         fmaj: {

@@ -18,6 +18,7 @@ export default class ContainerView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            is_data_recepted: false,
             app: this.props.app,
             table: this.props.table,
             view: this.props.view,
@@ -33,10 +34,17 @@ export default class ContainerView extends React.Component {
             },
             ctx: {
                 elements: {},
-                session: {},
+                session: this.props.ctx.session,
             }
         }
-        this.state.ctx.element = {}
+
+        // fusion des propriétes complémentaires avec le dico
+        if (this.props.complement) {
+            Dico.apps[this.props.app].tables[this.props.table].views[this.props.view]
+            = Object.assign({}, 
+                Dico.apps[this.props.app].tables[this.props.table].views[this.props.view],
+                this.props.complement)
+        }
 
         this.handleSkipPage = this.handleSkipPage.bind(this);
         this.handleFilterChanged = this.handleFilterChanged.bind(this);
@@ -89,7 +97,14 @@ export default class ContainerView extends React.Component {
             let data = 'filter=' + encodeURIComponent(filter)
             data += '&page_current=' + encodeURIComponent(this.state.page_current)
 
-            fetch('/api/view/' + app + '/' + table + '/' + view, {
+            let url = '/api/view/' + app + '/' + table + '/' + view
+            if ( this.props.complement ) {
+                if ( this.props.complement.where ) {
+                    data += "&where=" + encodeURIComponent(this.props.complement.where)    
+                }
+            }
+
+            fetch(url, {
                 method: "PUT",
                 credentials: 'same-origin',
                 headers: {
@@ -103,6 +118,7 @@ export default class ContainerView extends React.Component {
                     response.json().then(json => {
                         //console.log('json', json)
                         //if ( json.alerts ) ToolsUI.showAlert(json.alerts)
+                        this.state.is_data_recepted = true
                         if (response.ok == true) {
                             let row_key = Dico.apps[app].tables[table].key
                             this.state.ctx.elements = {}
@@ -181,9 +197,10 @@ export default class ContainerView extends React.Component {
         if (form_edit) icol++
         if (form_delete) icol++
 
-        return (
-            <Card>
-                {(!this.state.is_error && form_add) &&
+        if ( this.state.is_data_recepted ) {
+            return (
+            <div>
+                {(!this.state.is_error && form_add && ! this.props.complement) &&
                     <Link to={'/form/add/' + app + '/' + table + '/' + view + '/' + form_add + '/0'}>
                         <span className="w3-btn-floating-large w3-theme-action"
                             title={'Ajout ' + Dico.apps[app].tables[table].forms[form_add].title + '...'}
@@ -242,8 +259,11 @@ export default class ContainerView extends React.Component {
                         }
                     </tbody>
                 </table>
-            </Card>
+            </div>
         )
+        } else {
+            return null
+        }
     }
 }
 

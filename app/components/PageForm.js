@@ -92,7 +92,7 @@ export default class PageForm extends React.Component {
                             <span id="myIntro">{title}</span>
                         </div>
                         <Card >
-                            <ContainerForm {...this.state} />
+                            <ContainerForm {...this.state} ctx={this.state.ctx} />
                         </Card>
                         <Footer>
                             <p>{Dico.application.copyright}</p>

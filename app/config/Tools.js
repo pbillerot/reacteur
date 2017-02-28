@@ -27,6 +27,14 @@ const Tools = {
         })
         return str
     },
+    replaceSql(sql, elements) {
+        let str = sql
+        Object.keys(elements).forEach(key => {
+            let regex = new RegExp("(\\$" + key + ")", 'g');
+            str = str.replace(regex, elements[key].value);
+        })
+        return str
+    },
     showAlert(messages) {
         if (messages) {
             messages.forEach(message => {

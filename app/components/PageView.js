@@ -59,6 +59,7 @@ export default class PageView extends React.Component {
                 response.json().then(json => {
                     //console.log('PageApp SESSION: ', json)
                     this.state.ctx.session = json
+                    this.setState({})
                     ToolsUI.showAlert(this.state.ctx.session.alerts)
                 })
             })
@@ -68,7 +69,8 @@ export default class PageView extends React.Component {
         //console.log("PageView.render", this.state)
         if (Dico.apps[this.state.app]
             && Dico.apps[this.state.app].tables[this.state.table]
-            && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]) {
+            && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]
+            && this.state.ctx.session.host && this.state.ctx.session.host.length > 3) {
 
             let app = this.state.app
             let table = this.state.table
@@ -84,9 +86,11 @@ export default class PageView extends React.Component {
                             </div>
                         }
                         {!this.state.is_error &&
-                            <ContainerView {...this.props}
-                                app={app} table={table} view={view}
-                            />
+                            <Card>
+                                <ContainerView {...this.props} ctx={this.state.ctx}
+                                    app={app} table={table} view={view}
+                                />
+                            </Card>
                         }
                         <Footer>
                             <p>{Dico.application.copyright}</p>
@@ -97,8 +101,8 @@ export default class PageView extends React.Component {
             )
         } else {
             return (
-                <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
-                    <p>404 Page non trouvée</p>
+                <div className="w3-margin w3-panel w3-leftbar ">
+                    <p>Wait</p>
                 </div>
             )
 

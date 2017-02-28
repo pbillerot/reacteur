@@ -406,7 +406,7 @@ export default class ContainerForm extends React.Component {
         })
         //console.log('PageForm session', this.state.ctx.session)
         let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
-            && this.state.is_data_recepted == true            
+            && this.state.is_data_recepted == true
         //console.log('PageForm', display_form)
         return (
             <form>
@@ -798,9 +798,13 @@ class Field extends React.Component {
                         )
                     }
                 case 'view':
+                    if ( element.view.where ) {
+                        // valorisation du where
+                        element.view.where = Tools.replaceSql(element.view.where, this.props.ctx.elements)
+                    }
                     return (
-                        <ContainerView app={this.props.app}
-                            table={element.view.table} view={element.view.view}
+                        <ContainerView ctx={this.props.ctx}
+                            app={this.props.app} table={element.view.table} view={element.view.view}
                             complement={element.view}
                         />
                     )

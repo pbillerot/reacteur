@@ -241,6 +241,7 @@ router.put('/view/:app/:table/:view', function (req, res) {
       ctx.table = req.params.table
       ctx.view = req.params.view
       ctx.filter = req.body.filter
+      ctx.where = req.body.where
       ctx.page_current = req.body.page_current
       ctx.page_total = 0
       ctx.vue = Dico.apps[req.params.app].tables[req.params.table].views[req.params.view]
@@ -261,7 +262,58 @@ router.put('/view/:app/:table/:view', function (req, res) {
     function (ctx, callback) {
       console.log('END')
       //res.status(200).json(JSON.stringify(ctx.tableur))
-      res.status(200).json({rows: ctx.tableur, page_total: ctx.page_total})
+      res.status(200).json({ rows: ctx.tableur, page_total: ctx.page_total })
+    }
+  ],
+    function (err, result) {
+      console.log(err, result)
+      res.status(err).json(result) // KO
+    }
+  )
+})
+
+/**
+ * Lecture d'une vue issue d'une rubrque de type view
+ */
+router.put('/view_rub/:app/:table/:element', function (req, res) {
+  console.log("url:", req.url, "params:", req.body)
+  async.waterfall([
+    function (callback) {
+      console.log('VIEW_RUB...')
+      let ctx = {}
+      ctx.req = req
+      ctx.session = req.session
+      ctx.app = req.params.app
+
+      ctx.table = Dico.apps[req.params.app].tables[req.params.table].elements[req.params.element].view.table
+      ctx.view = Dico.apps[req.params.app].tables[req.params.table].elements[req.params.element].view.view
+
+      ctx.vue = Object.assign({},
+        Dico.apps[req.params.app].tables[ctx.table].views[ctx.view],
+        Dico.apps[req.params.app].tables[req.params.table].elements[req.params.element].view
+      )
+
+      ctx.filter = req.body.filter
+      ctx.page_current = req.body.page_current
+      ctx.page_total = 0
+      ctx.tableur = []
+      ctx.key_name = Dico.apps[req.params.app].tables[ctx.table].key
+
+      let cols = ctx.vue.elements
+      let rubs = Dico.apps[req.params.app].tables[ctx.table].elements
+      ctx.elements = {}
+      Object.keys(cols).forEach(key => {
+        ctx.elements[key] = Object.assign({}, rubs[key], cols[key])
+      })
+      callback(null, ctx)
+    },
+    //Reacteur.api_check_session,
+    Reacteur.api_check_group_view,
+    Reacteur.api_read_view,
+    function (ctx, callback) {
+      console.log('END')
+      //res.status(200).json(JSON.stringify(ctx.tableur))
+      res.status(200).json({ rows: ctx.tableur, page_total: ctx.page_total })
     }
   ],
     function (err, result) {
