@@ -37,15 +37,6 @@ export default class ContainerView extends React.Component {
                 session: this.props.ctx.session,
             }
         }
-
-        // fusion des propriétes complémentaires avec le dico
-        if (this.props.complement) {
-            Dico.apps[this.props.app].tables[this.props.table].views[this.props.view]
-            = Object.assign({}, 
-                Dico.apps[this.props.app].tables[this.props.table].views[this.props.view],
-                this.props.complement)
-        }
-
         this.handleSkipPage = this.handleSkipPage.bind(this);
         this.handleFilterChanged = this.handleFilterChanged.bind(this);
         this.handleFilterSubmit = this.handleFilterSubmit.bind(this);
@@ -96,13 +87,11 @@ export default class ContainerView extends React.Component {
             if (!filter) filter = ''
             let data = 'filter=' + encodeURIComponent(filter)
             data += '&page_current=' + encodeURIComponent(this.state.page_current)
+            if (this.props.where) {
+                data += "&where=" + encodeURIComponent(this.props.where)
+            }
 
             let url = '/api/view/' + app + '/' + table + '/' + view
-            if ( this.props.complement ) {
-                if ( this.props.complement.where ) {
-                    data += "&where=" + encodeURIComponent(this.props.complement.where)    
-                }
-            }
 
             fetch(url, {
                 method: "PUT",
@@ -197,70 +186,70 @@ export default class ContainerView extends React.Component {
         if (form_edit) icol++
         if (form_delete) icol++
 
-        if ( this.state.is_data_recepted ) {
+        if (this.state.is_data_recepted) {
             return (
-            <div>
-                {(!this.state.is_error && form_add && ! this.props.complement) &&
-                    <Link to={'/form/add/' + app + '/' + table + '/' + view + '/' + form_add + '/0'}>
-                        <span className="w3-btn-floating-large w3-theme-action"
-                            title={'Ajout ' + Dico.apps[app].tables[table].forms[form_add].title + '...'}
-                            style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
-                    </Link>
-                }
-                <table className="w3-table-all w3-hoverable w3-medium w3-card-3">
-                    <thead>
-                        {Dico.apps[app].tables[table].views[view].with_filter &&
-                            <tr className="w3-theme-l4">
-                                <td colSpan={icol}><div className="w3-row">
-                                    <div className="w3-col s3">
-                                        <Search {...this.props}
-                                            filter={this.state.filter}
-                                            handleFilterChanged={this.handleFilterChanged}
-                                            handleFilterSubmit={this.handleFilterSubmit}
-                                        />
+                <div>
+                    {(!this.state.is_error && form_add && !this.props.where) &&
+                        <Link to={'/form/add/' + app + '/' + table + '/' + view + '/' + form_add + '/0'}>
+                            <span className="w3-btn-floating-large w3-theme-action"
+                                title={'Ajout ' + Dico.apps[app].tables[table].forms[form_add].title + '...'}
+                                style={{ zIndex: 1000, position: 'fixed', top: '20px', right: '24px' }}>+</span>
+                        </Link>
+                    }
+                    <table className="w3-table-all w3-hoverable w3-medium w3-card-3">
+                        <thead>
+                            {Dico.apps[app].tables[table].views[view].with_filter &&
+                                <tr className="w3-theme-l4">
+                                    <td colSpan={icol}><div className="w3-row">
+                                        <div className="w3-col s3">
+                                            <Search {...this.props}
+                                                filter={this.state.filter}
+                                                handleFilterChanged={this.handleFilterChanged}
+                                                handleFilterSubmit={this.handleFilterSubmit}
+                                            />
+                                        </div>
+                                        <div className="w3-col s9 w3-bar">
+                                            <ContainerPager {...this.props} key={view} className="w3-right"
+                                                total={this.state.page_total}
+                                                current={this.state.page_current}
+                                                onSkipTo={this.handleSkipPage}
+                                            />
+                                            <span className="w3-padding-8 w3-right" style={{ marginRight: '8px' }} >Page: </span>
+                                        </div>
                                     </div>
-                                    <div className="w3-col s9 w3-bar">
-                                        <ContainerPager {...this.props} key={view} className="w3-right"
-                                            total={this.state.page_total}
-                                            current={this.state.page_current}
-                                            onSkipTo={this.handleSkipPage}
-                                        />
-                                        <span className="w3-padding-8 w3-right" style={{ marginRight: '8px' }} >Page: </span>
-                                    </div>
-                                </div>
-                                </td>
+                                    </td>
+                                </tr>
+                            }
+                            <tr className="w3-theme">
+                                {form_view &&
+                                    <th>&nbsp;</th>
+                                }
+                                {form_edit &&
+                                    <th>&nbsp;</th>
+                                }
+                                {
+                                    Object.keys(this.state.ctx.elements).map(key =>
+                                        <TH key={key} id={key} ctx={this.state.ctx} />
+                                    )
+                                }
+                                {form_delete &&
+                                    <th>&nbsp;</th>
+                                }
                             </tr>
-                        }
-                        <tr className="w3-theme">
-                            {form_view &&
-                                <th>&nbsp;</th>
-                            }
-                            {form_edit &&
-                                <th>&nbsp;</th>
-                            }
+                        </thead>
+                        <tbody>
                             {
-                                Object.keys(this.state.ctx.elements).map(key =>
-                                    <TH key={key} id={key} ctx={this.state.ctx} />
+                                this.state.rows.map(row =>
+                                    <Row key={irow++} row_key={row_key} ctx={this.state.ctx}
+                                        app={app} table={table} view={view}
+                                        form_view={form_view} form_edit={form_edit} form_delete={form_delete}
+                                        row={row} />
                                 )
                             }
-                            {form_delete &&
-                                <th>&nbsp;</th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            this.state.rows.map(row =>
-                                <Row key={irow++} row_key={row_key} ctx={this.state.ctx}
-                                    app={app} table={table} view={view}
-                                    form_view={form_view} form_edit={form_edit} form_delete={form_delete}
-                                    row={row} />
-                            )
-                        }
-                    </tbody>
-                </table>
-            </div>
-        )
+                        </tbody>
+                    </table>
+                </div>
+            )
         } else {
             return null
         }

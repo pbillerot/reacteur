@@ -403,8 +403,16 @@ export default class ContainerForm extends React.Component {
             //     is_ok = false
             if (is_ok)
                 list_fields.push(key)
+            // Calcul largeur du label et du field de s0 à s12
+            if (this.state.ctx.elements[key].width) {
+                this.state.ctx.elements[key].width_label = "m" + (12 - this.state.ctx.elements[key].width)
+                this.state.ctx.elements[key].width_field = "m" + this.state.ctx.elements[key].width
+            } else {
+                this.state.ctx.elements[key].width_label = "m3"
+                this.state.ctx.elements[key].width_field = "m9"
+            }
         })
-        //console.log('PageForm session', this.state.ctx.session)
+        console.log('PageForm elements', this.state.ctx.elements)
         let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
             && this.state.is_data_recepted == true
         //console.log('PageForm', display_form)
@@ -417,19 +425,35 @@ export default class ContainerForm extends React.Component {
                 }
                 {display_form &&
                     list_fields.map(key =>
-                        <div className={this.state.ctx.elements[key].is_hidden
-                            ? 'w3-row-padding w3-margin-top w3-hide' : 'w3-row-padding w3-margin-top'}
-                            key={key}>
-                            <Label ctx={this.state.ctx} id={key} />
-                            <div className="w3-threequarter">
-                                <Field {...this.state} ctx={this.state.ctx} id={key}
-                                    value={this.state.ctx.elements[key].value}
-                                    onEditRow={this.onEditRow}
-                                    handleSubmit={this.handleSubmit}
-                                />
-                                <Error {...this.state} id={key} />
-                                <Help {...this.state} id={key} />
-                            </div>
+                        <div key={key}>
+                            {!this.state.ctx.elements[key].is_hidden &&
+                                <div className="w3-row-padding w3-margin-top">
+                                    {this.state.ctx.elements[key].width_label == "m0" &&
+                                        <div className={"w3-col w3-left-align " + this.state.ctx.elements[key].width_label} >
+                                            <Label ctx={this.state.ctx} id={key} />
+                                        </div>
+                                    }
+                                    {this.state.ctx.elements[key].width_label != "m0" &&
+                                        <div className={"w3-col w3-right-align w3-hide-small " + this.state.ctx.elements[key].width_label} >
+                                            <Label ctx={this.state.ctx} id={key} />
+                                        </div>
+                                    }
+                                    {this.state.ctx.elements[key].width_label != "m0" &&
+                                        <div className={"w3-col w3-left-align w3-hide-medium w3-hide-large " + this.state.ctx.elements[key].width_label} >
+                                            <Label ctx={this.state.ctx} id={key} />
+                                        </div>
+                                    }
+                                    <div className={"w3-col " + this.state.ctx.elements[key].width_field} >
+                                        <Field {...this.state} ctx={this.state.ctx} id={key}
+                                            value={this.state.ctx.elements[key].value}
+                                            onEditRow={this.onEditRow}
+                                            handleSubmit={this.handleSubmit}
+                                        />
+                                        <Error {...this.state} id={key} />
+                                        <Help {...this.state} id={key} />
+                                    </div>
+                                </div>
+                            }
                         </div>
                     )
                 }
@@ -486,21 +510,13 @@ class Label extends React.Component {
                 case 'link':
                 case 'note':
                     return (
-                        <span>
-                            <label htmlFor={this.props.id} className="w3-label w3-quarter w3-right-align w3-hide-small" >
-                                {String.fromCharCode(8239)}</label>
-                            <label htmlFor={this.props.id} className="w3-label w3-quarter w3-right-align w3-hide-medium w3-hide-large" >
-                                {String.fromCharCode(8239)}</label>
-                        </span>
+                        <label htmlFor={this.props.id} className="w3-label">
+                            {String.fromCharCode(8239)}</label>
                     )
                 default:
                     return (
-                        <span>
-                            <label htmlFor={this.props.id} className="w3-label w3-quarter w3-right-align w3-hide-small" >
-                                {element.label_long}</label>
-                            <label htmlFor={this.props.id} className="w3-label w3-quarter w3-left-align w3-hide-medium w3-hide-large" >
-                                {element.label_long}</label>
-                        </span>
+                        <label htmlFor={this.props.id} className="w3-label">
+                            {element.label_long}</label>
                     )
             }
         } else {
@@ -798,14 +814,15 @@ class Field extends React.Component {
                         )
                     }
                 case 'view':
-                    if ( element.view.where ) {
+                    let where = ''
+                    if (element.view.where) {
                         // valorisation du where
-                        element.view.where = Tools.replaceSql(element.view.where, this.props.ctx.elements)
+                        where = Tools.replaceSql(element.view.where, this.props.ctx.elements)
                     }
                     return (
                         <ContainerView ctx={this.props.ctx}
                             app={this.props.app} table={element.view.table} view={element.view.view}
-                            complement={element.view}
+                            where={where}
                         />
                     )
                 default:

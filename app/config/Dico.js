@@ -1321,9 +1321,9 @@ const Dico = {
                             error: "Required with 2 caracters minimum",
                         },
                         _albums: {
-                            label_long: "Albums",
                             label_short: "Albums",
                             type: "view",
+                            width: 12,
                             view: {
                                 table: "Album",
                                 view: "vartist",
@@ -1351,7 +1351,7 @@ const Dico = {
                             title: "ARTIST",
                             group: null,
                             elements: {
-                                ArtistId: {},
+                                ArtistId: {is_hidden: true},
                                 Name: {},
                                 _albums: {},
                             },
