@@ -403,13 +403,9 @@ export default class ContainerForm extends React.Component {
             //     is_ok = false
             if (is_ok)
                 list_fields.push(key)
-            // Calcul largeur du label et du field de s0 à s12
-            if (this.state.ctx.elements[key].width) {
-                this.state.ctx.elements[key].width_label = "m" + (12 - this.state.ctx.elements[key].width)
-                this.state.ctx.elements[key].width_field = "m" + this.state.ctx.elements[key].width
-            } else {
-                this.state.ctx.elements[key].width_label = "m3"
-                this.state.ctx.elements[key].width_field = "m9"
+            // grid par defaut [3,9]
+            if (!this.state.ctx.elements[key].grid) {
+                this.state.ctx.elements[key].grid = [3,9]
             }
         })
         console.log('PageForm elements', this.state.ctx.elements)
@@ -428,22 +424,22 @@ export default class ContainerForm extends React.Component {
                         <div key={key}>
                             {!this.state.ctx.elements[key].is_hidden &&
                                 <div className="w3-row-padding w3-margin-top">
-                                    {this.state.ctx.elements[key].width_label == "m0" &&
-                                        <div className={"w3-col w3-left-align " + this.state.ctx.elements[key].width_label} >
+                                    {this.state.ctx.elements[key].grid[0] == "0" &&
+                                        <div className={"w3-col w3-left-align " + "m12"} >
                                             <Label ctx={this.state.ctx} id={key} />
                                         </div>
                                     }
-                                    {this.state.ctx.elements[key].width_label != "m0" &&
-                                        <div className={"w3-col w3-right-align w3-hide-small " + this.state.ctx.elements[key].width_label} >
+                                    {this.state.ctx.elements[key].grid[0] != 0 &&
+                                        <div className={"w3-col w3-right-align w3-hide-small m" + this.state.ctx.elements[key].grid[0]} >
                                             <Label ctx={this.state.ctx} id={key} />
                                         </div>
                                     }
-                                    {this.state.ctx.elements[key].width_label != "m0" &&
-                                        <div className={"w3-col w3-left-align w3-hide-medium w3-hide-large " + this.state.ctx.elements[key].width_label} >
+                                    {this.state.ctx.elements[key].grid[0] != 0 &&
+                                        <div className={"w3-col w3-left-align w3-hide-medium w3-hide-large m" + this.state.ctx.elements[key].grid[0]} >
                                             <Label ctx={this.state.ctx} id={key} />
                                         </div>
                                     }
-                                    <div className={"w3-col " + this.state.ctx.elements[key].width_field} >
+                                    <div className={"w3-col m" + this.state.ctx.elements[key].grid[1]} >
                                         <Field {...this.state} ctx={this.state.ctx} id={key}
                                             value={this.state.ctx.elements[key].value}
                                             onEditRow={this.onEditRow}
