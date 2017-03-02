@@ -1326,7 +1326,7 @@ const Dico = {
                             type: "view",
                             view: {
                                 table: "Album",
-                                view: "vartist",
+                                view: "valbum",
                                 where: "Album.ArtistId = $ArtistId"
                             }
                         },
@@ -1403,13 +1403,14 @@ const Dico = {
                                 Title: {},
                             }
                         },
-                        vartist: {
+                        valbum: {
                             title: 'ALBUMS',
                             form_add: 'fmaj',
                             form_edit: 'fmaj',
                             form_delete: 'fmaj',
                             //with_filter: true,
                             elements: {
+                                AlbumId: {},
                                 Title: {},
                             }
                         }
@@ -1527,8 +1528,8 @@ const Dico = {
                     key: 'TrackId',
                     elements: {
                         TrackId: {
-                            label_long: "Genre",
-                            label_short: "Genre",
+                            label_long: "Track Id",
+                            label_short: "Track Id",
                             type: "text",
                             is_read_only: true,
                         },
@@ -1544,8 +1545,8 @@ const Dico = {
                             error: "Required with 2 caracters minimum",
                         },
                         AlbumId: {
-                            label_long: "Album Id",
-                            label_short: "Album Id",
+                            label_long: "Album",
+                            label_short: "Album",
                             type: "select",
                             jointure: {
                                 table: "Album",
@@ -1554,8 +1555,8 @@ const Dico = {
                             }
                         },
                         MediaTypeId: {
-                            label_long: "Media Id",
-                            label_short: "Media Id",
+                            label_long: "Media",
+                            label_short: "Media",
                             type: "select",
                             jointure: {
                                 table: "MediaType",
@@ -1564,8 +1565,8 @@ const Dico = {
                             },
                         },
                         GenreId: {
-                            label_long: "Genre Id",
-                            label_short: "Genre Id",
+                            label_long: "Genre",
+                            label_short: "Genre",
                             type: "select",
                             jointure: {
                                 table: "Genre",
@@ -1646,14 +1647,14 @@ const Dico = {
                             group: null,
                             elements: {
                                 AlbumId: {},
-                                TrackId: {},
+                                TrackId: {is_hidden: true},
                                 Name: {},
-                                MediaTypeId: {},
-                                GenreId: {},
                                 Composer: {},
-                                Milliseconds: {},
-                                Bytes: {},
-                                UnitPrice: {},
+                                MediaTypeId: { grid: [3,3] },
+                                GenreId: { grid: [3,3] },
+                                Milliseconds: { grid: [3,2] },
+                                Bytes: { grid: [3,2] },
+                                UnitPrice: { grid: [3,2] },
                             },
                         }
                     }

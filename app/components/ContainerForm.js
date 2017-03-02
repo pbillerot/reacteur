@@ -86,6 +86,7 @@ export default class ContainerForm extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         //console.log('ContainerForm.componentWillReceiveProps', nextProps)
+        this.state.is_data_recepted = false
         fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
@@ -394,7 +395,6 @@ export default class ContainerForm extends React.Component {
         })
 
     }
-
     render() {
         let list_fields = []
         Object.keys(this.state.ctx.elements).forEach(key => {
@@ -403,12 +403,14 @@ export default class ContainerForm extends React.Component {
             //     is_ok = false
             if (is_ok)
                 list_fields.push(key)
-            // grid par defaut [3,9]
+
+            // Traitement du grid    
             if (!this.state.ctx.elements[key].grid) {
-                this.state.ctx.elements[key].grid = [3,9]
+                this.state.ctx.elements[key].grid = [3, 6]
             }
         })
-        console.log('PageForm elements', this.state.ctx.elements)
+        //console.log('PageForm elements', this.state.ctx.elements)
+        //console.log('PageForm is_data_recepted', this.state.is_data_recepted)
         let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
             && this.state.is_data_recepted == true
         //console.log('PageForm', display_form)
@@ -422,34 +424,32 @@ export default class ContainerForm extends React.Component {
                 {display_form &&
                     list_fields.map(key =>
                         <div key={key}>
-                            {!this.state.ctx.elements[key].is_hidden &&
-                                <div className="w3-row-padding w3-margin-top">
-                                    {this.state.ctx.elements[key].grid[0] == "0" &&
-                                        <div className={"w3-col w3-left-align " + "m12"} >
-                                            <Label ctx={this.state.ctx} id={key} />
-                                        </div>
-                                    }
-                                    {this.state.ctx.elements[key].grid[0] != 0 &&
-                                        <div className={"w3-col w3-right-align w3-hide-small m" + this.state.ctx.elements[key].grid[0]} >
-                                            <Label ctx={this.state.ctx} id={key} />
-                                        </div>
-                                    }
-                                    {this.state.ctx.elements[key].grid[0] != 0 &&
-                                        <div className={"w3-col w3-left-align w3-hide-medium w3-hide-large m" + this.state.ctx.elements[key].grid[0]} >
-                                            <Label ctx={this.state.ctx} id={key} />
-                                        </div>
-                                    }
-                                    <div className={"w3-col m" + this.state.ctx.elements[key].grid[1]} >
-                                        <Field {...this.state} ctx={this.state.ctx} id={key}
-                                            value={this.state.ctx.elements[key].value}
-                                            onEditRow={this.onEditRow}
-                                            handleSubmit={this.handleSubmit}
-                                        />
-                                        <Error {...this.state} id={key} />
-                                        <Help {...this.state} id={key} />
+                            <div className="w3-row-padding w3-margin-top">
+                                {this.state.ctx.elements[key].grid[0] == "0" &&
+                                    <div className={"w3-col w3-left-align " + "m12"} >
+                                        <Label ctx={this.state.ctx} id={key} />
                                     </div>
+                                }
+                                {this.state.ctx.elements[key].grid[0] != 0 &&
+                                    <div className={"w3-col w3-right-align w3-hide-small m" + this.state.ctx.elements[key].grid[0]} >
+                                        <Label ctx={this.state.ctx} id={key} />
+                                    </div>
+                                }
+                                {this.state.ctx.elements[key].grid[0] != 0 &&
+                                    <div className={"w3-col w3-left-align w3-hide-medium w3-hide-large m" + this.state.ctx.elements[key].grid[0]} >
+                                        <Label ctx={this.state.ctx} id={key} />
+                                    </div>
+                                }
+                                <div className={"w3-col m" + this.state.ctx.elements[key].grid[1]} >
+                                    <Field {...this.state} ctx={this.state.ctx} id={key}
+                                        value={this.state.ctx.elements[key].value}
+                                        onEditRow={this.onEditRow}
+                                        handleSubmit={this.handleSubmit}
+                                    />
+                                    <Error {...this.state} id={key} />
+                                    <Help {...this.state} id={key} />
                                 </div>
-                            }
+                            </div>
                         </div>
                     )
                 }

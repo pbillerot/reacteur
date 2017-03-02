@@ -59,19 +59,23 @@ export default class ContainerView extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         //console.log('ContainerView.componentWillReceiveProps', nextProps.params)
+        this.state.is_data_recepted = false
         if (nextProps.params) {
             this.state.filter =
                 sessionStorage.getItem(nextProps.params.app + '_' + nextProps.params.table + '_' + nextProps.params.view)
+            if (this.state.filter == null) this.state.filter = ''
             this.getData(nextProps.params.app, nextProps.params.table, nextProps.params.view)
         } else {
             this.state.filter =
                 sessionStorage.getItem(nextProps.app + '_' + nextProps.table + '_' + nextProps.view)
+            if (this.state.filter == null) this.state.filter = ''
             this.getData(nextProps.app, nextProps.table, nextProps.view)
         }
     }
     componentDidMount() {
         //console.log('ContainerView.componentDidMount...', this.state)
         this.state.filter = sessionStorage.getItem(this.state.app + '_' + this.state.table + '_' + this.state.view)
+        if (this.state.filter == null) this.state.filter = ''
         this.getData(this.state.app, this.state.table, this.state.view)
     }
 
@@ -84,7 +88,7 @@ export default class ContainerView extends React.Component {
 
             // recup du filtre dans la session du navigateur
             let filter = sessionStorage.getItem(app + '_' + table + '_' + view);
-            if (!filter) filter = ''
+            if (filter == null) filter = ''
             let data = 'filter=' + encodeURIComponent(filter)
             data += '&page_current=' + encodeURIComponent(this.state.page_current)
             if (this.props.where) {
@@ -185,7 +189,7 @@ export default class ContainerView extends React.Component {
         if (form_view) icol++
         if (form_edit) icol++
         if (form_delete) icol++
-
+        //console.log("ContainerView.render", this.state.is_data_recepted)
         if (this.state.is_data_recepted) {
             return (
                 <div>
@@ -386,7 +390,7 @@ class Search extends React.Component {
     }
 
     render() {
-        //console.log("Search", this.props)
+        //console.log("Search", this.props.filter)
         return (
             <div className="w3-row">
                 <span className="w3-col s9">
