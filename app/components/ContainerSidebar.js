@@ -89,6 +89,7 @@ class NavView extends React.Component {
     render() {
         let views = []
         Object.keys(Dico.apps[this.props.app].tables[this.props.table].views).forEach(view => {
+            //console.log("NavView1", this.props.app, this.props.table, view, Dico.apps[this.props.app].tables[this.props.table].views[view])
             let is_ok = true
             if (Dico.apps[this.props.app].tables[this.props.table].views[view].is_hidden
                 && Dico.apps[this.props.app].tables[this.props.table].views[view].is_hidden == true)
