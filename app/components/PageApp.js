@@ -24,8 +24,9 @@ export default class PageApp extends React.Component {
             markdown: '',
             app: this.props.params.app
         }
+        this.handlePage = this.handlePage.bind(this);
     }
-    handlerCtx(obj) {
+    handlePage(obj) {
         this.setState(obj)
     }
     componentDidMount() {
@@ -72,9 +73,14 @@ export default class PageApp extends React.Component {
         if (Dico.apps[this.state.app]) {
             return (
                 <div>
-                    <ContainerSidebar {...this.props} />
+                    <ContainerSidebar page={this} {...this.state} {...this.props}  />
                     <ContainerContent>
-                        <Header title={Dico.apps[this.state.app].desc} {...this.props} />
+                        <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
+                            <i className="fa fa-bars w3-opennav w3-hide-large w3-xlarge w3-margin-right"
+                                onClick={(e) => this.handlePage({ w3_sidebar_open: true })}
+                            ></i>
+                            <span id="myIntro">{Dico.apps[this.state.app].desc}</span>
+                        </div>
                         <Card style={{ width: '100%', margin: 'auto' }}>
                             {<Markdown source={this.state.markdown} />}
                         </Card>

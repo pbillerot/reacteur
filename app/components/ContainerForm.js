@@ -827,7 +827,7 @@ class Field extends React.Component {
         } else {
             // element hidden
             return (
-                <input type="text" name={this.props.id} value={element.value} style={{ display: 'none' }} />
+                <input type="hidden" name={this.props.id} value={element.value} />
             )
         }
     }

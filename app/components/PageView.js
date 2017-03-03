@@ -34,8 +34,11 @@ export default class PageView extends React.Component {
                 session: {},
             }
         }
+        this.handlePage = this.handlePage.bind(this);
     }
-
+    handlePage(obj) {
+        this.setState(obj)
+    }
     componentWillReceiveProps(nextProps) {
         //console.log('PageView.componentWillReceiveProps', nextProps)
         if (nextProps.params) {
@@ -77,9 +80,15 @@ export default class PageView extends React.Component {
             let view = this.state.view
             return (
                 <div>
-                    <ContainerSidebar {...this.state} {...this.props} />
+                    <ContainerSidebar page={this} {...this.state} {...this.props} />
                     <ContainerContent>
-                        <Header title={Dico.apps[app].tables[table].views[view].title} />
+                        <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
+                            <i className="fa fa-bars w3-opennav w3-hide-large w3-xlarge w3-margin-right"
+                                onClick={(e) => this.handlePage({ w3_sidebar_open: true })}
+                            ></i>
+                            <span id="myIntro">{Dico.apps[app].tables[table].views[view].title}</span>
+                        </div>
+
                         {this.state.is_error &&
                             <div className="w3-margin w3-panel w3-pale-red w3-leftbar w3-border-red">
                                 <p>{this.state.error.code} {this.state.error.message}</p>

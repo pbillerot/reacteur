@@ -24,19 +24,24 @@ export default class PageHelp extends React.Component {
         this.state = {
             w3_sidebar_open: false
         }
+        this.handlePage = this.handlePage.bind(this);
     }
-    handlerCtx(obj) {
-        //console.log('handlerCtx: ', obj)
+    handlePage(obj) {
         this.setState(obj)
     }
-
     render() {
         //let data = fs.readFileSync(__dirname + '/help.md', 'utf8')
         return (
             <div>
-                <ContainerSidebar apex={this} {...this.props} />
+                <ContainerSidebar page={this} {...this.state} {...this.props} />
                 <ContainerContent apex={this} >
-                    <Header title="Aide" />
+                    <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
+                        <i className="fa fa-bars w3-opennav w3-hide-large w3-xlarge w3-margin-right"
+                            onClick={(e) => this.handlePage({ w3_sidebar_open: true })}
+                        ></i>
+                        <span id="myIntro">Aide</span>
+                    </div>
+
                     <RestAPI />
                     <Footer>
                         <p>{Dico.application.copyright}</p>

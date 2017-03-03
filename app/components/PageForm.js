@@ -36,8 +36,9 @@ export default class PageForm extends React.Component {
                 session: {},
             }
         }
+        this.handlePage = this.handlePage.bind(this);
     }
-    handlerCtx(obj) {
+    handlePage(obj) {
         this.setState(obj)
     }
     handleBack(e) {

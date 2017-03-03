@@ -14,7 +14,6 @@ export default class ContainerSidebar extends React.Component {
             app: this.props.app,
         }
     }
-
     handleAPropos(e) {
         e.preventDefault
         this.closeDrawer()
@@ -42,11 +41,11 @@ export default class ContainerSidebar extends React.Component {
     render() {
         let w3_sidebar_open = this.props.w3_sidebar_open
         let title = this.state.app ? Dico.apps[this.state.app].title : Dico.application.title
-        //console.log("ContainerSidebar", this.state, title)
+        //console.log("ContainerSidebar", this.state, title, w3_sidebar_open)
         return (
             <div>
                 <nav className="w3-sidenav w3-collapse w3-white w3-animate-left w3-card-2"
-                    onClick={(e) => w3_sidebar_open ? this.props.handlerCtx({ w3_sidebar_open: false }) : {}}
+                    onClick={(e) => w3_sidebar_open ? this.props.page.handlePage({ w3_sidebar_open: false }) : {}}
                     style={{ zIndex: 3, width: '250px', display: w3_sidebar_open ? 'block' : 'none' }} id="mySidenav">
                     <Link to="/" className="w3-border-bottom w3-large w3-theme-dark">{title}</Link>
                     {this.props.location.pathname != '/' &&
@@ -59,13 +58,16 @@ export default class ContainerSidebar extends React.Component {
                             <NavView app={this.state.app} table={table} key={table} apex={this.props} />
                         )
                     }
-                    <hr />
-                    <Link to={'/app/' + this.state.app} activeClassName="w3-theme-l1">Aide</Link>
-                    <Link to={'/about'} activeClassName="w3-theme-l1">Info</Link>
+                    {this.state.app &&
+                        <hr />
+                    }
+                    {this.state.app &&
+                        <Link to={'/app/' + this.state.app} activeClassName="w3-theme-l1">Aide</Link>
+                    }
                 </nav >
                 {/* Permet de fermer le sidebar en cliquant dans le Content si small screen*/}
                 <div className="w3-overlay w3-hide-large w3-animate-opacity"
-                    onClick={(e) => this.props.handlerCtx({ w3_sidebar_open: false })}
+                    onClick={(e) => this.props.handlePage({ w3_sidebar_open: false })}
                     style={{ cursor: 'pointer', display: w3_sidebar_open ? 'block' : 'none' }}
                     id="myOverlay"></div>
             </div>

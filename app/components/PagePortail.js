@@ -22,8 +22,9 @@ export default class PagePortail extends React.Component {
         this.state = {
             w3_sidebar_open: false,
         }
+        this.handlePage = this.handlePage.bind(this);
     }
-    handlerCtx(obj) {
+    handlePage(obj) {
         this.setState(obj)
     }
     componentDidMount() {
@@ -55,9 +56,14 @@ export default class PagePortail extends React.Component {
         //console.log("PagePortail", apps)
         return (
             <div>
-                <ContainerSidebar {...this.props} />
+                <ContainerSidebar page={this} {...this.state} {...this.props}  />
                 <ContainerContent>
-                    <Header title={Dico.application.desc} />
+                    <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
+                        <i className="fa fa-bars w3-opennav w3-hide-large w3-xlarge w3-margin-right"
+                            onClick={(e) => this.handlePage({ w3_sidebar_open: true })}
+                        ></i>
+                        <span id="myIntro">{Dico.application.desc}</span>
+                    </div>
                     <div className="w3-row-padding">
                         {apps.sort().map(app =>
                             <Link style={{ textDecoration: 'none' }} className="w3-col m6 l4 w3-margin-top" to={'/app/' + app} key={app}>
