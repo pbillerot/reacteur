@@ -4,6 +4,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import 'whatwg-fetch'
 import { Link } from 'react-router'
+import scrollIntoView from 'scroll-into-view'
 // W3
 const {Alerter, Button, Card, Content, Footer, Header, IconButton
     , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
@@ -26,7 +27,7 @@ export default class ContainerView extends React.Component {
             page_total: 0,
             page_current: 0,
             rows: [],
-            rows_selected: [],
+            row_selected: null,
             is_error: false,
             error: {
                 code: '',
@@ -37,9 +38,8 @@ export default class ContainerView extends React.Component {
                 session: this.props.ctx.session,
             }
         }
-        this.handleSkipPage = this.handleSkipPage.bind(this);
-        this.handleFilterChanged = this.handleFilterChanged.bind(this);
-        this.handleFilterSubmit = this.handleFilterSubmit.bind(this);
+        this.handleFilterChanged = this.handleFilterChanged.bind(this)
+        this.handleFilterSubmit = this.handleFilterSubmit.bind(this)
         //console.log("ContainerView.constructor", this.state)
     }
     handleSkipPage(page) {
@@ -243,8 +243,9 @@ export default class ContainerView extends React.Component {
                         </thead>
                         <tbody>
                             {
-                                this.state.rows.map(row =>
-                                    <Row key={irow++} row_key={row_key} ctx={this.state.ctx}
+                                this.state.rows.map((row, i) =>
+                                    <Row key={i}
+                                        containerView={this} row_key={row_key} ctx={this.state.ctx}
                                         app={app} table={table} view={view}
                                         form_view={form_view} form_edit={form_edit} form_delete={form_delete}
                                         row={row} />
@@ -273,6 +274,40 @@ class TH extends React.Component {
 }
 
 class Row extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            row_selected: sessionStorage.getItem(this.props.app + '_' + this.props.table + '_' + this.props.view + '_row_selected')
+        }
+        this.handleClickRow = this.handleClickRow.bind(this)
+    }
+    handleClickRow(key_val) {
+        //console.log("Row.handleClickRow", key_val)
+        if (this.state.row_selected == key_val) {
+            sessionStorage.removeItem(this.props.app + '_' + this.props.table + '_' + this.props.view + '_row_selected');
+            this.setState({
+                row_selected: null
+            })
+        } else {
+            sessionStorage.setItem(this.props.app + '_' + this.props.table + '_' + this.props.view + '_row_selected', key_val);
+            this.setState({
+                row_selected: key_val
+            })
+        }
+    }
+
+    componentDidMount() {
+        //console.log('Row.componentDidMount', this.props.row[this.props.row_key])
+        if (this.props.row[this.props.row_key] == this.state.row_selected) {
+            //ReactDOM.findDOMNode(this.node).scrollIntoView()
+            scrollIntoView(this.node)
+        }
+    }
+    // componentWillReceiveProps(nextProps) {
+    //     console.log('Row.componentWillReceiveProps...', nextProps)
+    //     if (nextProps)
+    //         this.state.row_selected = sessionStorage.getItem(this.nextProps.app + '_' + this.nextProps.table + '_' + this.nextProps.view + '_row_selected');
+    // }
     render() {
         let app = this.props.app
         let table = this.props.table
@@ -285,10 +320,11 @@ class Row extends React.Component {
         let key_val = row[row_key]
         //console.log('Row: ',table + '->' + view, row_key + '=' + row[row_key], row)
         let icol = 0
+        let className = key_val == this.state.row_selected ? "w3-leftbar w3-rightbar w3-border w3-border-theme" : ""
         return (
-            <tr>
+            <tr ref={node => this.node = node} onClick={() => this.handleClickRow(key_val)} className={className} >
                 {form_view &&
-                    <td style={{ width: '30px' }}>
+                    <td style={{ width: '30px' }} >
                         <Link to={'/form/view/' + app + '/' + table + '/' + view + '/' + form_view + '/' + key_val}
                             title={'Voir ' + Dico.apps[app].tables[table].forms[form_view].title + '...'}>
                             <i className="material-icons w3-text-blue-grey">visibility</i>
