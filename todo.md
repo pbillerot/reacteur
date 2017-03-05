@@ -3,11 +3,11 @@
 - changer message mail émis dans la popup
 - bug aff des champs hidden
 - bug aff page courante dans le header si scro
-- bug form ajout ident
 
 - revoir Reacteur.api_check_session_forgetpwd
 - filtre /&/%/ /|/ OR / /=/ like / = sans les %/ 
 
+x bug form ajout ident
 x gérer une marque "selected" dans la vue 
 x bug chg de vue, le filtre est non contextuel à la vue
 x bug warning console filtre nul
