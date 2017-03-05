@@ -132,7 +132,7 @@ export default class ContainerForm extends React.Component {
             if (this.state.ctx.elements[key].value == '') {
                 if (this.state.ctx.elements[key].default) {
                     if (typeof this.state.ctx.elements[key].default === 'function')
-                        this.state.ctx.elements[key].value = this.state.ctx.elements[key].default()
+                        this.state.ctx.elements[key].value = this.state.ctx.elements[key].default(this.state.ctx)
                     else
                         this.state.ctx.elements[key].value = this.state.ctx.elements[key].default
                 }
@@ -216,6 +216,7 @@ export default class ContainerForm extends React.Component {
                 })
         }
         if (action == 'add' || action == 'ident') {
+            this.state.is_data_recepted = true
             this.checkFormulaire()
         }
         return callback({ ok: true })

@@ -1,5 +1,10 @@
 # TODO
 
+- changer message mail émis dans la popup
+- bug aff des champs hidden
+- bug aff page courante dans le header si scro
+- bug form ajout ident
+
 - revoir Reacteur.api_check_session_forgetpwd
 - filtre /&/%/ /|/ OR / /=/ like / = sans les %/ 
 
@@ -11,4 +16,4 @@ x pager http://react-component.github.io/pager/build/examples/simple.html
 x limiter le nbre de lignes affichées à 50 par défaut
 
 ## MISE EN PRODUCTION
-npm i --save scroll-into-view
+

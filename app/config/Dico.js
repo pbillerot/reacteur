@@ -45,13 +45,15 @@ const Dico = {
                             label_long: "Token",
                             label_short: "Token",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
                         tok_url: {
                             label_long: "Url",
                             label_short: "Url",
                             type: "text",
-                            default: () => { return ctx.session.host + "/api/toctoc/" + ctx.elements.tok_id.value },
+                            default: (ctx) => { 
+                                return ctx.session.host + "/api/toctoc/" + ctx.elements.tok_id.value
+                            },
                         },
                         tok_redirect: {
                             label_long: "Redirect to",
@@ -72,7 +74,7 @@ const Dico = {
                             label_long: "Expire le",
                             label_short: "Expire le",
                             type: 'text',
-                            default: () => {
+                            default: (ctx) => {
                                 return moment().add(7, 'days').format()
                             }
                         },
@@ -218,7 +220,7 @@ const Dico = {
                             label_long: "Token",
                             label_short: "Token",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
 
                         _user_pwd_1: {
@@ -459,7 +461,7 @@ const Dico = {
                             label_long: "Id",
                             label_short: "Id",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
                         groupe_nom: {
                             label_long: "Nom du groupe",
@@ -509,7 +511,7 @@ const Dico = {
                             label_long: "Id",
                             label_short: "Id",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
                         user_pseudo: {
                             label_long: "Pseudo",
@@ -609,7 +611,7 @@ const Dico = {
                             label_long: "Id",
                             label_short: "Id",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
                         evt_nom: {
                             label_long: "Evénement",
@@ -689,7 +691,7 @@ const Dico = {
                             label_long: "Id",
                             label_short: "Id",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
                         ceou_lieu: {
                             label_long: "Lieu",
@@ -772,7 +774,7 @@ const Dico = {
                             label_long: "Id",
                             label_short: "Id",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
                         forum_date: {
                             label_long: "Date",
@@ -850,7 +852,7 @@ const Dico = {
                             label_long: "Id",
                             label_short: "Id",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
                         choix_ok: {
                             label_long: "Oui",
@@ -1052,7 +1054,7 @@ const Dico = {
                             type: "text",
                             // valeur par défaut qui peut être calculée
                             // L'exemple retourne un ID unique sur 23 caractères via le module randomstring
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                             // la rubrique ne sera pas modifiable par l'utilisateur
                             is_protected: true,
                         },
@@ -1257,7 +1259,7 @@ const Dico = {
                             label_long: "Id",
                             label_short: "Id",
                             type: "text",
-                            default: () => { return randomstring.generate(23) },
+                            default: (ctx) => { return randomstring.generate(23) },
                         },
                         lang_name: {
                             label_long: "Langage",
@@ -1335,7 +1337,7 @@ const Dico = {
                         vall: {
                             title: 'ARTISTS',
                             group: null,
-                            form_add: 'fmaj',
+                            form_add: 'fadd',
                             form_edit: 'fmaj',
                             form_delete: 'fmaj',
                             //where: "name like '%ac%'",
@@ -1351,9 +1353,17 @@ const Dico = {
                             title: "ARTIST",
                             group: null,
                             elements: {
-                                ArtistId: {is_hidden: true},
-                                Name: { grid: [3,6] },
-                                _albums: { grid: [0,12] },
+                                ArtistId: { is_hidden: true },
+                                Name: { grid: [3, 6] },
+                                _albums: { grid: [0, 12] },
+                            },
+                        },
+                        fadd: {
+                            title: "ARTIST",
+                            group: null,
+                            elements: {
+                                ArtistId: { is_hidden: true },
+                                Name: { grid: [3, 6] },
                             },
                         }
                     }
@@ -1647,14 +1657,14 @@ const Dico = {
                             group: null,
                             elements: {
                                 AlbumId: {},
-                                TrackId: {is_hidden: true},
+                                TrackId: { is_hidden: true },
                                 Name: {},
                                 Composer: {},
-                                MediaTypeId: { grid: [3,3] },
-                                GenreId: { grid: [3,3] },
-                                Milliseconds: { grid: [3,2] },
-                                Bytes: { grid: [3,2] },
-                                UnitPrice: { grid: [3,2] },
+                                MediaTypeId: { grid: [3, 3] },
+                                GenreId: { grid: [3, 3] },
+                                Milliseconds: { grid: [3, 2] },
+                                Bytes: { grid: [3, 2] },
+                                UnitPrice: { grid: [3, 2] },
                             },
                         }
                     }

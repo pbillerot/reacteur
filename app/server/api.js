@@ -208,7 +208,7 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
       Object.keys(fields).forEach(key => {
         ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
-
+      ctx.row = {}
       callback(null, ctx)
     },
     //Reacteur.api_check_session,
