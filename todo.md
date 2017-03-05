@@ -1,5 +1,6 @@
 # TODO
 
+- bug chg page "Cannot read property 'state' of undefined"
 - changer message mail émis dans la popup
 - bug aff des champs hidden
 - bug aff page courante dans le header si scro

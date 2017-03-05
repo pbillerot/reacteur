@@ -40,10 +40,11 @@ export default class ContainerView extends React.Component {
         }
         this.handleFilterChanged = this.handleFilterChanged.bind(this)
         this.handleFilterSubmit = this.handleFilterSubmit.bind(this)
+        this.handleSkipPage = this.handleSkipPage.bind(this)
         //console.log("ContainerView.constructor", this.state)
     }
     handleSkipPage(page) {
-        //console.log("ContainerView.handleSkipPage", page)
+        //console.log("ContainerView.handleSkipPage", page, this.state)
         this.state.page_current = page
         this.getData(this.state.app, this.state.table, this.state.view)
     }
