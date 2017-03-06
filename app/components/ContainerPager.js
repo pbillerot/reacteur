@@ -121,7 +121,7 @@ var Pager = (function (_React$Component3) {
           disabled = current === 0,
           label = props.previousLabel || '«';
 
-      //return React.createElement(CmdItem, { disabled: disabled, text: label, skipTo: this.skipTo, page: current - 1 });
+      return React.createElement(CmdItem, { disabled: disabled, text: label, skipTo: this.skipTo, page: current - 1 });
       return null
     }
   }, {
@@ -135,7 +135,7 @@ var Pager = (function (_React$Component3) {
           disabled = current === total - 1,
           label = self.props.nextLabel || '»';
 
-      //return React.createElement(CmdItem, { disabled: disabled, text: label, skipTo: this.skipTo, page: current + 1 });
+      return React.createElement(CmdItem, { disabled: disabled, text: label, skipTo: this.skipTo, page: current + 1 });
       return null
     }
   }, {

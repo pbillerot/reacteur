@@ -6,8 +6,8 @@ import 'whatwg-fetch'
 import { Link } from 'react-router'
 import scrollIntoView from 'scroll-into-view'
 // W3
-const {Alerter, Button, Card, Content, Footer, Header, IconButton
-    , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
+const { Alerter, Button, Card, Content, Footer, Header, IconButton
+    , Menubar, Nav, Navbar, NavGroup, Sidebar, Window } = require('./w3.jsx')
 
 import ContainerPager from './ContainerPager'
 
@@ -46,6 +46,7 @@ export default class ContainerView extends React.Component {
     handleSkipPage(page) {
         //console.log("ContainerView.handleSkipPage", page, this.state)
         this.state.page_current = page
+        sessionStorage.setItem(this.state.app + '_' + this.state.table + '_' + this.state.view + '_page_current', this.state.page_current);
         this.getData(this.state.app, this.state.table, this.state.view)
     }
     handleFilterChanged(e) {
@@ -54,29 +55,38 @@ export default class ContainerView extends React.Component {
     }
     handleFilterSubmit() {
         //console.log("ContainerView.handleFilterSubmit")
-        sessionStorage.setItem(this.state.app + '_' + this.state.table + '_' + this.state.view, this.state.filter);
+        sessionStorage.setItem(this.state.app + '_' + this.state.table + '_' + this.state.view + '_filter', this.state.filter);
+        this.state.page_current = 0
+        sessionStorage.setItem(this.state.app + '_' + this.state.table + '_' + this.state.view + '_page_current', this.state.page_current);
         this.getData(this.state.app, this.state.table, this.state.view)
     }
 
     componentWillReceiveProps(nextProps) {
         //console.log('ContainerView.componentWillReceiveProps', nextProps.params)
         this.state.is_data_recepted = false
-        if (nextProps.params) {
-            this.state.filter =
-                sessionStorage.getItem(nextProps.params.app + '_' + nextProps.params.table + '_' + nextProps.params.view)
-            if (this.state.filter == null) this.state.filter = ''
-            this.getData(nextProps.params.app, nextProps.params.table, nextProps.params.view)
-        } else {
-            this.state.filter =
-                sessionStorage.getItem(nextProps.app + '_' + nextProps.table + '_' + nextProps.view)
-            if (this.state.filter == null) this.state.filter = ''
-            this.getData(nextProps.app, nextProps.table, nextProps.view)
-        }
+        this.state.app = nextProps.params ? nextProps.params.app : nextProps.app
+        this.state.table = nextProps.params ? nextProps.params.table : nextProps.table
+        this.state.view = nextProps.params ? nextProps.params.view : nextProps.view
+
+        this.state.filter = sessionStorage.getItem(this.state.app + '_' + this.state.table + '_' + this.state.view + '_filter')
+        if (this.state.filter == null) this.state.filter = ''
+        let page_current = sessionStorage.getItem(this.state.app + '_' + this.state.table + '_' + this.state.view + '_page_current')
+        if (page_current == null)
+            this.state.page_current = 0
+        else
+            this.state.page_current = parseInt(page_current)
+        this.getData(this.state.app, this.state.table, this.state.view)
+
     }
     componentDidMount() {
         //console.log('ContainerView.componentDidMount...', this.state)
-        this.state.filter = sessionStorage.getItem(this.state.app + '_' + this.state.table + '_' + this.state.view)
+        this.state.filter = sessionStorage.getItem(this.state.app + '_' + this.state.table + '_' + this.state.view + '_filter')
         if (this.state.filter == null) this.state.filter = ''
+        let page_current = sessionStorage.getItem(this.state.app + '_' + this.state.table + '_' + this.state.view + '_page_current')
+        if (page_current == null)
+            this.state.page_current = 0
+        else
+            this.state.page_current = parseInt(page_current)
         this.getData(this.state.app, this.state.table, this.state.view)
     }
 
@@ -87,10 +97,8 @@ export default class ContainerView extends React.Component {
 
             let key_id = Dico.apps[app].tables[table].key
 
-            // recup du filtre dans la session du navigateur
-            let filter = sessionStorage.getItem(app + '_' + table + '_' + view);
-            if (filter == null) filter = ''
-            let data = 'filter=' + encodeURIComponent(filter)
+            // recup du filtre et de la page courante dans la session du navigateur
+            let data = 'filter=' + encodeURIComponent(this.state.filter)
             data += '&page_current=' + encodeURIComponent(this.state.page_current)
             if (this.props.where) {
                 data += "&where=" + encodeURIComponent(this.props.where)

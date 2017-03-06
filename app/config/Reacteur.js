@@ -662,7 +662,7 @@ const Reacteur = {
 
                 // WHERE
                 let where = ''
-                console.log("view", ctx.vue)
+                //console.log("view", ctx.vue)
                 if (ctx.vue.where) {
                     where = " WHERE " + ctx.vue.where
                 }
@@ -672,7 +672,7 @@ const Reacteur = {
 
                 // FILTER
                 if (ctx.filter && ctx.filter.length > 0) {
-                    console.log("filter", ctx.filter)
+                    //console.log("filter", ctx.filter)
                     params['$_filter'] = "%" + ctx.filter + "%"
                     where += where.length > 0 ? " AND (" : " WHERE ("
                     let start = true
