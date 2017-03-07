@@ -22,7 +22,7 @@ const Dico = {
         title: 'REACTEUR',
         desc: "REACTEUR - Le Portail",
         url: 'https://github.com/pbillerot/reacteur',
-        copyright: 'build with REACTEUR 2016 - version 1.3.5',
+        copyright: 'build with REACTEUR 2016 - version 1.3.7',
     },
     apps: {
         tarot: {
