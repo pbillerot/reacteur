@@ -5,8 +5,8 @@ import ReactDOM from 'react-dom'
 import 'whatwg-fetch'
 import { Link } from 'react-router'
 // W3
-const {Alerter, Button, Card, Content, Footer, Header, IconButton
-    , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
+const { Alerter, Button, Card, Content, Footer, Header, IconButton
+    , Menubar, Nav, Navbar, NavGroup, Sidebar, Window } = require('./w3.jsx')
 
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
@@ -20,6 +20,7 @@ export default class PageView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            is_data_recepted: false,
             w3_sidebar_open: false,
             app: this.props.params.app,
             table: this.props.params.table,
@@ -57,11 +58,14 @@ export default class PageView extends React.Component {
     }
     componentDidMount() {
         //console.log('PageView.componentDidMount...')
-        fetch('/api/session', { credentials: 'same-origin' })
+        this.state.is_data_recepted = false
+        fetch('/api/session/' + this.state.app, { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    //console.log('PageApp SESSION: ', json)
-                    this.state.ctx.session = json
+                    //console.log('PageView SESSION: ', json)
+                    this.state.is_data_recepted = true
+                    this.state.ctx.session = json.session
+                    Dico.apps[json.appname] = json.app
                     this.setState({})
                     ToolsUI.showAlert(this.state.ctx.session.alerts)
                 })
@@ -69,11 +73,11 @@ export default class PageView extends React.Component {
     }
 
     render() {
-        //console.log("PageView.render", this.state)
+        //console.log("PageView.render", this.state, Dico.apps[this.state.app])
         if (Dico.apps[this.state.app]
             && Dico.apps[this.state.app].tables[this.state.table]
             && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]
-            && this.state.ctx.session.host && this.state.ctx.session.host.length > 3) {
+            && this.state.is_data_recepted) {
 
             let app = this.state.app
             let table = this.state.table
@@ -111,10 +115,9 @@ export default class PageView extends React.Component {
         } else {
             return (
                 <div className="w3-margin w3-panel w3-leftbar ">
-                    <p>Wait</p>
+                    <p>Veuillez patienter...</p>
                 </div>
             )
-
         }
     }
 }

@@ -8,8 +8,8 @@ import Select from 'react-select';
 import { Checkbox, CheckboxGroup } from 'react-checkbox-group';
 
 // W3
-const {Alerter, Card, Content, Footer, Header, IconButton
-    , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
+const { Alerter, Card, Content, Footer, Header, IconButton
+    , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window } = require('./w3.jsx')
 
 import ContainerSidebar from './ContainerSidebar';
 import ContainerContent from './ContainerContent';
@@ -23,6 +23,7 @@ export default class PageForm extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            is_data_recepted: false,
             w3_sidebar_open: false,
             action: this.props.params.action, // add view edit delete ident
             app: this.props.params.app,
@@ -47,11 +48,14 @@ export default class PageForm extends React.Component {
     }
     componentDidMount() {
         //console.log('PageForm.componentDidMount...')
-        fetch('/api/session', { credentials: 'same-origin' })
+        this.state.is_data_recepted = false
+        fetch('/api/session/' + this.state.app, { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    this.state.ctx.session = json
-                    this.setState({ })
+                    this.state.is_data_recepted = true
+                    this.state.ctx.session = json.session
+                    Dico.apps[json.appname] = json.app
+                    this.setState({})
                     ToolsUI.showAlert(this.state.ctx.session.alerts)
                 })
             })
@@ -77,12 +81,12 @@ export default class PageForm extends React.Component {
             && Dico.apps[this.state.app].tables[this.state.table]
             && Dico.apps[this.state.app].tables[this.state.table].views[this.state.view]
             && Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form]
-            && this.state.ctx.session.host && this.state.ctx.session.host.length > 3) {
+            && this.state.is_data_recepted) {
             let title = Dico.apps[this.state.app].tables[this.state.table].forms[this.state.form].title
             //const MyForm = this.state.MyForm;
             return (
                 <div>
-                    <ContainerSidebar {...this.state} {...this.props} />
+                    <ContainerSidebar page={this} {...this.state} {...this.props} />
                     <ContainerContent {...this.props}>
                         <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
                             <a onClick={this.handleBack}>
@@ -105,7 +109,7 @@ export default class PageForm extends React.Component {
         } else {
             return (
                 <div className="w3-margin w3-panel w3-leftbar">
-                    <p>Wait...</p>
+                    <p>Veuillez patienter...</p>
                 </div>
             )
 

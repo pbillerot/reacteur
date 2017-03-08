@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const async = require('async')
 const fs = require('fs')
+const path = require('path')
 
 const { Dico } = require('../config/Dico')
 const { Tools } = require('../config/Tools')
@@ -10,12 +11,12 @@ const { Reacteur } = require('../config/Reacteur')
 /**
  * Appel du portail
  */
-router.get('/portail', function (req, res) {
-  var session = req.session
-  let path = __dirname + '/../views/portail.md';
-  let file = fs.readFileSync(path, 'utf8');
-  res.send((file.toString()));
-})
+// router.get('/portail', function (req, res) {
+//   var session = req.session
+//   let path = __dirname + '/../views/portail.md';
+//   let file = fs.readFileSync(path, 'utf8');
+//   res.send((file.toString()));
+// })
 
 /**
  * Appel de l'aide
@@ -32,9 +33,24 @@ router.get('/portail', function (req, res) {
  */
 router.get('/help/:app', function (req, res) {
   var session = req.session
-  let path = __dirname + '/../config/' + req.params.app + '.md';
+  let path = __dirname + '/../config/dico/' + req.params.app + '/' + req.params.app + '.md';
   let file = fs.readFileSync(path, 'utf8');
   res.send((file.toString()));
+})
+
+/**
+ * Obtention du dictionnaire d'une application
+ */
+router.get('/dico/:app', function (req, res) {
+  let file = __dirname + '/../config/' + req.params.app + '.js'
+  //let app = new SelfReloadJSON(file);
+  let app = {}
+  delete require.cache[require.resolve(file)]
+  app[req.params.app] = require(file)
+  // let path = __dirname + '/../config/' + req.params.app + '.js';
+  // let file = fs.readFileSync(path, 'utf8');
+  res.send(JSON.stringify(app[req.params.app]));
+  //res.send(JSON.stringify(app));
 })
 
 /**
@@ -366,6 +382,29 @@ router.put('/cnx/close', function (req, res) {
 router.get('/session', function (req, res) {
   //console.log("SESSION", req.session)
   res.status(200).json(req.session) // OK
+})
+
+router.get('/session/:app', function (req, res) {
+  //console.log("SESSION...", Dico)
+  if (!Dico.apps[req.params.app]) {
+    Reacteur.load_dico()
+  }
+  res.status(200).json({
+    session: req.session,
+    appname: req.params.app,
+    app: Dico.apps[req.params.app]
+  })
+})
+
+/**
+ * Récupérer le menu des applications dans la page d'acceuil du portail
+ */
+router.get('/portail', function (req, res) {
+  //console.log("PORTAIL...", Dico)
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
+  res.status(200).json({ session: req.session, apps: Dico.apps })
 })
 
 router.get('/alerter_raz', function (req, res) {

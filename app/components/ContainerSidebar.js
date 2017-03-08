@@ -4,8 +4,8 @@ import React from 'react';
 import { Link, browserHistory, Route } from 'react-router';
 import { ctx, Dico } from '../config/Dico';
 // W3
-const {Button, Card, Content, Footer, Header, IconButton
-    , Menubar, Nav, Navbar, NavGroup, Sidebar, Window} = require('./w3.jsx')
+const { Button, Card, Content, Footer, Header, IconButton
+    , Menubar, Nav, Navbar, NavGroup, Sidebar, Window } = require('./w3.jsx')
 
 export default class ContainerSidebar extends React.Component {
     constructor(props, context) {
@@ -51,11 +51,11 @@ export default class ContainerSidebar extends React.Component {
                     {this.props.location.pathname != '/' &&
                         <Link to={'/'} className=""><i className="fa fa-home"></i> retour au portail</Link>
                     }
-                    <IdentContainer />
+                    <IdentContainer {...this.props} />
                     <hr />
                     {this.state.app &&
                         Object.keys(Dico.apps[this.state.app].tables).map(table =>
-                            <NavView app={this.state.app} table={table} key={table} apex={this.props} />
+                            <NavView {...this.props} app={this.state.app} table={table} key={table} />
                         )
                     }
                     {this.state.app &&
@@ -77,6 +77,8 @@ export default class ContainerSidebar extends React.Component {
 class NavView extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+        }
         this.handleClickView = this.handleClickView.bind(this);
     }
     handleClickView(table, view, event) {
@@ -88,36 +90,38 @@ class NavView extends React.Component {
     }
     render() {
         let views = []
-        Object.keys(Dico.apps[this.props.app].tables[this.props.table].views).forEach(view => {
-            //console.log("NavView1", this.props.app, this.props.table, view, Dico.apps[this.props.app].tables[this.props.table].views[view])
-            let is_ok = true
-            if (Dico.apps[this.props.app].tables[this.props.table].views[view].is_hidden
-                && Dico.apps[this.props.app].tables[this.props.table].views[view].is_hidden == true)
-                is_ok = false
-            if (Dico.apps[this.props.app].tables[this.props.table].views[view].group
-                && Dico.apps[this.props.app].tables[this.props.table].views[view].group.length > 0) {
-                if (Dico.apps[this.props.app].tables[this.props.table].views[view].group != ctx.session.user_profil) {
+            Object.keys(Dico.apps[this.props.app].tables[this.props.table].views).forEach(view => {
+                //console.log("NavView1", this.props.app, this.props.table, view, Dico.apps[this.props.app].tables[this.props.table].views[view])
+                let is_ok = true
+                if (Dico.apps[this.props.app].tables[this.props.table].views[view].is_hidden
+                    && Dico.apps[this.props.app].tables[this.props.table].views[view].is_hidden == true)
                     is_ok = false
+                if (Dico.apps[this.props.app].tables[this.props.table].views[view].group
+                    && Dico.apps[this.props.app].tables[this.props.table].views[view].group.length > 0) {
+                    if (Dico.apps[this.props.app].tables[this.props.table].views[view].group != this.props.ctx.session.user_profil) {
+                        is_ok = false
+                    }
                 }
-            }
-            if (is_ok)
-                views.push(view)
-        })
-        //console.log("NavView2", this.props.app, this.props.table, views)
+                if (is_ok) {
+                    Dico.apps[this.props.app].tables[this.props.table].views[view].view = view
+                    views.push(Dico.apps[this.props.app].tables[this.props.table].views[view])
+                }
+            })
+        //console.log("NavView", this.props.app, this.props.table, views)
         return (
             <div>
                 {
-                    views.map(view =>
-                        <Link to={Dico.apps[this.props.app].tables[this.props.table].views[view].form_auto
-                            ? '/form/' + Dico.apps[this.props.app].tables[this.props.table].views[view].form_auto_action
-                            + '/' + this.props.app + '/' + this.props.table + '/' + view + '/'
-                            + Dico.apps[this.props.app].tables[this.props.table].views[view].form_auto + '/0'
-                            : '/view/' + this.props.app + '/' + this.props.table + '/' + view
+                    Object.keys(views).map((iv, i)=>
+                        <Link to={views[iv].form_auto
+                            ? '/form/' + views[iv].form_auto_action
+                            + '/' + this.props.app + '/' + this.props.table + '/' + views[iv].view + '/'
+                            + Dico.apps[this.props.app].tables[this.props.table].views[views[iv].view].form_auto + '/0'
+                            : '/view/' + this.props.app + '/' + this.props.table + '/' + views[iv].view
                         }
-                            key={this.props.table + '_' + view}
+                            key={i}
                             activeClassName="w3-theme-l1"
                         >
-                            {Dico.apps[this.props.app].tables[this.props.table].views[view].title}
+                            {Dico.apps[this.props.app].tables[this.props.table].views[views[iv].view].title}
                         </Link>
                     )
                 }
@@ -135,33 +139,17 @@ class IdentContainer extends React.Component {
         super(props);
         this.state = {
             is_dropdown_open: false,
-            is_connected: false
+            is_connected: false,
         }
     }
     componentDidMount() {
-        //console.log('IdentContainer.componentDidMount')
-        fetch('/api/session/', { credentials: 'same-origin' })
-            .then(response => {
-                response.json().then(json => {
-                    ctx.session = json
-                    if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 0) {
-                        this.setState({ is_connected: true })
-                    }
-                })
-            })
+        //console.log('IdentContainer.componentDidMount', this.props)
+        if (this.props.ctx.session.user_pseudo && this.props.ctx.session.user_pseudo.length > 0) {
+            this.setState({ is_connected: true })
+        }
     }
     componentWillReceiveProps(nextProps) {
-        //console.log('IdentContainer.componentWillReceiveProps')
-        // fetch('/api/session/', { credentials: 'same-origin' })
-        //     .then(response => {
-        //         response.json().then(json => {
-        //             //console.log('session', json)
-        //             ctx.session = json
-        //             if (ctx.session.user_pseudo && ctx.session.user_pseudo.length > 0) {
-        //                 this.setState({ is_connected: true })
-        //             }
-        //         })
-        //     })
+        //console.log('IdentContainer.componentWillReceiveProps', nextProps)
     }
     render() {
         //console.log("IdentContainer", this.props)
@@ -169,9 +157,9 @@ class IdentContainer extends React.Component {
             <div className="">
                 {this.state.is_connected &&
                     <div>
-                        <Link className="w3-text-teal" to={'/form/view/reacteur/actusers/vident/fmenuident/' + ctx.session.user_pseudo}>
-                            {ctx.session.user_pseudo} <i className="fa fa-caret-right"></i>
-                            <br /><span className="w3-small">{ctx.session.user_email}</span>
+                        <Link className="w3-text-teal" to={'/form/view/reacteur/actusers/vident/fmenuident/' + this.props.ctx.session.user_pseudo}>
+                            {this.props.ctx.session.user_pseudo} <i className="fa fa-caret-right"></i>
+                            <br /><span className="w3-small">{this.props.ctx.session.user_email}</span>
                         </Link>
                     </div>
                 }

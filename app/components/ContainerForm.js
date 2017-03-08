@@ -8,8 +8,8 @@ import Select from 'react-select';
 import { Checkbox, CheckboxGroup } from 'react-checkbox-group';
 
 // W3
-const {Alerter, Card, Content, Footer, Header, IconButton
-    , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
+const { Alerter, Card, Content, Footer, Header, IconButton
+    , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window } = require('./w3.jsx')
 
 import ContainerContent from './ContainerContent';
 import ContainerView from './ContainerView';
@@ -87,25 +87,17 @@ export default class ContainerForm extends React.Component {
     componentWillReceiveProps(nextProps) {
         //console.log('ContainerForm.componentWillReceiveProps', nextProps)
         this.state.is_data_recepted = false
-        fetch('/api/session', { credentials: 'same-origin' })
-            .then(response => {
-                response.json().then(json => {
-                    this.state.ctx.session = json
-                    ToolsUI.showAlert(this.state.ctx.session.alerts)
-                    //console.log('PageForm SESSION: ', json)
-                    if (nextProps.params) {
-                        this.getData(nextProps.params.action, nextProps.params.app, nextProps.params.table
-                            , nextProps.params.view, nextProps.params.form, nextProps.params.id,
-                            (result) => {
-                                //
-                            })
-                    } else {
-                        this.getData(nextProps.action, nextProps.app, nextProps.table, nextProps.view, nextProps.form, nextProps.id,
-                            (result) => {
-                            })
-                    }
+        if (nextProps.params) {
+            this.getData(nextProps.params.action, nextProps.params.app, nextProps.params.table
+                , nextProps.params.view, nextProps.params.form, nextProps.params.id,
+                (result) => {
+                    //
                 })
-            })
+        } else {
+            this.getData(nextProps.action, nextProps.app, nextProps.table, nextProps.view, nextProps.form, nextProps.id,
+                (result) => {
+                })
+        }
     }
     componentDidMount() {
         //console.log('ContainerForm.componentDidMount...')
@@ -397,102 +389,108 @@ export default class ContainerForm extends React.Component {
 
     }
     render() {
-        let list_fields = []
-        Object.keys(this.state.ctx.elements).forEach(key => {
-            let is_ok = true
-            // if (this.state.ctx.elements[key].is_hidden)
-            //     is_ok = false
-            if (is_ok)
-                list_fields.push(key)
-
-            // Traitement du grid    
-            if (!this.state.ctx.elements[key].grid) {
-                this.state.ctx.elements[key].grid = [3, 6]
-            }
-        })
         //console.log('PageForm elements', this.state.ctx.elements)
-        //console.log('PageForm is_data_recepted', this.state.is_data_recepted)
         let display_form = (!this.state.is_error || (this.state.is_error && this.state.error.code < 9000))
             && this.state.is_data_recepted == true
-        //console.log('PageForm', display_form)
-        return (
-            <form>
-                {this.state.is_error &&
-                    <div className="w3-panel w3-pale-red w3-leftbar w3-border-red">
-                        <p>{this.state.error.code} {this.state.error.message}</p>
-                    </div>
+        if (display_form) {
+            let list_fields = []
+            Object.keys(this.state.ctx.elements).forEach(key => {
+                let is_ok = true
+                // if (this.state.ctx.elements[key].is_hidden)
+                //     is_ok = false
+                if (is_ok)
+                    list_fields.push(key)
+
+                // Traitement du grid    
+                if (!this.state.ctx.elements[key].grid) {
+                    this.state.ctx.elements[key].grid = [3, 6]
                 }
-                {display_form &&
-                    list_fields.map(key =>
-                        <div key={key}>
-                            <div className="w3-row-padding w3-margin-top">
-                                {this.state.ctx.elements[key].grid[0] == "0" &&
-                                    <div className={"w3-col w3-left-align " + "m12"} >
-                                        <Label ctx={this.state.ctx} id={key} />
+            })
+            return (
+                <form>
+                    {this.state.is_error &&
+                        <div className="w3-panel w3-pale-red w3-leftbar w3-border-red">
+                            <p>{this.state.error.code} {this.state.error.message}</p>
+                        </div>
+                    }
+                    {display_form &&
+                        list_fields.map(key =>
+                            <div key={key}>
+                                <div className="w3-row-padding w3-margin-top">
+                                    {this.state.ctx.elements[key].grid[0] == "0" &&
+                                        <div className={"w3-col w3-left-align " + "m12"} >
+                                            <Label ctx={this.state.ctx} id={key} />
+                                        </div>
+                                    }
+                                    {this.state.ctx.elements[key].grid[0] != 0 &&
+                                        <div className={"w3-col w3-right-align w3-hide-small m" + this.state.ctx.elements[key].grid[0]} >
+                                            <Label ctx={this.state.ctx} id={key} />
+                                        </div>
+                                    }
+                                    {this.state.ctx.elements[key].grid[0] != 0 &&
+                                        <div className={"w3-col w3-left-align w3-hide-medium w3-hide-large m" + this.state.ctx.elements[key].grid[0]} >
+                                            <Label ctx={this.state.ctx} id={key} />
+                                        </div>
+                                    }
+                                    <div className={"w3-col m" + this.state.ctx.elements[key].grid[1]} >
+                                        <Field {...this.state} ctx={this.state.ctx} id={key}
+                                            value={this.state.ctx.elements[key].value}
+                                            onEditRow={this.onEditRow}
+                                            handleSubmit={this.handleSubmit}
+                                        />
+                                        <Error {...this.state} id={key} />
+                                        <Help {...this.state} id={key} />
                                     </div>
-                                }
-                                {this.state.ctx.elements[key].grid[0] != 0 &&
-                                    <div className={"w3-col w3-right-align w3-hide-small m" + this.state.ctx.elements[key].grid[0]} >
-                                        <Label ctx={this.state.ctx} id={key} />
-                                    </div>
-                                }
-                                {this.state.ctx.elements[key].grid[0] != 0 &&
-                                    <div className={"w3-col w3-left-align w3-hide-medium w3-hide-large m" + this.state.ctx.elements[key].grid[0]} >
-                                        <Label ctx={this.state.ctx} id={key} />
-                                    </div>
-                                }
-                                <div className={"w3-col m" + this.state.ctx.elements[key].grid[1]} >
-                                    <Field {...this.state} ctx={this.state.ctx} id={key}
-                                        value={this.state.ctx.elements[key].value}
-                                        onEditRow={this.onEditRow}
-                                        handleSubmit={this.handleSubmit}
-                                    />
-                                    <Error {...this.state} id={key} />
-                                    <Help {...this.state} id={key} />
                                 </div>
                             </div>
+                        )
+                    }
+                    {display_form &&
+                        <div className="w3-navbar"
+                            style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
+                            {this.state.action == 'ident' &&
+                                <button type="button"
+                                    className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                                    onClick={this.handleSubmit} >
+                                    <i className="fa fa-check"></i> {this.state.formulaire.action_title
+                                        ? this.state.formulaire.action_title : 'Valider'}
+                                </button>
+                            }
+                            {this.state.action == 'edit' &&
+                                <button type="button"
+                                    className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                                    onClick={this.handleSubmit} >
+                                    <i className="fa fa-check"></i> {this.state.formulaire.action_title
+                                        ? this.state.formulaire.action_title : 'Enregistrer'}
+                                </button>
+                            }
+                            {this.state.action == 'add' &&
+                                <button type="button"
+                                    className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                                    onClick={this.handleSubmit} >
+                                    <i className="fa fa-check"></i> {this.state.formulaire.action_title
+                                        ? this.state.formulaire.action_title : 'Ajouter'}
+                                </button>
+                            }
+                            {this.state.action == 'delete' &&
+                                <button type="button"
+                                    className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
+                                    onClick={this.handleSubmit} >
+                                    <i className="fa fa-check"></i> {this.state.formulaire.action_title
+                                        ? this.state.formulaire.action_title : 'Supprimer'}
+                                </button>
+                            }
                         </div>
-                    )
-                }
-                {display_form &&
-                    <div className="w3-navbar"
-                        style={{ position: 'fixed', top: '13px', right: '16px', zIndex: 3000 }}>
-                        {this.state.action == 'ident' &&
-                            <button type="button"
-                                className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
-                                onClick={this.handleSubmit} >
-                                <i className="fa fa-check"></i> {this.state.formulaire.action_title
-                                    ? this.state.formulaire.action_title : 'Valider'}
-                            </button>
-                        }
-                        {this.state.action == 'edit' &&
-                            <button type="button"
-                                className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
-                                onClick={this.handleSubmit} >
-                                <i className="fa fa-check"></i> {this.state.formulaire.action_title
-                                    ? this.state.formulaire.action_title : 'Enregistrer'}
-                            </button>
-                        }
-                        {this.state.action == 'add' &&
-                            <button type="button"
-                                className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
-                                onClick={this.handleSubmit} >
-                                <i className="fa fa-check"></i> {this.state.formulaire.action_title
-                                    ? this.state.formulaire.action_title : 'Ajouter'}
-                            </button>
-                        }
-                        {this.state.action == 'delete' &&
-                            <button type="button"
-                                className={this.state.is_form_valide ? 'w3-btn w3-teal' : 'w3-btn w3-teal w3-disabled'}
-                                onClick={this.handleSubmit} >
-                                <i className="fa fa-check"></i> {this.state.formulaire.action_title
-                                    ? this.state.formulaire.action_title : 'Supprimer'}
-                            </button>
-                        }
-                    </div>
-                }
-            </form>
-        )
+                    }
+                </form>
+            )
+        } else {
+            return (
+                <div className="w3-margin w3-panel w3-leftbar ">
+                    <p>Veuillez patienter...</p>
+                </div>
+            )
+        }
     }
 }
 

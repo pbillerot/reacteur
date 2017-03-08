@@ -952,8 +952,30 @@ const Reacteur = {
             }
         })
     },
+    load_dico() {
+        let prefix = __dirname + '/../config/dico'
+        let apps = []
+        fs
+            .readdirSync(prefix)
+            .forEach(function (file) {
+                let dico = prefix + '/' + file + '/' + file + '.js'
 
+                if (!Dico.apps[file]) {
+                    Dico.apps[file] = require(dico)
+                    console.log("DICO load", file)
+                    fs.watch(dico, {}, (eventType, filename) => {
+                        // le fichier a changé, on vide le cache
+                        if (eventType == "change") {
+                            let dico = prefix + '/' + path.basename(filename, ".js") + '/' + filename
+                            console.log("DICO reload", filename, eventType)
+                            delete require.cache[require.resolve(dico)]
+                            Dico.apps[path.basename(filename, ".js")] = require(dico)
+                        }
+                    })
+                }
+            })
 
+    }
 
 }
 export { Reacteur }

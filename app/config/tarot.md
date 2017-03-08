@@ -1,3 +1,0 @@
-# TAROT
-
-P.BILLEROT
