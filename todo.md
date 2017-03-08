@@ -1,6 +1,5 @@
 # TODO
 
-- eclater les dictionnaires à raison d'un dictionnaire par application
 
 - changer message mail émis dans la popup
 - bug aff des champs hidden
@@ -9,6 +8,7 @@
 - revoir Reacteur.api_check_session_forgetpwd
 - filtre /&/%/ /|/ OR / /=/ like / = sans les %/ 
 
+x eclater les dictionnaires à raison d'un dictionnaire par application
 x mémoriser aussi la page de la vue
 x bug chg page "Cannot read property 'state' of undefined"
 x bug form ajout ident
