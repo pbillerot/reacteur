@@ -51,7 +51,7 @@ module.exports = {
                     // - le champ ne doit pas être vide 
                     // - et d'une longueur minimum de 3 caractères
                     // NOTA: Cette méthode sera aussi exécutée sur le serveur
-                    is_valide(value, ctx) {
+                    is_valide: (value, ctx) => {
                         return !validator.isEmpty(value) && value.length > 2
                     },
                     // Message affiché en rouge dessous le champ s'il n'est pas valide
@@ -64,12 +64,12 @@ module.exports = {
                     type: "password",
                     maxlength: 50,
                     pattern: "[A-Z,a-z,0-9,_\-]*",
-                    is_valide(value, ctx) {
+                    is_valide: (value, ctx) => {
                         return value.length > 7
                     },
                     error: "Obligatoire",
                     // La valeur enregistrée dans la base sera cryptée avec le module md5
-                    server_record(value) {
+                    server_record: (value) => {
                         return md5(value)
                     }
                 },
@@ -89,7 +89,7 @@ module.exports = {
                     label_long: "Votre email",
                     type: "text",
                     // Contrôle du format de l'email
-                    is_valide(value, ctx) {
+                    is_valide: (value, ctx) => {
                         return !validator.isEmpty(value) && validator.isEmail(value)
                     },
                     error: "Adresse email non valide",
@@ -214,7 +214,7 @@ module.exports = {
                         tex_actif: {},
                         tex_profil: {}
                     },
-                    is_valide(ctx) {
+                    is_valide: (ctx) => {
                         return true
                     },
                     compute(ctx) {
@@ -261,9 +261,6 @@ module.exports = {
                     elements: {
                         lang_id: { is_protect: true },
                         lang_name: {},
-                    },
-                    is_valide(ctx) {
-                        return true
                     },
                 }
             }

@@ -404,7 +404,9 @@ router.get('/portail', function (req, res) {
   if (!Dico.apps["reacteur"]) {
     Reacteur.load_dico()
   }
+  //res.status(200).send(stringify({ session: req.session, apps: Dico.apps }))
   res.status(200).json({ session: req.session, apps: Dico.apps })
+  //res.status(200).send(JSON.stringify({ session: req.session, apps: Dico.apps }))
 })
 
 router.get('/alerter_raz', function (req, res) {

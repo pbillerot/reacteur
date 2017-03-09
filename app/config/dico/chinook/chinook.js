@@ -326,6 +326,7 @@ module.exports = {
                     label_short: "Unit Price",
                     type: "text",
                     placeholder: "unit price",
+                    pattern: "(\d{3})([\.])(\d{2})",
                     maxlength: 10,
                     // is_valide(value, ctx) {
                     //     return !validator.isEmpty(value) && value.length > 1
@@ -364,8 +365,8 @@ module.exports = {
                         TrackId: { is_hidden: true },
                         Name: {},
                         Composer: {},
-                        MediaTypeId: { grid: [3, 3] },
-                        GenreId: { grid: [3, 3] },
+                        MediaTypeId: { grid: [3, 4] },
+                        GenreId: { grid: [3, 4] },
                         Milliseconds: { grid: [3, 2] },
                         Bytes: { grid: [3, 2] },
                         UnitPrice: { grid: [3, 2] },

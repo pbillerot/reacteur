@@ -145,7 +145,7 @@ export default class ContainerForm extends React.Component {
 
             // Field valide ?
             if (this.state.ctx.elements[key].value && !this.state.ctx.elements[key].is_read_only && !this.state.ctx.elements[key].is_hidden) {
-                //console.log(key, this.state.ctx.elements[key])
+                console.log(key, this.state.ctx.elements[key])
                 if (this.state.ctx.elements[key].is_valide && !this.state.ctx.elements[key].is_valide(this.state.ctx.elements[key].value, this.state.ctx)) {
                     //console.log('checkFormulaire', key, false, this.state.ctx.elements[key].value)
                     this.state.ctx.elements[key].b_valide = false

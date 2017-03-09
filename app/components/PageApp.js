@@ -40,7 +40,7 @@ export default class PageApp extends React.Component {
         fetch('/api/session/' + this.state.app, { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
-                    console.log('PageApp SESSION: ', json)
+                    //console.log('PageApp SESSION: ', json)
                     this.state.is_data_recepted = true
                     this.state.ctx.session = json.session
                     Dico.apps[json.appname] = json.app
