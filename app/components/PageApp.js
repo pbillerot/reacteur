@@ -44,10 +44,11 @@ export default class PageApp extends React.Component {
                     this.state.is_data_recepted = true
                     // Recup des données de la session
                     this.state.ctx.session = json.session
-                    
+
                     // load du dico de l'application
                     let dico_app = require('../config/dico/' + this.state.app + '/' + this.state.app + '.js')
                     Dico.apps[dico_app] = dico_app
+                    console.log("Chargement de", Dico.apps[dico_app])
 
                     // Load de l'aide de l'application
                     fetch('/api/help/' + this.state.app, { credentials: 'same-origin' })
