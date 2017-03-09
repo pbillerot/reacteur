@@ -38,8 +38,12 @@ export default class PagePortail extends React.Component {
             .then(response => {
                 response.json().then(json => {
                     this.state.is_data_recepted = true
+                    
+                    // Recup des données de la session
                     this.state.ctx.session = json.session
+                    // Récup de lensembles des dictionnaires
                     Dico.apps = json.apps
+
                     ToolsUI.showAlert(this.state.ctx.session.alerts)
                     this.setState({})
                 })

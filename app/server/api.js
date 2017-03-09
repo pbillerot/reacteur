@@ -381,18 +381,8 @@ router.put('/cnx/close', function (req, res) {
 
 router.get('/session', function (req, res) {
   //console.log("SESSION", req.session)
-  res.status(200).json(req.session) // OK
-})
-
-router.get('/session/:app', function (req, res) {
-  //console.log("SESSION...", Dico)
-  if (!Dico.apps[req.params.app]) {
-    Reacteur.load_dico()
-  }
   res.status(200).json({
     session: req.session,
-    appname: req.params.app,
-    app: Dico.apps[req.params.app]
   })
 })
 
@@ -404,9 +394,8 @@ router.get('/portail', function (req, res) {
   if (!Dico.apps["reacteur"]) {
     Reacteur.load_dico()
   }
-  //res.status(200).send(stringify({ session: req.session, apps: Dico.apps }))
+  // on retourne lensembles des dictionnaires
   res.status(200).json({ session: req.session, apps: Dico.apps })
-  //res.status(200).send(JSON.stringify({ session: req.session, apps: Dico.apps }))
 })
 
 router.get('/alerter_raz', function (req, res) {

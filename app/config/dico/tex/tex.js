@@ -1,7 +1,7 @@
 
 module.exports = {
     title: "TEX",
-    desc: "Tables EXemples pour tester le framework REACTEUR",
+    desc: "Tables EXemples pour tester le framework REACTEUR...",
     version: "1.3.8",
     // Groupe habilité à utiliser l'application
     // Si le user est dans le groupe, 

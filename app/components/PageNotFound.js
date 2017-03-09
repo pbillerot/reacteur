@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Link } from 'react-router';
-const {Button, Card, CardText, Content, Footer, Header, IconButton
-  , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window} = require('./w3.jsx')
+const { Button, Card, CardText, Content, Footer, Header, IconButton
+  , Menubar, Nav, Navbar, NavGroup, Sidebar, Table, Window } = require('./w3.jsx')
 
 import { ctx, Dico } from '../config/Dico'
 import { Tools } from '../config/Tools'
@@ -17,18 +17,23 @@ export default class PageNotFound extends React.Component {
     this.state = {
       w3_sidebar_open: false
     }
+    this.handlePage = this.handlePage.bind(this);
   }
-  handlerCtx(obj) {
+  handlePage(obj) {
     this.setState(obj)
   }
 
   render() {
     return (
       <div>
-        <ContainerSidebar apex={this} {...this.props} />
+        <ContainerSidebar page={this} {...this.state} {...this.props} />
         <ContainerContent>
-          <Header title="Page not found" apex={this} />
-
+          <div id="myTop" className="w3-top w3-container w3-padding-16 w3-theme-l1 w3-large w3-show-inline-block">
+            <i className="fa fa-bars w3-opennav w3-hide-large w3-xlarge w3-margin-right"
+              onClick={(e) => this.handlePage({ w3_sidebar_open: true })}
+            ></i>
+            <span id="myIntro">Page not found</span>
+          </div>
           <Card style={{ width: '100%', margin: 'auto' }}>
             <h1>404</h1>
             <h2>Page not found!</h2>

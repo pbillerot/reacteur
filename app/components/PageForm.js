@@ -49,12 +49,18 @@ export default class PageForm extends React.Component {
     componentDidMount() {
         //console.log('PageForm.componentDidMount...')
         this.state.is_data_recepted = false
-        fetch('/api/session/' + this.state.app, { credentials: 'same-origin' })
+        fetch('/api/session', { credentials: 'same-origin' })
             .then(response => {
                 response.json().then(json => {
                     this.state.is_data_recepted = true
+
+                    // Recup des données de la session
                     this.state.ctx.session = json.session
-                    Dico.apps[json.appname] = json.app
+                    
+                    // load du dico de l'application
+                    let dico_app = require('../config/dico/' + this.state.app + '/' + this.state.app + '.js')
+                    Dico.apps[dico_app] = dico_app
+                    
                     this.setState({})
                     ToolsUI.showAlert(this.state.ctx.session.alerts)
                 })
