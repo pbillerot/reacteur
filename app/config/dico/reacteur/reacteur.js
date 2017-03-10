@@ -77,7 +77,7 @@ module.exports = {
             views: {
                 vall: {
                     title: 'Token...',
-                    group: 'BIDON',
+                    //group: 'BIDON',
                     elements: {
                         tok_id: {},
                         tok_pseudo: {},
@@ -371,7 +371,7 @@ module.exports = {
                     title: "Changer mon adresse email",
                     action_title: 'Valider',
                     return_route: '/',
-                    group: '',
+                    //group: '',
                     owner: true,
                     elements: {
                         user_pseudo: { is_read_only: true },

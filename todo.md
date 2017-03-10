@@ -1,6 +1,7 @@
 # TODO
 
-
+- évol case sélection pour suppression
+- view ligne sélectionnée - ne pas la centrer horizontalement
 - changer message mail émis dans la popup
 - bug aff des champs hidden
 - bug aff page courante dans le header si scro

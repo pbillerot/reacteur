@@ -43,11 +43,6 @@ export default class ContainerForm extends React.Component {
                 session: this.props.ctx.session,
             }
         }
-        // let rubs = Dico.apps[this.props.app].tables[this.props.table].elements
-        // let fields = Dico.apps[this.props.app].tables[this.props.table].forms[this.props.form].elements
-        // Object.keys(fields).forEach(key => {
-        //     this.state.ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
-        // })
         this.onEditRow = this.onEditRow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.checkFormulaire = this.checkFormulaire.bind(this);
@@ -100,14 +95,17 @@ export default class ContainerForm extends React.Component {
         }
     }
     componentDidMount() {
-        //console.log('ContainerForm.componentDidMount...')
+        //console.log('ContainerForm.componentDidMount...')        
         this.getData(this.state.action, this.state.app, this.state.table, this.state.view, this.state.form, this.state.id,
             (result) => {
             })
     }
 
     checkFormulaire() {
+        //console.log('ContainerForm.checkFormulaire...', this.state.ctx.elements)
         this.state.is_form_valide = true;
+        this.state.is_read_only = false
+        this.state.is_error = false
         if (this.state.action == 'view' || this.state.action == 'delete')
             this.state.is_read_only = true
 
@@ -168,17 +166,20 @@ export default class ContainerForm extends React.Component {
         this.state.id = id
         this.state.key_name = Dico.apps[app].tables[table].key
         this.state.formulaire = Dico.apps[app].tables[table].forms[form]
+        
+        // initialisation du contexte des éléments
         this.state.ctx.elements = {}
         Object.keys(Dico.apps[app].tables[table].forms[form].elements).forEach(key => {
             this.state.ctx.elements[key] = Object.assign({},
                 Dico.apps[app].tables[table].elements[key],
                 Dico.apps[app].tables[table].forms[form].elements[key])
         })
-
         Object.keys(this.state.ctx.elements).forEach(key => {
             this.state.ctx.elements[key].value = ''
             this.state.ctx.elements[key].b_valide = false
         })
+        //console.log("ctx.elements", this.state.ctx.elements)
+
         if (action == 'view' || action == 'edit' || action == 'delete') {
             fetch('/api/form/' + app + '/' + table + '/' + view + '/' + form + '/' + id,
                 { credentials: 'same-origin' })

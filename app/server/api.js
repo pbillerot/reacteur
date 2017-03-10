@@ -39,25 +39,14 @@ router.get('/help/:app', function (req, res) {
 })
 
 /**
- * Obtention du dictionnaire d'une application
- */
-router.get('/dico/:app', function (req, res) {
-  let file = __dirname + '/../config/' + req.params.app + '.js'
-  //let app = new SelfReloadJSON(file);
-  let app = {}
-  delete require.cache[require.resolve(file)]
-  app[req.params.app] = require(file)
-  // let path = __dirname + '/../config/' + req.params.app + '.js';
-  // let file = fs.readFileSync(path, 'utf8');
-  res.send(JSON.stringify(app[req.params.app]));
-  //res.send(JSON.stringify(app));
-})
-
-/**
  * Mise à jour d'un enregistreemnt
  */
 router.post('/rec/:app/:table/:view/:form/:id', function (req, res) {
   //console.log(req.url)
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
+
   async.waterfall([
     function (callback) {
       console.log('FORM_UPDATE...')
@@ -107,6 +96,10 @@ router.post('/rec/:app/:table/:view/:form/:id', function (req, res) {
  * Création d'un enregistreement
  */
 router.put('/rec/:app/:table/:view/:form', function (req, res) {
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
+
   async.waterfall([
     function (callback) {
       console.log('FORM_ADD...')
@@ -155,6 +148,9 @@ router.put('/rec/:app/:table/:view/:form', function (req, res) {
  * Suppression d'un enregistrement
  */
 router.delete('/rec/:app/:table/:view/:form/:id', function (req, res) {
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
   async.waterfall([
     function (callback) {
       console.log('FORM_DELETE...')
@@ -205,6 +201,9 @@ router.delete('/rec/:app/:table/:view/:form/:id', function (req, res) {
  * Lecture d'un enregistrement
  */
 router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
   async.waterfall([
     function (callback) {
       console.log('FORM_READ...')
@@ -246,7 +245,10 @@ router.get('/form/:app/:table/:view/:form/:id', function (req, res) {
  * Lecture d'une vue
  */
 router.put('/view/:app/:table/:view', function (req, res) {
-  console.log("params:", req.body)
+  //console.log("params:", req.body)
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
   async.waterfall([
     function (callback) {
       console.log('VIEW...')
@@ -289,60 +291,12 @@ router.put('/view/:app/:table/:view', function (req, res) {
 })
 
 /**
- * Lecture d'une vue issue d'une rubrque de type view
- */
-router.put('/view_rub/:app/:table/:element', function (req, res) {
-  console.log("url:", req.url, "params:", req.body)
-  async.waterfall([
-    function (callback) {
-      console.log('VIEW_RUB...')
-      let ctx = {}
-      ctx.req = req
-      ctx.session = req.session
-      ctx.app = req.params.app
-
-      ctx.table = Dico.apps[req.params.app].tables[req.params.table].elements[req.params.element].view.table
-      ctx.view = Dico.apps[req.params.app].tables[req.params.table].elements[req.params.element].view.view
-
-      ctx.vue = Object.assign({},
-        Dico.apps[req.params.app].tables[ctx.table].views[ctx.view],
-        Dico.apps[req.params.app].tables[req.params.table].elements[req.params.element].view
-      )
-
-      ctx.filter = req.body.filter
-      ctx.page_current = req.body.page_current
-      ctx.page_total = 0
-      ctx.tableur = []
-      ctx.key_name = Dico.apps[req.params.app].tables[ctx.table].key
-
-      let cols = ctx.vue.elements
-      let rubs = Dico.apps[req.params.app].tables[ctx.table].elements
-      ctx.elements = {}
-      Object.keys(cols).forEach(key => {
-        ctx.elements[key] = Object.assign({}, rubs[key], cols[key])
-      })
-      callback(null, ctx)
-    },
-    //Reacteur.api_check_session,
-    Reacteur.api_check_group_view,
-    Reacteur.api_read_view,
-    function (ctx, callback) {
-      console.log('END')
-      //res.status(200).json(JSON.stringify(ctx.tableur))
-      res.status(200).json({ rows: ctx.tableur, page_total: ctx.page_total })
-    }
-  ],
-    function (err, result) {
-      console.log(err, result)
-      res.status(err).json(result) // KO
-    }
-  )
-})
-
-/**
  * Connexion Authentification
  */
 router.put('/cnx/ident', function (req, res) {
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
   async.waterfall([
     function (callback) {
       console.log('IDENT...')
@@ -381,6 +335,9 @@ router.put('/cnx/close', function (req, res) {
 
 router.get('/session', function (req, res) {
   //console.log("SESSION", req.session)
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
   res.status(200).json({
     session: req.session,
   })
@@ -408,6 +365,9 @@ router.get('/alerter_raz', function (req, res) {
  * et redirection sur l'url trouvée
  */
 router.get('/toctoc/:token', function (req, res) {
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
   async.waterfall([
     function (callback) {
       console.log('TOCTOC...')
@@ -431,6 +391,9 @@ router.get('/toctoc/:token', function (req, res) {
 })
 
 router.get('/select/:app/:table/:rub/:input', function (req, res) {
+  if (!Dico.apps["reacteur"]) {
+    Reacteur.load_dico()
+  }
   async.waterfall([
     function (callback) {
       console.log('SELECT...')

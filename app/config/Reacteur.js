@@ -109,7 +109,7 @@ const Reacteur = {
                     count++
                     if (err) {
                         if (!isCallback) {
-                            callback(500, Reacteur.message(ctx, ctx, 5001))
+                            callback(500, Reacteur.message(ctx, 5001))
                             isCallback = true
                         }
                     } else {
@@ -225,7 +225,7 @@ const Reacteur = {
      * https://github.com/nodemailer/nodemailer
      */
     sendMail(key, ctx, callback) {
-        //console.log('sendMail', key, ctx)
+        console.log('SENDMAIL...')
         let transport = nodemailer.createTransport(Reacteur.config.smtpConfig)
         let mail = ctx.elements[key].mail(ctx)
 
@@ -237,10 +237,10 @@ const Reacteur = {
         Object.keys(ctx.elements).forEach(key => {
             data[key] = ctx.elements[key].value
         })
-        let md = ejs.renderFile(__dirname + '/../config/' + fileMail, data, {}, function (err, str) {
+        let md = ejs.renderFile(__dirname + '/../config/dico/reacteur/' + fileMail, data, {}, function (err, str) {
             //console.log('ejs', err, str)
             if (err) {
-                callback(5001, Reacteur.message(ctx, 5001))
+                callback(500, Reacteur.message(ctx, 5001))
             } else {
                 mail.html = str
                 //console.log('mail',mail)
