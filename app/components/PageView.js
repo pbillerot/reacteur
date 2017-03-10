@@ -70,7 +70,7 @@ export default class PageView extends React.Component {
                     
                     // load du dico de l'application
                     let dico_app = require('../config/dico/' + this.state.app + '/' + this.state.app + '.js')
-                    Dico.apps[dico_app] = dico_app
+                    Dico.apps[this.state.app] = dico_app
                     
                     this.setState({})
                     ToolsUI.showAlert(this.state.ctx.session.alerts)

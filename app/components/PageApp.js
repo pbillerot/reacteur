@@ -47,8 +47,8 @@ export default class PageApp extends React.Component {
 
                     // load du dico de l'application
                     let dico_app = require('../config/dico/' + this.state.app + '/' + this.state.app + '.js')
-                    Dico.apps[dico_app] = dico_app
-                    console.log("Chargement de", Dico.apps[dico_app])
+                    Dico.apps[this.state.app] = dico_app
+                    console.log("Chargement de", this.state.app, Dico.apps[this.state.app])
 
                     // Load de l'aide de l'application
                     fetch('/api/help/' + this.state.app, { credentials: 'same-origin' })
@@ -72,7 +72,7 @@ export default class PageApp extends React.Component {
     }
 
     render() {
-        //console.log("PageApp", this.state)
+        //console.log("PageApp", this.state.app)
         if (Dico.apps[this.state.app] && this.state.is_data_recepted) {
             return (
                 <div>

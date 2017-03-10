@@ -126,7 +126,7 @@ router.put('/rec/:app/:table/:view/:form', function (req, res) {
       Object.keys(fields).forEach(key => {
         ctx.elements[key] = Object.assign({}, rubs[key], fields[key])
       })
-      console.log('CTXXXX', ctx.elements)
+      //console.log('CTXXXX', ctx.elements)
       callback(null, ctx)
     },
     //Reacteur.api_check_session_forgetpwd,
