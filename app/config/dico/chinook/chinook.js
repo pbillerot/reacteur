@@ -305,11 +305,19 @@ module.exports = {
                     // error: "Required with 2 caracters minimum",
                 },
                 Milliseconds: {
-                    label_long: "Milliseconds",
-                    label_short: "Milliseconds",
-                    type: "text",
-                    placeholder: "milliseconds",
+                    label_long: "Duration",
+                    label_short: "Duration",
+                    type: "number",
+                    number: {
+                        displayType: 'input',
+                        suffix: ' sec.',
+                        //thousandSeparator: ' ',
+                    },
+                    placeholder: "duration",
                     maxlength: 10,
+                    server_record: function (value) {
+                        return value * 1000
+                    },
                     // is_valide(value, ctx) {
                     //     return !validator.isEmpty(value) && value.length > 1
                     // },
@@ -318,9 +326,12 @@ module.exports = {
                 Bytes: {
                     label_long: "Bytes",
                     label_short: "Bytes",
-                    type: "text",
+                    type: "number",
+                    number: {
+                        displayType: 'input',
+                        //thousandSeparator: ' ',
+                    },
                     placeholder: "bytes",
-                    maxlength: 10,
                     // is_valide(value, ctx) {
                     //     return !validator.isEmpty(value) && value.length > 1
                     // },
@@ -329,9 +340,15 @@ module.exports = {
                 UnitPrice: {
                     label_long: "Unit Price",
                     label_short: "Unit Price",
-                    type: "text",
+                    type: "number",
+                    number: {
+                        displayType: 'input',
+                        thousandSeparator: true,
+                        suffix: ' €',
+                        decimalPrecision: true
+                    },
                     placeholder: "unit price",
-                    pattern: "(\d{3})([\.])(\d{2})",
+                    //pattern: "(\d{3})([\.])(\d{2})",
                     maxlength: 10,
                     // is_valide(value, ctx) {
                     //     return !validator.isEmpty(value) && value.length > 1

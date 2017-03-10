@@ -6,6 +6,7 @@ import { Link, browserHistory } from 'react-router';
 
 import Select from 'react-select';
 import { Checkbox, CheckboxGroup } from 'react-checkbox-group';
+import NumberFormat from 'react-number-format';
 
 // W3
 const { Alerter, Card, Content, Footer, Header, IconButton
@@ -719,6 +720,18 @@ class Field extends React.Component {
                         >
                             {element.label_long}
                         </Link>
+                    )
+                case 'number':
+                    return (
+                        <NumberFormat className="w3-input w3-border"
+                            maxLength={element.maxlength}
+                            pattern={element.pattern}
+                            placeholder={element.placeholder}
+                            disabled={element.is_read_only}
+                            value={element.value}
+                            onChange={this.handleChange}
+                            {...element.number}
+                        />
                     )
                 case 'password':
                     return (

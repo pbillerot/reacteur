@@ -21,4 +21,4 @@ x pager http://react-component.github.io/pager/build/examples/simple.html
 x limiter le nbre de lignes affichées à 50 par défaut
 
 ## MISE EN PRODUCTION
-
+npm install --save react-number-format

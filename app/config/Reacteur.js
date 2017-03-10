@@ -970,7 +970,7 @@ const Reacteur = {
                             let dico = prefix + '/' + path.basename(filename, ".js") + '/' + filename
                             console.log("DICO reload", filename, eventType)
                             delete require.cache[require.resolve(dico)]
-                            Dico.apps[path.basename(filename, ".js")] = require(dico)
+                            Dico.apps[file] = require(dico)
                         }
                     })
                 }
