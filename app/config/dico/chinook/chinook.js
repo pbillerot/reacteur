@@ -307,12 +307,7 @@ module.exports = {
                 Milliseconds: {
                     label_long: "Duration",
                     label_short: "Duration",
-                    type: "number",
-                    number: {
-                        displayType: 'input',
-                        suffix: ' sec.',
-                        //thousandSeparator: ' ',
-                    },
+                    type: "text",
                     placeholder: "duration",
                     maxlength: 10,
                     server_record: function (value) {
@@ -326,34 +321,31 @@ module.exports = {
                 Bytes: {
                     label_long: "Bytes",
                     label_short: "Bytes",
-                    type: "number",
-                    number: {
-                        displayType: 'input',
-                        //thousandSeparator: ' ',
-                    },
+                    type: "text",
                     placeholder: "bytes",
-                    // is_valide(value, ctx) {
-                    //     return !validator.isEmpty(value) && value.length > 1
-                    // },
-                    // error: "Required with 2 caracters minimum",
+                    pattern: "^[0-9]*$",
+                    maxlength: 9,
+                    is_valide(value, ctx) {
+                        return validator.isInt(value.toString())
+                    },
+                    error: "not numeric",
+                    title: "Seuls les chiffres sont acceptés",
                 },
                 UnitPrice: {
                     label_long: "Unit Price",
                     label_short: "Unit Price",
-                    type: "number",
-                    number: {
-                        displayType: 'input',
-                        thousandSeparator: true,
-                        suffix: ' €',
-                        decimalPrecision: true
-                    },
+                    type: "text",
                     placeholder: "unit price",
-                    //pattern: "(\d{3})([\.])(\d{2})",
+                    pattern: "^[0-9]*(,|[\.]){0,1}[0-9]{0,2}$",
                     maxlength: 10,
-                    // is_valide(value, ctx) {
-                    //     return !validator.isEmpty(value) && value.length > 1
-                    // },
-                    // error: "Required with 2 caracters minimum",
+                    is_valide(value, ctx) {
+                        return validator.isCurrency(value.toString(),
+                        {
+                            allow_negatives: false, 
+                            thousands_separator: ' ',
+                        })
+                    },
+                    error: "not currency",
                 },
             },
             views: {

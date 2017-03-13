@@ -6,7 +6,6 @@ import { Link, browserHistory } from 'react-router';
 
 import Select from 'react-select';
 import { Checkbox, CheckboxGroup } from 'react-checkbox-group';
-import NumberFormat from 'react-number-format';
 
 // W3
 const { Alerter, Card, Content, Footer, Header, IconButton
@@ -167,7 +166,7 @@ export default class ContainerForm extends React.Component {
         this.state.id = id
         this.state.key_name = Dico.apps[app].tables[table].key
         this.state.formulaire = Dico.apps[app].tables[table].forms[form]
-        
+
         // initialisation du contexte des éléments
         this.state.ctx.elements = {}
         Object.keys(Dico.apps[app].tables[table].forms[form].elements).forEach(key => {
@@ -598,8 +597,18 @@ class Field extends React.Component {
     handleChange(e) {
         //console.log('Field.handleChange: ', this.props.id, e.target.value)
         //e.preventDefault();
-        this.setState({ value: e.target.value })
-        this.props.onEditRow(this.props.id, e.target.value)
+
+        // Ctrl de surface
+        let bret = true
+        if (this.props.ctx.elements[this.props.id].pattern) {
+            let exp = new RegExp(this.props.ctx.elements[this.props.id].pattern, "g")
+            bret = exp.test(e.target.value)
+            //console.log("CTRL SURFACE", bret, exp, e.target.value)
+        }
+        if (bret) {
+            this.setState({ value: e.target.value })
+            this.props.onEditRow(this.props.id, e.target.value)
+        }
     }
     handleSelectChange(option) {
         //console.log('Field.handleChange: ', this.props.id, option)
@@ -721,18 +730,6 @@ class Field extends React.Component {
                             {element.label_long}
                         </Link>
                     )
-                case 'number':
-                    return (
-                        <NumberFormat className="w3-input w3-border"
-                            maxLength={element.maxlength}
-                            pattern={element.pattern}
-                            placeholder={element.placeholder}
-                            disabled={element.is_read_only}
-                            value={element.value}
-                            onChange={this.handleChange}
-                            {...element.number}
-                        />
-                    )
                 case 'password':
                     return (
                         <input className="w3-input w3-border" type="password"
@@ -806,6 +803,15 @@ class Field extends React.Component {
                         </div>
                     )
                 case 'text':
+                    // entier   : "^([0-9]*|[-][0-9]+)$"
+                    // montant  : "/^[-]{0,1}[0-9]+(,|[\.]){0,1}[0-9]{0,2}$/"
+                    // pseudo   : "[A-Z,a-z,0-9]*"
+                    // password : "[A-Z,a-z,0-9,_\-]*"
+                    // email    : "[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
+                    // CANNOT contain the following characters: ' or " 
+                    //          : "[^'\x22]+"
+                    // title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters"
+                    //          : "(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
                     if ((element.is_read_only || element.is_protected) && element.display) {
                         return (<span dangerouslySetInnerHTML={{ __html: element.display(element.value, this.props.ctx) }}></span>)
                     } else {
